@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoParts POS - Spare Parts & Vehicle Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#475569',
+                        dark: '#0f172a',
+                        light: '#f8fafc'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Smooth transitions */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans text-gray-800 h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-dark text-white flex flex-col transition-all duration-300 shadow-xl z-20">
+        <div class="h-16 flex items-center px-6 border-b border-gray-700 bg-gray-900">
+            <i class="fa-solid fa-car-side text-blue-400 text-2xl mr-3"></i>
+            <span class="text-xl font-bold tracking-wider text-white">ADDI POS</span>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li>
+                    <a href="#" onclick="switchView('dashboard')"
+                        class="nav-link block px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                        data-view="dashboard">
+                        <i class="fa-solid fa-chart-pie w-6"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="switchView('pos')"
+                        class="nav-link block px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                        data-view="pos">
+                        <i class="fa-solid fa-cash-register w-6"></i> POS
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="switchView('inventory')"
+                        class="nav-link block px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                        data-view="inventory">
+                        <i class="fa-solid fa-boxes-stacked w-6"></i> Inventory
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="switchView('reports')"
+                        class="nav-link block px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                        data-view="reports">
+                        <i class="fa-solid fa-chart-line w-6"></i> Reports
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="switchView('invoices')"
+                        class="nav-link block px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                        data-view="invoices">
+                        <i class="fa-solid fa-file-invoice-dollar w-6"></i> Invoices
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="switchView('credits')"
+                        class="nav-link block px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                        data-view="credits">
+                        <i class="fa-solid fa-handshake w-6"></i> Credits / Pay
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="p-4 border-t border-gray-700 text-xs text-gray-400 text-center">
+            &copy; 2026 ADDI POS
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-gray-50 relative">
+        <!-- Header -->
+        <header class="h-16 bg-white shadow-sm flex items-center justify-between px-6 z-10">
+            <h2 class="text-xl font-semibold text-gray-700" id="current-view-title">Dashboard</h2>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-500" id="datetime-display"></span>
+                <div class="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                    A
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto p-6 relative">
+
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="view-section active fade-in pb-10">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Stat Cards -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
+                        <div class="p-4 rounded-lg bg-blue-50 text-blue-600 mr-4">
+                            <i class="fa-solid fa-money-bill-wave text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Daily Sales</p>
+                            <h3 class="text-2xl font-bold text-gray-800" id="dash-daily-sales">Rs. 0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
+                        <div class="p-4 rounded-lg bg-green-50 text-green-600 mr-4">
+                            <i class="fa-solid fa-chart-line text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Daily Profit</p>
+                            <h3 class="text-2xl font-bold text-gray-800" id="dash-daily-profit">Rs. 0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
+                        <div class="p-4 rounded-lg bg-purple-50 text-purple-600 mr-4">
+                            <i class="fa-solid fa-cube text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Total Items</p>
+                            <h3 class="text-2xl font-bold text-gray-800" id="dash-total-items">0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center">
+                        <div class="p-4 rounded-lg bg-red-50 text-red-600 mr-4">
+                            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Low Stock Alerts</p>
+                            <h3 class="text-2xl font-bold text-gray-800" id="dash-low-stock">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Recent Sales -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 col-span-2">
+                        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="text-lg font-semibold text-gray-800">Recent Sales</h3>
+                            <input type="date" id="dash-sales-date"
+                                class="border border-gray-300 rounded px-2 py-1 text-sm bg-white outline-none focus:border-blue-500"
+                                onchange="loadDashboardSales()">
+                        </div>
+                        <div class="p-6">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left" id="recent-sales-table">
+                                    <thead>
+                                        <tr class="text-gray-500 text-sm border-b">
+                                            <th class="pb-3 font-medium">Receipt #</th>
+                                            <th class="pb-3 font-medium">Time</th>
+                                            <th class="pb-3 font-medium">Total</th>
+                                            <th class="pb-3 font-medium">Method</th>
+                                            <th class="pb-3 font-medium">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm" id="recent-sales-body">
+                                        <!-- populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Low Stock Alerts -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 col-span-1">
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-800 text-red-600">Low Stock Warning</h3>
+                        </div>
+                        <div class="p-6 h-64 overflow-y-auto">
+                            <ul class="space-y-3" id="dash-low-stock-list">
+                                <!-- populated dynamically -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- POS View -->
+            <div id="view-pos" class="view-section h-full fade-in pb-4">
+                <div class="flex flex-col lg:flex-row h-full gap-6">
+                    <!-- Products Area -->
+                    <div
+                        class="flex-1 flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-4 border-b border-gray-100 bg-gray-50">
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <i class="fa-solid fa-search text-gray-400"></i>
+                                </span>
+                                <input type="text" id="pos-search"
+                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Search product by name, SKU or chassis..."
+                                    onkeyup="filterPosProducts()">
+                            </div>
+                            <div class="flex gap-2 mt-3 overflow-x-auto pb-1" id="pos-categories">
+                                <button
+                                    class="px-4 py-1.5 rounded-full bg-blue-600 text-white text-sm whitespace-nowrap"
+                                    onclick="filterCategory('All')">All</button>
+                                <!-- Categories populated dynamically -->
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-y-auto p-4 bg-gray-50">
+                            <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="pos-product-list">
+                                <!-- Products populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cart Area -->
+                    <div
+                        class="w-full lg:w-[450px] flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 shrink-0">
+                        <div class="p-4 border-b border-gray-100 bg-gray-900 text-white rounded-t-xl">
+                            <h3 class="text-lg font-semibold"><i class="fa-solid fa-shopping-cart mr-2"></i> Current
+                                Order</h3>
+                        </div>
+                        <div class="flex-1 overflow-y-auto p-4" id="cart-items">
+                            <!-- Cart items populated dynamically -->
+                            <div class="text-center text-gray-400 mt-10" id="cart-empty-msg">
+                                <i class="fa-solid fa-box-open text-4xl mb-3"></i>
+                                <p>Cart is empty</p>
+                            </div>
+                        </div>
+                        <div class="p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                            <div class="space-y-2 mb-4">
+                                <div class="flex justify-between text-sm text-gray-600">
+                                    <span>Subtotal:</span>
+                                    <span id="cart-subtotal">Rs. 0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm text-gray-600">
+                                    <span>Discount:</span>
+                                    <div class="flex items-center w-32">
+                                        <input type="number" id="cart-discount"
+                                            class="w-full px-2 py-1 text-right border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
+                                            value="0" min="0" onchange="calculateTotal()">
+                                        <select id="cart-discount-type"
+                                            class="ml-1 px-1 py-1 border border-gray-300 rounded text-sm bg-white"
+                                            onchange="calculateTotal()">
+                                            <option value="flat">Rs</option>
+                                            <option value="percent">%</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center text-sm text-gray-600 mb-2">
+                                    <span>Extra Charge (Credit):</span>
+                                    <div class="flex items-center w-32">
+                                        <input type="number" id="cart-extra-charge"
+                                            class="w-full px-2 py-1 text-right border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
+                                            value="0" min="0" onchange="calculateTotal()" disabled>
+                                        <select id="cart-extra-charge-type"
+                                            class="ml-1 px-1 py-1 border border-gray-300 rounded text-sm bg-white"
+                                            onchange="calculateTotal()" disabled>
+                                            <option value="flat">Rs</option>
+                                            <option value="percent">%</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                class="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t border-gray-200 mb-4">
+                                <span>Total:</span>
+                                <span id="cart-total">Rs. 0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-sm text-gray-600 mb-1">Payment Method</label>
+                            <div class="flex gap-2">
+                                <button
+                                    class="flex-1 py-2 rounded border border-gray-300 bg-white text-sm pay-method active-pay"
+                                    data-method="Cash" onclick="setPayMethod('Cash', this)">Cash</button>
+                                <button class="flex-1 py-2 rounded border border-gray-300 bg-white text-sm pay-method"
+                                    data-method="Card" onclick="setPayMethod('Card', this)">Card</button>
+                                <button class="flex-1 py-2 rounded border border-gray-300 bg-white text-sm pay-method"
+                                    data-method="Credit" onclick="setPayMethod('Credit', this)">Credit</button>
+                                <button class="flex-1 py-2 rounded border border-gray-300 bg-white text-sm pay-method"
+                                    data-method="Split" onclick="setPayMethod('Split', this)">Split</button>
+                            </div>
+                        </div>
+                        <style>
+                            .active-pay {
+                                background-color: #eff6ff;
+                                border-color: #3b82f6;
+                                color: #1d4ed8;
+                                font-weight: 500;
+                            }
+                        </style>
+
+                        <div class="flex flex-col gap-2">
+                            <button onclick="checkout()"
+                                class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center shadow-md">
+                                <i class="fa-solid fa-check-circle mr-2"></i> Complete Sale
+                            </button>
+                            <button onclick="generateQuotation()"
+                                class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center shadow-sm">
+                                <i class="fa-solid fa-file-invoice mr-2"></i> Print Quotation
+                            </button>
+                            <button onclick="clearCart()"
+                                class="w-full py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-colors">
+                                Clear Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory View -->
+        <div id="view-inventory" class="view-section fade-in pb-10">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="relative w-full sm:w-96">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i class="fa-solid fa-search text-gray-400"></i>
+                        </span>
+                        <input type="text" id="inventory-search"
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Search inventory..." onkeyup="loadInventory()">
+                    </div>
+                    <button onclick="openProductModal()"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center whitespace-nowrap shadow-sm">
+                        <i class="fa-solid fa-plus mr-2"></i> Add Product
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    SKU/Code</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Product Name</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Category</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Stock</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Price (Rs)</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100" id="inventory-table-body">
+                            <!-- Inventory populated dynamically -->
+                        </tbody>
+                    </table>
+                    <div id="inventory-empty" class="hidden text-center py-10 text-gray-500">
+                        No products found. Add a new product to get started.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoices View -->
+        <div id="view-invoices" class="view-section fade-in pb-10">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="relative w-full sm:w-80">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i class="fa-solid fa-search text-gray-400"></i>
+                        </span>
+                        <input type="text" id="invoice-search"
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Search by Receipt ID..." onkeyup="loadInvoices()">
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <input type="date" id="invoice-date-filter"
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                            onchange="loadInvoices()">
+                        <button
+                            onclick="document.getElementById('invoice-date-filter').value=''; document.getElementById('invoice-search').value=''; loadInvoices()"
+                            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors text-sm shadow-sm whitespace-nowrap">
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Receipt #</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Date & Time</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Total</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Discount</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Payment Method</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100" id="invoice-table-body">
+                            <!-- Invoices populated dynamically -->
+                        </tbody>
+                    </table>
+                    <div id="invoice-empty" class="hidden text-center py-10 text-gray-500">
+                        No invoices found.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports View -->
+        <div id="view-reports" class="view-section fade-in pb-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Business Summary</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                            <span class="text-gray-600 font-medium">Total Inventory Value:</span>
+                            <span class="text-lg font-bold text-gray-900" id="report-stock-value">Rs. 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                            <span class="text-gray-600 font-medium">Total Items in Stock:</span>
+                            <span class="text-lg font-bold text-gray-900" id="report-total-stock">0</span>
+                        </div>
+                        <button onclick="exportStockValuation()"
+                            class="mt-4 w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center justify-center shadow-sm text-sm font-medium">
+                            <i class="fa-solid fa-file-excel mr-2"></i> Download Stock Report (Excel)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2 border-b pb-2">Sales Analytics (Excel)
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                            <div class="bg-gray-50 p-3 rounded-lg flex gap-2 border border-gray-100 items-end">
+                                <div class="flex-1">
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Daily
+                                        Report</label>
+                                    <input type="date" id="report-date"
+                                        class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm bg-white outline-none focus:border-blue-500">
+                                </div>
+                                <button onclick="exportDailySales()"
+                                    class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors flex items-center shadow-sm text-sm h-[34px]">
+                                    <i class="fa-solid fa-download"></i>
+                                </button>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-lg flex gap-2 border border-gray-100 items-end">
+                                <div class="flex-1">
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Monthly
+                                        Report</label>
+                                    <input type="month" id="report-month"
+                                        class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm bg-white outline-none focus:border-blue-500">
+                                </div>
+                                <button onclick="exportMonthlySales()"
+                                    class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors flex items-center shadow-sm text-sm h-[34px]"
+                                    title="Export Monthly Sales">
+                                    <i class="fa-solid fa-download"></i>
+                                </button>
+                            </div>
+                            <div
+                                class="bg-gray-50 p-3 rounded-lg flex gap-2 border border-gray-100 items-end md:col-span-1">
+                                <div class="flex-1">
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Slow Movement
+                                        Report (< 5 sales)</label>
+                                            <input type="month" id="report-slow-month"
+                                                class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm bg-white outline-none focus:border-blue-500">
+                                </div>
+                                <button onclick="exportSlowMovingReport()"
+                                    class="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded transition-colors flex items-center shadow-sm text-sm h-[34px]"
+                                    title="Export Slow Movement Report">
+                                    <i class="fa-solid fa-download"></i>
+                                </button>
+                            </div>
+                            <div
+                                class="bg-gray-50 p-3 rounded-lg flex gap-2 border border-gray-100 items-end md:col-span-1">
+                                <div class="flex-1">
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Fast Movement
+                                        Report (> 20 sales)</label>
+                                    <input type="month" id="report-fast-month"
+                                        class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm bg-white outline-none focus:border-blue-500">
+                                </div>
+                                <button onclick="exportFastMovingReport()"
+                                    class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded transition-colors flex items-center shadow-sm text-sm h-[34px]"
+                                    title="Export Fast Movement Report">
+                                    <i class="fa-solid fa-download"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2 border-b pb-2">Full DB Backup</h3>
+                    <button onclick="exportData()"
+                        class="mt-2 w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center shadow-sm text-sm font-medium">
+                        <i class="fa-solid fa-database mr-2"></i> Download Full Database (Excel)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Credits View -->
+        <div id="view-credits" class="view-section fade-in pb-10">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="relative w-full sm:w-80">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i class="fa-solid fa-search text-gray-400"></i>
+                        </span>
+                        <input type="text" id="credit-search"
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Search by customer name or ID..." onkeyup="loadCredits()">
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <select id="credit-status-filter"
+                            class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                            onchange="loadCredits()">
+                            <option value="all">All Status</option>
+                            <option value="pending" selected>Pending</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Customer</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Receipt #</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Total + Extra</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Paid Amount</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Balance</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Status</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100" id="credit-table-body">
+                            <!-- Credits populated dynamically -->
+                        </tbody>
+                    </table>
+                    <div id="credit-empty" class="hidden text-center py-10 text-gray-500">
+                        No credit records found.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+    </main>
+
+    <!-- Modals -->
+
+    <!-- Split Payment Modal -->
+    <div id="split-payment-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300"
+            id="split-payment-modal-content">
+            <div class="px-6 py-4 bg-gray-900 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold">Split Payment (Cash + Card)</h3>
+                <button onclick="closeSplitModal()" class="text-gray-400 hover:text-white"><i
+                        class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6">
+                <div class="mb-4 text-center">
+                    <p class="text-gray-500 text-sm">Total Due</p>
+                    <p class="text-3xl font-bold text-gray-800" id="split-total-display">Rs 0.00</p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cash Amount (Rs)</label>
+                    <input type="number" id="split-cash-amount" value="0" min="0" onkeyup="calcSplitAmount()"
+                        onchange="calcSplitAmount()"
+                        class="w-full px-3 py-3 text-lg font-semibold border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-right">
+                </div>
+
+                <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100 flex justify-between items-center">
+                    <span class="text-sm font-medium text-blue-800">Card Amount</span>
+                    <span class="text-xl font-bold text-blue-700" id="split-card-amount">Rs 0.00</span>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeSplitModal()"
+                        class="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">Cancel</button>
+                    <button type="button" onclick="confirmSplitCheckout()"
+                        class="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">Complete
+                        Sale</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer / Credit Info Modal -->
+    <div id="credit-info-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300"
+            id="credit-info-modal-content">
+            <div class="px-6 py-4 bg-gray-900 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold">Credit Customer Details</h3>
+                <button onclick="closeCreditInfoModal()" class="text-gray-400 hover:text-white"><i
+                        class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="credit-info-form" class="p-6">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Customer Name *</label>
+                    <input type="text" id="credit-cust-name" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                    <input type="text" id="credit-cust-phone" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">NIC (Optional)</label>
+                    <input type="text" id="credit-cust-nic"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Address (Optional)</label>
+                    <textarea id="credit-cust-address" rows="2"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Down Payment (Optional)</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="credit-down-payment" value="0" min="0" placeholder="Amount (Rs)"
+                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <select id="credit-down-payment-method"
+                            class="w-28 px-2 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 bg-white">
+                            <option value="Cash">Cash</option>
+                            <option value="Card">Card</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Duration (Months) - Optional</label>
+                    <input type="number" id="credit-months" value="0" min="0" onkeyup="calcMonthlyInstallment()"
+                        onchange="calcMonthlyInstallment()"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <div id="credit-monthly-calc" class="text-sm text-blue-600 mt-2 font-medium hidden">
+                        Est. Monthly: Rs <span id="credit-monthly-amount">0.00</span>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeCreditInfoModal()"
+                        class="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                    <button type="button" onclick="confirmCreditCheckout()"
+                        class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">Confirm
+                        & Checkout</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Credit Payment Modal -->
+    <div id="credit-pay-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300"
+            id="credit-pay-modal-content">
+            <div class="px-6 py-4 bg-gray-900 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold">Add Payment</h3>
+                <button onclick="closeCreditPayModal()" class="text-gray-400 hover:text-white"><i
+                        class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6">
+                <input type="hidden" id="pay-credit-id">
+                <div class="mb-2 text-sm text-gray-600 flex justify-between">
+                    <span>Total Due:</span> <span id="pay-credit-balance" class="font-bold text-red-600">Rs. 0.00</span>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount (Rs) *</label>
+                    <input type="number" id="pay-credit-amount" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        min="1">
+                </div>
+                <div class="mb-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                    <div class="flex gap-2">
+                        <label
+                            class="flex-1 flex items-center justify-center p-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500 has-[:checked]:text-blue-700 transition-colors">
+                            <input type="radio" name="credit-pay-method" value="Cash" class="hidden" checked>
+                            <i class="fa-solid fa-money-bills mr-2"></i> Cash
+                        </label>
+                        <label
+                            class="flex-1 flex items-center justify-center p-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500 has-[:checked]:text-blue-700 transition-colors">
+                            <input type="radio" name="credit-pay-method" value="Card" class="hidden">
+                            <i class="fa-solid fa-credit-card mr-2"></i> Card
+                        </label>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeCreditPayModal()"
+                        class="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                    <button type="button" onclick="submitCreditPayment()"
+                        class="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">Pay
+                        Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Ledger Modal -->
+    <div id="customer-ledger-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden transform scale-95 transition-transform duration-300"
+            id="customer-ledger-modal-content">
+            <div class="px-6 py-4 bg-gray-900 text-white flex justify-between items-center shrink-0">
+                <h3 class="text-lg font-bold"><i class="fa-solid fa-address-book mr-2"></i> Customer Ledger Profile</h3>
+                <button onclick="closeLedgerModal()" class="text-gray-400 hover:text-white"><i
+                        class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-1 bg-gray-50">
+                <!-- Customer Details -->
+                <div
+                    class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800" id="ledger-cust-name">-</h2>
+                        <div class="text-sm text-gray-600 mt-1 flex gap-4">
+                            <span><i class="fa-solid fa-phone mr-1"></i> <span id="ledger-cust-phone">-</span></span>
+                            <span><i class="fa-solid fa-id-card mr-1"></i> <span id="ledger-cust-nic">-</span></span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2" id="ledger-cust-address"></p>
+                    </div>
+                </div>
+
+                <!-- Pending / Active Bills -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3 border-b-2 border-red-200 pb-2"><i
+                            class="fa-solid fa-clock text-yellow-500 mr-2"></i> Active Credits (To be Paid)</h3>
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 border-b">
+                                <tr>
+                                    <th class="px-4 py-3 text-xs font-semibold text-gray-600">Receipt #</th>
+                                    <th class="px-4 py-3 text-xs font-semibold text-gray-600">Total Bill</th>
+                                    <th class="px-4 py-3 text-xs font-semibold text-gray-600">Paid</th>
+                                    <th class="px-4 py-3 text-xs font-semibold text-gray-600 text-red-600">Remaining
+                                        Balance</th>
+                                    <th class="px-4 py-3 text-xs font-semibold text-gray-600">Monthly Est.</th>
+                                    <th class="px-4 py-3 text-xs font-semibold text-gray-600">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ledger-pending-body" class="divide-y divide-gray-100 text-sm">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Completed Bills (Wenama) -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3 border-b-2 border-green-200 pb-2"><i
+                            class="fa-solid fa-check-circle text-green-500 mr-2"></i> Completed Credits</h3>
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+                        <table class="w-full text-left opacity-80">
+                            <thead class="bg-gray-50 border-b">
+                                <tr>
+                                    <th class="px-4 py-3 text-xs font-semibold text-gray-600">Receipt #</th>
+                                    <th class="px-4 py-3 text-xs font-semibold text-gray-600">Total Settled</th>
+                                    <th class="px-4 py-3 text-xs font-semibold text-gray-600">Status</th>
+                                    <th class="px-4 py-3 text-xs font-semibold text-gray-600">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ledger-completed-body" class="divide-y divide-gray-100 text-sm">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Payment History (Installments) -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3 border-b-2 border-blue-200 pb-2"><i
+                            class="fa-solid fa-money-bill-transfer text-blue-500 mr-2"></i> All Payment History
+                        (Installments)</h3>
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 max-h-60 overflow-y-auto">
+                        <ul id="ledger-history-list" class="space-y-3">
+                            <!-- Populated dynamically -->
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="p-4 bg-white border-t border-gray-200 shrink-0 text-right">
+                <button onclick="closeLedgerModal()"
+                    class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors">Close
+                    Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="product-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-300"
+            id="product-modal-content">
+            <div class="px-6 py-4 bg-gray-900 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold" id="product-modal-title">Add New Product</h3>
+                <button onclick="closeProductModal()" class="text-gray-400 hover:text-white"><i
+                        class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="product-form" onsubmit="saveProduct(event)" class="p-6">
+                <input type="hidden" id="product-id">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+                        <input type="text" id="prod-name" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">SKU / Barcode</label>
+                        <input type="text" id="prod-sku"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                        <select id="prod-category" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white">
+                            <option value="Engine">Engine</option>
+                            <option value="Body">Body</option>
+                            <option value="Hydraulics">Hydraulics</option>
+                            <option value="Electrical">Electrical</option>
+                            <option value="Transmission">Transmission</option>
+                            <option value="Tractor/Machinery">Tractor/Machinery</option>
+                            <option value="Accessories">Accessories</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Chassis / Engine Number</label>
+                        <input type="text" id="prod-chassis"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="For vehicles/tractors">
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 mt-6 pt-4 mb-4">
+                    <h4 class="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wider">Inventory & Pricing
+                    </h4>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cost Price (Rs) *</label>
+                            <input type="number" step="0.01" id="prod-cost" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Selling Price (Rs) *</label>
+                            <input type="number" step="0.01" id="prod-sell" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Current Stock *</label>
+                            <input type="number" id="prod-stock" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Min Stock Alert Level *</label>
+                            <input type="number" id="prod-min" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                value="5">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-8">
+                    <button type="button" onclick="closeProductModal()"
+                        class="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                    <button type="submit"
+                        class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">Save
+                        Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div id="receipt-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded shadow-2xl w-full max-w-sm overflow-hidden" id="receipt-modal-content">
+            <div class="p-6 text-center border-b border-dashed border-gray-300 h-96 overflow-y-auto"
+                id="receipt-print-area">
+                <h2 class="text-xl font-bold mb-1" id="receipt-title-text">AUTOPARTS POS</h2>
+                <p class="text-xs text-gray-500 mb-4">123 Main Street, City<br>Tel: 011-2345678</p>
+                <div
+                    class="text-left text-xs text-gray-600 mb-4 border-b border-dashed border-gray-300 pb-2 flex justify-between">
+                    <div>
+                        <span id="receipt-date"></span><br>
+                        <span id="receipt-time"></span>
+                    </div>
+                    <div class="text-right">
+                        <span id="receipt-type-label">Receipt:</span> #<span id="receipt-id"></span><br>
+                        Cashier: Admin
+                    </div>
+                </div>
+
+                <table class="w-full text-left text-xs mb-4">
+                    <thead>
+                        <tr class="border-b border-dashed border-gray-300">
+                            <th class="py-1">Item</th>
+                            <th class="py-1 text-center">Qty</th>
+                            <th class="py-1 text-right">Price</th>
+                            <th class="py-1 text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receipt-items">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+
+                <div class="text-right text-xs mb-4 space-y-1">
+                    <div class="flex justify-between w-full"><span>Subtotal:</span> <span id="receipt-sub">Rs.
+                            0.00</span></div>
+                    <div class="flex justify-between w-full"><span>Discount:</span> <span id="receipt-discount">Rs.
+                            0.00</span></div>
+                    <div
+                        class="flex justify-between w-full font-bold text-sm mt-1 pt-1 border-t border-dashed border-gray-300">
+                        <span>Net Total:</span> <span id="receipt-total">Rs. 0.00</span>
+                    </div>
+                    <div class="flex justify-between w-full mt-1" id="receipt-payment-row"><span>Payment:</span> <span
+                            id="receipt-method">Cash</span></div>
+                </div>
+
+                <p class="text-xs text-center mt-6" id="receipt-footer-msg">Thank You for your business!</p>
+            </div>
+            <div class="p-4 bg-gray-50 flex justify-between gap-3">
+                <button onclick="closeReceiptModal()"
+                    class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-100 transition-colors text-sm">Close</button>
+                <button onclick="printReceipt()"
+                    class="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"><i
+                        class="fa-solid fa-print mr-1"></i> Print</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

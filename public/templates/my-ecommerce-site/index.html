@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="si">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Journey & Creations | Portfolio</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- Animated Interactive Background -->
+    <div class="interactive-bg">
+        <div class="cursor-glow"></div>
+        <div class="ambient-glow1"></div>
+        <div class="ambient-glow2"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="logo">
+            <a href="#home">Explore<span>.Me</span></a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#travel">Travel</a></li>
+            <li><a href="#content">Content</a></li>
+            <li><a href="#projects">Projects</a></li>
+        </ul>
+        <div class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <h1 class="fade-in-up">Discover the World with Me</h1>
+            <p class="fade-in-up delay-1">Traveling, creating, and capturing moments across the globe. Join me on my
+                adventures and explore my projects.</p>
+            <div class="hero-btns fade-in-up delay-2">
+                <a href="#travel" class="btn primary-btn">View My Travels</a>
+                <a href="#projects" class="btn secondary-btn">See Projects</a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="mouse">
+                <div class="wheel"></div>
+            </div>
+            <p>Scroll Down</p>
+        </div>
+    </section>
+
+    <!-- Travel Gallery Section -->
+    <section id="travel" class="section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Travel Diaries</h2>
+                <p>Capturing the beauty of the world through my lens.</p>
+            </div>
+
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="assets/images/beach.png" alt="Tropical Beach">
+                    <div class="overlay">
+                        <div class="overlay-info">
+                            <h3>Tropical Escapes</h3>
+                            <a href="#" class="view-btn"><i class="fas fa-eye"></i> View</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Placeholder for more travel media -->
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1" alt="Mountain Landscape">
+                    <div class="overlay">
+                        <div class="overlay-info">
+                            <h3>Mountain Highs</h3>
+                            <a href="#" class="view-btn"><i class="fas fa-eye"></i> View</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-item video-item">
+                    <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e" alt="Cityscape">
+                    <div class="play-icon"><i class="fas fa-play"></i></div>
+                    <div class="overlay">
+                        <div class="overlay-info">
+                            <h3>Vlog: City Tour</h3>
+                            <a href="#" class="view-btn"><i class="fas fa-play"></i> Watch Video</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button class="btn outline-btn">Load More Adventures</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Content/Articles Section -->
+    <section id="content" class="section dark-section">
+        <div class="container">
+            <div class="section-title text-light">
+                <h2>Stories & Downloads</h2>
+                <p>Read my latest thoughts and grab exclusive content.</p>
+            </div>
+
+            <div class="content-cards">
+                <div class="card">
+                    <div class="card-img">
+                        <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643" alt="Writing Desk">
+                    </div>
+                    <div class="card-body">
+                        <span class="category">Guide</span>
+                        <h3>How to Pack for a World Tour</h3>
+                        <p>Essential tips and checklist to prepare for your next big adventure.</p>
+                        <div class="card-footer">
+                            <a href="#" class="read-more">Read Article</a>
+                            <a href="#" class="download-btn" title="Download PDF"><i class="fas fa-download"></i>
+                                Download PDF</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-img">
+                        <img src="https://images.unsplash.com/photo-1432821596592-e2c18b78144f" alt="Journaling">
+                    </div>
+                    <div class="card-body">
+                        <span class="category">Story</span>
+                        <h3>My Journey Across Asia</h3>
+                        <p>A personal memoir of the beautiful people and places I encountered.</p>
+                        <div class="card-footer">
+                            <a href="#" class="read-more">Read Article</a>
+                            <a href="#" class="download-btn" title="Download ZIP"><i class="fas fa-download"></i>
+                                Resources</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="section">
+        <div class="container">
+            <div class="section-title">
+                <h2>My Projects</h2>
+                <p>A collection of creative works and digital experiences built by me.</p>
+            </div>
+
+            <div class="projects-container">
+                <div class="project-box">
+                    <div class="project-info">
+                        <h3>Photography App Design</h3>
+                        <p>A sleek, dark-themed UI concept for a mobile photography portfolio.</p>
+                        <div class="tags">
+                            <span>UI/UX</span>
+                            <span>Design</span>
+                            <span>Figma</span>
+                        </div>
+                        <a href="#" class="btn primary-btn small-btn">View Project</a>
+                    </div>
+                    <div class="project-image">
+                        <div class="mockup"
+                            style="background-image: url('https://images.unsplash.com/photo-1541462608143-67571c6738dd');">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="project-box reverse">
+                    <div class="project-info">
+                        <h3>Travel Tracker Dashboard</h3>
+                        <p>Analytics dashboard designed to help travelers track their expenses and destinations.</p>
+                        <div class="tags">
+                            <span>Web App</span>
+                            <span>Dashboard</span>
+                            <span>Analytics</span>
+                        </div>
+                        <a href="#" class="btn primary-btn small-btn">View Project</a>
+                    </div>
+                    <div class="project-image">
+                        <div class="mockup"
+                            style="background-image: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f');">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h2>Explore<span>.Me</span></h2>
+                    <p>Creating, traveling, sharing.</p>
+                </div>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-github"></i></a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Crafted with ❤️ for exploring the world.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
