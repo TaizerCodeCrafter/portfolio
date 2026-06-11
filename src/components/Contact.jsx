@@ -17,7 +17,7 @@ const Contact = () => {
   React.useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/settings');
+        const res = await axios.get('/api/settings');
         setSettings(prev => ({ ...prev, ...res.data }));
       } catch (err) { console.error('Failed to fetch contact settings'); }
     };
@@ -28,7 +28,7 @@ const Contact = () => {
     e.preventDefault();
     setError('');
     try {
-      await axios.post('http://localhost:5000/api/messages', formData);
+      await axios.post('/api/messages', formData);
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);

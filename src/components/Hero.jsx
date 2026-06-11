@@ -13,7 +13,7 @@ const Hero = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/settings');
+        const res = await axios.get('/api/settings');
         if (res.data) setSettings(res.data);
       } catch (err) { console.error('Failed to fetch settings'); }
     };

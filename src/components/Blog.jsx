@@ -17,8 +17,8 @@ const Blog = ({ isHomePage = false }) => {
     const fetchData = async () => {
       try {
         const [blogRes, tagRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/blogs'),
-          axios.get('http://localhost:5000/api/tags')
+          axios.get('/api/blogs'),
+          axios.get('/api/tags')
         ]);
         setBlogs(blogRes.data);
         setTags(tagRes.data);
@@ -121,7 +121,7 @@ const Blog = ({ isHomePage = false }) => {
                      setSelectedBlog(post);
                      // Increment view count in backend
                      try {
-                       await axios.get(`http://localhost:5000/api/blogs/${post.slug}`);
+                       await axios.get(`/api/blogs/${post.slug}`);
                        // Update local state to reflect new view count
                        setBlogs(prev => prev.map(b => b._id === post._id ? { ...b, views: (b.views || 0) + 1 } : b));
                      } catch (err) { console.error('View tracking failed:', err); }

@@ -115,14 +115,14 @@ const AdminPage = () => {
 
   const fetchTemplates = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/templates');
+      const res = await axios.get('/api/templates');
       setAvailableTemplates(res.data);
     } catch (err) { console.error('Failed to fetch templates'); }
   };
 
   const fetchMessages = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/messages');
+      const res = await axios.get('/api/messages');
       setMessages(res.data);
     } catch (err) { console.error('Failed to fetch messages'); }
   };
@@ -130,7 +130,7 @@ const AdminPage = () => {
   const handleDeleteMessage = async (id) => {
     showConfirm('Delete this message?', async () => {
       try {
-        await axios.delete(`http://localhost:5000/api/messages/${id}`);
+        await axios.delete(`/api/messages/${id}`);
         fetchMessages();
         showAlert('Message deleted');
       } catch (err) { showAlert('Failed to delete', 'error'); }
@@ -139,14 +139,14 @@ const AdminPage = () => {
 
   const fetchMedia = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/media');
+      const res = await axios.get('/api/media');
       setMedia(res.data);
     } catch (err) { console.error('Failed to fetch media'); }
   };
 
   const fetchSettings = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/settings');
+      const res = await axios.get('/api/settings');
       setSettings(res.data);
     } catch (err) { console.error('Failed to fetch settings'); }
   };
@@ -175,23 +175,23 @@ const AdminPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const blogRes = await axios.get('http://localhost:5000/api/blogs/admin/all');
+      const blogRes = await axios.get('/api/blogs/admin/all');
       setBlogs(blogRes.data);
-      const projectRes = await axios.get('http://localhost:5000/api/projects');
+      const projectRes = await axios.get('/api/projects');
       setProjects(projectRes.data);
-      const testimonialRes = await axios.get('http://localhost:5000/api/testimonials');
+      const testimonialRes = await axios.get('/api/testimonials');
       setTestimonials(testimonialRes.data);
-      const statRes = await axios.get('http://localhost:5000/api/stats');
+      const statRes = await axios.get('/api/stats');
       setStats(statRes.data);
       
       // Fetch Categories, Tags, and SEO
-      const catRes = await axios.get('http://localhost:5000/api/categories');
+      const catRes = await axios.get('/api/categories');
       setCategories(catRes.data);
-      const tagRes = await axios.get('http://localhost:5000/api/tags');
+      const tagRes = await axios.get('/api/tags');
       setTags(tagRes.data);
-      const seoRes = await axios.get('http://localhost:5000/api/seo/settings');
+      const seoRes = await axios.get('/api/seo/settings');
       setSeoSettings(seoRes.data);
-      const seoAnRes = await axios.get('http://localhost:5000/api/seo/analysis');
+      const seoAnRes = await axios.get('/api/seo/analysis');
       setSeoAnalysis(seoAnRes.data);
     } catch (err) { console.error(err); }
     setLoading(false);
@@ -317,10 +317,10 @@ const AdminPage = () => {
 
     try {
       if (blogForm._id) {
-        await axios.put(`http://localhost:5000/api/blogs/${blogForm._id}`, payload);
+        await axios.put(`/api/blogs/${blogForm._id}`, payload);
         showAlert('Blog Updated!');
       } else {
-        await axios.post('http://localhost:5000/api/blogs', payload);
+        await axios.post('/api/blogs', payload);
         showAlert('Blog Published!');
       }
       setShowAddBlog(false);
@@ -333,7 +333,7 @@ const AdminPage = () => {
 
   const handleStatusUpdate = async (id, status) => {
     try {
-      await axios.put(`http://localhost:5000/api/blogs/${id}`, { status });
+      await axios.put(`/api/blogs/${id}`, { status });
       showAlert(`Status updated to ${status}`);
       fetchData();
     } catch (err) { console.error(err); }
@@ -344,7 +344,7 @@ const AdminPage = () => {
   const handleDeleteBlog = async (id) => {
     showConfirm('Are you sure you want to delete this post?', async () => {
       try {
-        await axios.delete(`http://localhost:5000/api/blogs/${id}`);
+        await axios.delete(`/api/blogs/${id}`);
         showAlert('Post deleted successfully');
         fetchData();
       } catch (err) { showAlert('Failed to delete!', 'error'); }
@@ -391,7 +391,7 @@ const AdminPage = () => {
     setIsGenerating(true);
     setGeneratedPreview(null);
     try {
-      const res = await axios.post('http://localhost:5000/api/blogs/optimize-seo', { keyword, content });
+      const res = await axios.post('/api/blogs/optimize-seo', { keyword, content });
       setGeneratedPreview({ seoAnalysis: res.data });
       showAlert('SEO Analysis Complete!');
     } catch (err) {
@@ -405,7 +405,7 @@ const AdminPage = () => {
     setIsGenerating(true);
     setGeneratedPreview(null);
     try {
-      const res = await axios.get('http://localhost:5000/api/blogs/trending-topics');
+      const res = await axios.get('/api/blogs/trending-topics');
       setGeneratedPreview({ trendingTopics: res.data });
       showAlert('Latest Trends Discovered!');
     } catch (err) {
@@ -419,7 +419,7 @@ const AdminPage = () => {
     setIsGenerating(true);
     setGeneratedPreview(null);
     try {
-      const res = await axios.post('http://localhost:5000/api/blogs/generate-ai', aiForm);
+      const res = await axios.post('/api/blogs/generate-ai', aiForm);
       const cleanTitle = (res.data.title || '').replace(/[^a-zA-Z0-9 ]/g, '');
       setGeneratedPreview({
         ...res.data,
@@ -437,11 +437,11 @@ const AdminPage = () => {
     showConfirm(`Auto-generate and publish a blog post about: "${topicTitle}"?`, async () => {
       setIsGenerating(true);
       try {
-        const res = await axios.post('http://localhost:5000/api/blogs/generate-ai', { ...aiForm, topic: topicTitle });
+        const res = await axios.post('/api/blogs/generate-ai', { ...aiForm, topic: topicTitle });
         const cleanTitle = aiForm.topic || 'Technology Update';
         const cleanPrompt = cleanTitle.replace(/[^a-zA-Z0-9\s]/g, '').trim().replace(/\s+/g, ' ');
         
-        await axios.post('http://localhost:5000/api/blogs', {
+        await axios.post('/api/blogs', {
           ...res.data,
           status: 'published',
           image: `https://image.pollinations.ai/prompt/${encodeURIComponent('technology blog cover ' + cleanPrompt)}?width=800&height=500&nologo=true&seed=${Math.floor(Math.random() * 10000)}`
@@ -460,7 +460,7 @@ const AdminPage = () => {
     if (!generatedPreview) return;
     try {
       const cleanTitle = (generatedPreview.title || '').replace(/[^a-zA-Z0-9 ]/g, '');
-      await axios.post('http://localhost:5000/api/blogs', {
+      await axios.post('/api/blogs', {
         ...generatedPreview,
         status: aiForm.autoPublish ? 'published' : 'draft',
         image: generatedPreview.image || `https://image.pollinations.ai/prompt/${encodeURIComponent('technology blog cover ' + cleanPrompt)}?width=800&height=500&nologo=true&seed=${Math.floor(Math.random() * 10000)}`,
@@ -484,10 +484,10 @@ const AdminPage = () => {
     };
     try {
       if (projectForm._id) {
-        await axios.put(`http://localhost:5000/api/projects/${projectForm._id}`, payload);
+        await axios.put(`/api/projects/${projectForm._id}`, payload);
         showAlert('Project Updated!');
       } else {
-        await axios.post('http://localhost:5000/api/projects', payload);
+        await axios.post('/api/projects', payload);
         showAlert('Project Created!');
       }
       setShowAddProject(false);
@@ -503,7 +503,7 @@ const AdminPage = () => {
   const handleDeleteProject = async (id) => {
     showConfirm('Delete this project?', async () => {
       try {
-        await axios.delete(`http://localhost:5000/api/projects/${id}`);
+        await axios.delete(`/api/projects/${id}`);
         showAlert('Project Deleted!');
         fetchData();
       } catch (err) { showAlert('Delete failed!', 'error'); }
@@ -515,10 +515,10 @@ const AdminPage = () => {
     if (!testimonialForm.name || !testimonialForm.content) return showAlert('Name and Content required!', 'error');
     try {
       if (testimonialForm._id) {
-        await axios.put(`http://localhost:5000/api/testimonials/${testimonialForm._id}`, testimonialForm);
+        await axios.put(`/api/testimonials/${testimonialForm._id}`, testimonialForm);
         showAlert('Testimonial Updated!');
       } else {
-        await axios.post('http://localhost:5000/api/testimonials', testimonialForm);
+        await axios.post('/api/testimonials', testimonialForm);
         showAlert('Testimonial Added!');
       }
       setShowAddTestimonial(false);
@@ -530,7 +530,7 @@ const AdminPage = () => {
   const handleDeleteTestimonial = async (id) => {
     showConfirm('Delete this testimonial?', async () => {
       try {
-        await axios.delete(`http://localhost:5000/api/testimonials/${id}`);
+        await axios.delete(`/api/testimonials/${id}`);
         showAlert('Testimonial Deleted!');
         fetchData();
       } catch (err) { showAlert('Delete failed!', 'error'); }
@@ -542,10 +542,10 @@ const AdminPage = () => {
     if (!statForm.label || !statForm.value) return showAlert('Label and Value required!', 'error');
     try {
       if (statForm._id) {
-        await axios.put(`http://localhost:5000/api/stats/${statForm._id}`, statForm);
+        await axios.put(`/api/stats/${statForm._id}`, statForm);
         showAlert('Stat Updated!');
       } else {
-        await axios.post('http://localhost:5000/api/stats', statForm);
+        await axios.post('/api/stats', statForm);
         showAlert('Stat Added!');
       }
       setShowAddStat(false);
@@ -557,7 +557,7 @@ const AdminPage = () => {
   const handleDeleteStat = async (id) => {
     showConfirm('Delete this stat?', async () => {
       try {
-        await axios.delete(`http://localhost:5000/api/stats/${id}`);
+        await axios.delete(`/api/stats/${id}`);
         showAlert('Stat Deleted!');
         fetchData();
       } catch (err) { showAlert('Delete failed!', 'error'); }
@@ -566,7 +566,7 @@ const AdminPage = () => {
 
   const handleUpdateSetting = async (key, value) => {
     try {
-      await axios.post('http://localhost:5000/api/settings', { key, value });
+      await axios.post('/api/settings', { key, value });
       showAlert('Settings updated!');
       fetchSettings();
     } catch (err) { showAlert('Update failed!', 'error'); }
@@ -581,9 +581,9 @@ const AdminPage = () => {
       const reader = new FileReader();
       reader.onloadend = async () => {
         try {
-          await axios.post('http://localhost:5000/api/settings', { key: 'cvUrl', value: reader.result });
+          await axios.post('/api/settings', { key: 'cvUrl', value: reader.result });
           // Also save to media library
-          await axios.post('http://localhost:5000/api/media', { name: file.name, url: reader.result, type: 'document', size: file.size });
+          await axios.post('/api/media', { name: file.name, url: reader.result, type: 'document', size: file.size });
           showAlert('CV Uploaded successfully!');
           fetchSettings();
           fetchMedia();
@@ -603,7 +603,7 @@ const AdminPage = () => {
 
   const fetchAiSettings = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/settings');
+      const res = await axios.get('/api/settings');
       if (res.data.aiConfig) {
         setAiSettings(res.data.aiConfig);
       }
@@ -612,7 +612,7 @@ const AdminPage = () => {
 
   const handleUpdateAiSettings = async (newConfig) => {
     try {
-      await axios.post('http://localhost:5000/api/settings', { key: 'aiConfig', value: newConfig });
+      await axios.post('/api/settings', { key: 'aiConfig', value: newConfig });
       showAlert('AI Settings updated!');
       fetchAiSettings();
     } catch (err) { showAlert('Update failed!', 'error'); }
@@ -667,7 +667,7 @@ const AdminPage = () => {
   const handleDeleteAll = async () => {
     showConfirm('CRITICAL: This will permanently delete ALL blog posts. Are you sure?', async () => {
       try {
-        await axios.delete('http://localhost:5000/api/blogs/admin/delete-all');
+        await axios.delete('/api/blogs/admin/delete-all');
         showAlert('All posts deleted successfully');
         fetchData();
       } catch (err) { showAlert('Failed to delete all!', 'error'); }
@@ -1858,8 +1858,8 @@ const AdminPage = () => {
                     <button onClick={() => setShowAddCategory(false)} className="btn-secondary" style={{ padding: '10px 25px', borderRadius: '12px' }}>Cancel</button>
                     <button onClick={async () => {
                       try {
-                        if (categoryForm._id) await axios.put(`http://localhost:5000/api/categories/${categoryForm._id}`, categoryForm);
-                        else await axios.post('http://localhost:5000/api/categories', categoryForm);
+                        if (categoryForm._id) await axios.put(`/api/categories/${categoryForm._id}`, categoryForm);
+                        else await axios.post('/api/categories', categoryForm);
                         showAlert('Category Saved!'); setShowAddCategory(false); fetchData();
                       } catch (err) { showAlert('Failed to save!', 'error'); }
                     }} className="btn-primary" style={{ background: '#b35a00', color: 'white', padding: '10px 30px', borderRadius: '12px' }}>Save Category</button>
@@ -1879,7 +1879,7 @@ const AdminPage = () => {
                         <td>{c.count || 0}</td>
                         <td style={{ display: 'flex', gap: '10px' }}>
                           <button onClick={() => { setCategoryForm(c); setShowAddCategory(true); }} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #ddd', background: 'white' }}><Edit2 size={14} /></button>
-                          <button onClick={() => showConfirm('Delete this category?', async () => { try { await axios.delete(`http://localhost:5000/api/categories/${c._id}`); showAlert('Deleted!'); fetchData(); } catch (err) { showAlert('Failed!', 'error'); } })} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #fee2e2', background: '#fef2f2', color: '#ef4444' }}><Trash2 size={14} /></button>
+                          <button onClick={() => showConfirm('Delete this category?', async () => { try { await axios.delete(`/api/categories/${c._id}`); showAlert('Deleted!'); fetchData(); } catch (err) { showAlert('Failed!', 'error'); } })} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #fee2e2', background: '#fef2f2', color: '#ef4444' }}><Trash2 size={14} /></button>
                         </td>
                       </tr>
                     ))}
@@ -1909,7 +1909,7 @@ const AdminPage = () => {
                     <button onClick={() => setShowAddTag(false)} className="btn-secondary" style={{ padding: '10px 25px', borderRadius: '12px' }}>Cancel</button>
                     <button onClick={async () => {
                       try {
-                        await axios.post('http://localhost:5000/api/tags', tagForm);
+                        await axios.post('/api/tags', tagForm);
                         showAlert('Tag Saved!'); setShowAddTag(false); fetchData();
                       } catch (err) { showAlert('Failed!', 'error'); }
                     }} className="btn-primary" style={{ background: '#b35a00', color: 'white', padding: '10px 30px', borderRadius: '12px' }}>Save Tag</button>
@@ -1922,7 +1922,7 @@ const AdminPage = () => {
                   <div key={t._id} className="white-card" style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '15px', borderRadius: '50px' }}>
                     <span style={{ fontWeight: '700' }}>#{t.name}</span>
                     <span style={{ fontSize: '0.7rem', color: '#888' }}>{t.count || 0}</span>
-                    <button onClick={() => showConfirm('Delete tag?', async () => { try { await axios.delete(`http://localhost:5000/api/tags/${t._id}`); showAlert('Deleted!'); fetchData(); } catch (err) { showAlert('Failed!', 'error'); } })} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><X size={14} /></button>
+                    <button onClick={() => showConfirm('Delete tag?', async () => { try { await axios.delete(`/api/tags/${t._id}`); showAlert('Deleted!'); fetchData(); } catch (err) { showAlert('Failed!', 'error'); } })} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><X size={14} /></button>
                   </div>
                 ))}
               </div>
@@ -1950,7 +1950,7 @@ const AdminPage = () => {
                     <div className="login-input-group"><label>Keywords (comma separated)</label><input type="text" value={seoSettings.keywords} onChange={e => setSeoSettings({...seoSettings, keywords: e.target.value})} /></div>
                     <div className="login-input-group"><label>Google Search Console ID</label><input type="text" value={seoSettings.googleConsoleId} onChange={e => setSeoSettings({...seoSettings, googleConsoleId: e.target.value})} /></div>
                     <button onClick={async () => {
-                      try { await axios.post('http://localhost:5000/api/seo/settings', { value: seoSettings }); showAlert('SEO Settings Saved!'); }
+                      try { await axios.post('/api/seo/settings', { value: seoSettings }); showAlert('SEO Settings Saved!'); }
                       catch (err) { showAlert('Failed!', 'error'); }
                     }} className="btn-primary" style={{ background: '#b35a00', color: 'white', padding: '12px 30px', borderRadius: '12px', marginTop: '10px' }}><Save size={18} /> Save Settings</button>
                   </div>
@@ -1990,7 +1990,7 @@ const AdminPage = () => {
                       <h3 style={{ margin: '0 0 5px 0' }}>XML Sitemap Generator</h3>
                       <p style={{ margin: 0, fontSize: '0.9rem', color: '#666' }}>Generate a sitemap to help search engines crawl your blog posts.</p>
                     </div>
-                    <button onClick={() => window.open('http://localhost:5000/api/seo/sitemap', '_blank')} className="btn-primary" style={{ marginLeft: 'auto', background: '#b35a00', color: 'white', padding: '10px 25px', borderRadius: '12px' }}>Generate & View</button>
+                    <button onClick={() => window.open('/api/seo/sitemap', '_blank')} className="btn-primary" style={{ marginLeft: 'auto', background: '#b35a00', color: 'white', padding: '10px 25px', borderRadius: '12px' }}>Generate & View</button>
                   </div>
                 </div>
               )}
@@ -2240,7 +2240,7 @@ const AdminPage = () => {
                             const reader = new FileReader();
                             reader.onloadend = async () => {
                               try {
-                                await axios.post('http://localhost:5000/api/media', { name: file.name, url: reader.result, type: file.type.startsWith('image') ? 'image' : 'document', size: file.size });
+                                await axios.post('/api/media', { name: file.name, url: reader.result, type: file.type.startsWith('image') ? 'image' : 'document', size: file.size });
                                 showAlert('Media uploaded!');
                                 fetchMedia();
                               } catch (err) { showAlert('Upload failed!', 'error'); }
@@ -2270,7 +2270,7 @@ const AdminPage = () => {
                               )}
                               <div className="media-item-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', opacity: 0, transition: '0.2s', cursor: 'pointer' }}>
                                 <button onClick={() => { navigator.clipboard.writeText(m.url); showAlert('URL copied to clipboard!'); }} style={{ padding: '8px', borderRadius: '8px', background: 'white', border: 'none' }} title="Copy URL"><LinkIcon size={16} /></button>
-                                <button onClick={() => showConfirm('Delete this media permanently?', async () => { try { await axios.delete(`http://localhost:5000/api/media/${m._id}`); showAlert('Media deleted!'); fetchMedia(); } catch (err) { showAlert('Delete failed!', 'error'); } })} style={{ padding: '8px', borderRadius: '8px', background: '#fee2e2', border: 'none', color: '#ef4444' }} title="Delete"><Trash2 size={16} /></button>
+                                <button onClick={() => showConfirm('Delete this media permanently?', async () => { try { await axios.delete(`/api/media/${m._id}`); showAlert('Media deleted!'); fetchMedia(); } catch (err) { showAlert('Delete failed!', 'error'); } })} style={{ padding: '8px', borderRadius: '8px', background: '#fee2e2', border: 'none', color: '#ef4444' }} title="Delete"><Trash2 size={16} /></button>
                               </div>
                             </div>
                           ))}

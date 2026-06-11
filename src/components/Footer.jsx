@@ -14,7 +14,7 @@ const Footer = () => {
   React.useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/settings');
+        const res = await axios.get('/api/settings');
         setSettings(prev => ({ ...prev, ...res.data }));
       } catch (err) { console.error('Failed to fetch settings'); }
     };
@@ -27,7 +27,7 @@ const Footer = () => {
     
     setStatus('loading');
     try {
-      const response = await axios.post('http://localhost:5000/api/subscribe', { email });
+      const response = await axios.post('/api/subscribe', { email });
       setStatus('success');
       setMessage(response.data.message || 'Thanks for subscribing!');
       setEmail('');

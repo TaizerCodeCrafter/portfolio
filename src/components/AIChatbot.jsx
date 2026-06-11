@@ -30,7 +30,7 @@ const AIChatbot = () => {
     setMessages(prev => [...prev, { role: 'bot', text: 'Thinking...', isThinking: true }]);
 
     try {
-      const res = await axios.post('http://localhost:5000/api/ai/chat', { message: currentInput });
+      const res = await axios.post('/api/ai/chat', { message: currentInput });
       
       setMessages(prev => {
         const filtered = prev.filter(m => !m.isThinking);
