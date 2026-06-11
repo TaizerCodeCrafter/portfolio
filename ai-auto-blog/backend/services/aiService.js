@@ -1,7 +1,7 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const getValidModel = (modelName) => {
-  return "gemini-3.5-flash";
+  return "gemini-1.5-flash";
 };
 
 const generateBlogPost = async (data, config) => {
