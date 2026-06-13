@@ -42,16 +42,28 @@ const AdminPage = () => {
   const [blogSearch, setBlogSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
 
-  const [adminProfile, setAdminProfile] = useState(() => {
-    const saved = localStorage.getItem('admin_profile');
-    return saved ? JSON.parse(saved) : {
-      name: 'Supun Dilshan', company: 'DSJ ACADEMY', email: 'supundilshan358@gmail.com', password: 'admin123', photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin'
-    };
+  const [adminProfile, setAdminProfile] = useState({
+    name: 'Supun Dilshan', company: 'DSJ ACADEMY', email: 'supundilshan358@gmail.com', password: 'admin123', photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin'
   });
 
   const [emailInput, setEmailInput] = useState('');
   const [passInput, setPassInput] = useState('');
   const [settingsForm, setSettingsForm] = useState({ ...adminProfile });
+
+  useEffect(() => {
+    const fetchAdminProfile = async () => {
+      try {
+        const res = await axios.get('/api/settings');
+        if (res.data && res.data.adminProfile) {
+          setAdminProfile(res.data.adminProfile);
+          setSettingsForm(res.data.adminProfile);
+        }
+      } catch (err) {
+        console.error('Failed to fetch admin profile', err);
+      }
+    };
+    fetchAdminProfile();
+  }, []);
 
   // AI Assistant State
   const [aiTab, setAiTab] = useState('Auto Generate & Post');
@@ -226,11 +238,15 @@ const AdminPage = () => {
     localStorage.setItem('admin_active_tab', tabName);
   };
 
-  const handleSaveSettings = (e) => {
+  const handleSaveSettings = async (e) => {
     e.preventDefault();
-    setAdminProfile(settingsForm);
-    localStorage.setItem('admin_profile', JSON.stringify(settingsForm));
-    showAlert('Profile updated successfully!');
+    try {
+      await axios.post('/api/settings', { key: 'adminProfile', value: settingsForm });
+      setAdminProfile(settingsForm);
+      showAlert('Profile updated successfully!');
+    } catch (err) {
+      showAlert('Failed to update profile', 'error');
+    }
   };
 
   const handleProfilePhotoUpload = (e) => {
