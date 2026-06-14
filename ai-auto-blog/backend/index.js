@@ -40,6 +40,8 @@ app.use('/api/media', require('./routes/mediaRoutes'));
 app.use('/api/messages', require('./routes/messageRoutes'));
 app.use('/api/templates', require('./routes/templateRoutes'));
 app.use('/api/subscribe', require('./routes/subscriberRoutes'));
+app.use('/api/skills', require('./routes/skillRoutes'));
+app.use('/api/services', require('./routes/serviceRoutes'));
 
 app.get('/', (req, res) => res.send('API is running...'));
 

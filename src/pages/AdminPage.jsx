@@ -7,7 +7,7 @@ import {
   TrendingUp, Activity, MessageSquare, ShieldCheck, Zap, User, Key, Filter, Briefcase, Plus, Send, MapPin, Phone,
   Bold, Italic, Underline, List, Link as LinkIcon, Video, RotateCcw, RotateCw, Type, AlignLeft, Quote, Strikethrough, Code, ListOrdered, Minus, File,
   Award, Coffee, Star, Heart, Cpu, Rocket,
-  AlertCircle, CheckCircle2, Info, Maximize, Minimize, AlignCenter, AlignRight, Edit2, PenTool
+  AlertCircle, CheckCircle2, Info, Maximize, Minimize, AlignCenter, AlignRight, Edit2, PenTool, Layout, Server, Database, Smartphone, LayoutGrid
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -103,6 +103,16 @@ const AdminPage = () => {
   const [showAddStat, setShowAddStat] = useState(false);
   const [statForm, setStatForm] = useState({ label: '', value: '', icon: 'Briefcase', color: '#b35a00', order: 0 });
 
+  // Skills State
+  const [skills, setSkills] = useState([]);
+  const [showAddSkill, setShowAddSkill] = useState(false);
+  const [skillForm, setSkillForm] = useState({ name: '', level: 0, category: 'Frontend Development', order: 0 });
+
+  // Services State
+  const [services, setServices] = useState([]);
+  const [showAddService, setShowAddService] = useState(false);
+  const [serviceForm, setServiceForm] = useState({ title: '', description: '', details: '', learning: '', color: '#8b5cf6', icon: 'Layout', order: 0 });
+
   const [webContentTab, setWebContentTab] = useState('Stats');
   const [settings, setSettings] = useState({ cvUrl: '' });
   const [isUploading, setIsUploading] = useState(false);
@@ -195,6 +205,10 @@ const AdminPage = () => {
       setTestimonials(testimonialRes.data);
       const statRes = await axios.get('/api/stats');
       setStats(statRes.data);
+      const skillRes = await axios.get('/api/skills');
+      setSkills(skillRes.data);
+      const serviceRes = await axios.get('/api/services');
+      setServices(serviceRes.data);
       
       // Fetch Categories, Tags, and SEO
       const catRes = await axios.get('/api/categories');
@@ -575,6 +589,64 @@ const AdminPage = () => {
       try {
         await axios.delete(`/api/stats/${id}`);
         showAlert('Stat Deleted!');
+        fetchData();
+      } catch (err) { showAlert('Delete failed!', 'error'); }
+    });
+  };
+
+  // Skills Handlers
+  const handleSaveSkill = async () => {
+    if (!skillForm.name || !skillForm.level) return showAlert('Name and Level required!', 'error');
+    try {
+      if (skillForm._id) {
+        await axios.put(`/api/skills/${skillForm._id}`, skillForm);
+        showAlert('Skill Updated!');
+      } else {
+        await axios.post('/api/skills', skillForm);
+        showAlert('Skill Added!');
+      }
+      setShowAddSkill(false);
+      setSkillForm({ name: '', level: 0, category: 'Frontend Development', order: 0 });
+      fetchData();
+    } catch (err) { showAlert('Failed to save skill!', 'error'); }
+  };
+
+  const handleDeleteSkill = async (id) => {
+    showConfirm('Delete this skill?', async () => {
+      try {
+        await axios.delete(`/api/skills/${id}`);
+        showAlert('Skill Deleted!');
+        fetchData();
+      } catch (err) { showAlert('Delete failed!', 'error'); }
+    });
+  };
+
+  // Services Handlers
+  const handleSaveService = async () => {
+    if (!serviceForm.title || !serviceForm.description) return showAlert('Title and Description required!', 'error');
+    try {
+      const payload = {
+        ...serviceForm,
+        learning: typeof serviceForm.learning === 'string' ? serviceForm.learning.split(',').map(s => s.trim()).filter(Boolean) : serviceForm.learning
+      };
+      if (serviceForm._id) {
+        await axios.put(`/api/services/${serviceForm._id}`, payload);
+        showAlert('Service Updated!');
+      } else {
+        await axios.post('/api/services', payload);
+        showAlert('Service Added!');
+      }
+      setShowAddService(false);
+      setServiceForm({ title: '', description: '', details: '', learning: '', color: '#8b5cf6', icon: 'Layout', order: 0 });
+      fetchData();
+    } catch (err) { showAlert('Failed to save service!', 'error'); }
+  };
+
+  const handleDeleteService = async (id) => {
+    showConfirm('Delete this service?', async () => {
+      try {
+        await axios.delete(`/api/services/${id}`);
+        showAlert('Service Deleted!');
         fetchData();
       } catch (err) { showAlert('Delete failed!', 'error'); }
     });
@@ -2016,7 +2088,7 @@ const AdminPage = () => {
           {activeTab === 'Web Content' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className="ai-tabs" style={{ marginBottom: '10px' }}>
-                {['Stats', 'Testimonials', 'General', 'Media'].map(tab => (
+                {['Stats', 'Testimonials', 'Skills', 'Services', 'General', 'Media'].map(tab => (
                   <button 
                     key={tab} 
                     className={`ai-tab-btn ${webContentTab === tab ? 'active' : ''}`}
@@ -2024,6 +2096,8 @@ const AdminPage = () => {
                   >
                     {tab === 'Stats' && <Activity size={16} />}
                     {tab === 'Testimonials' && <MessageSquare size={16} />}
+                    {tab === 'Skills' && <Code size={16} />}
+                    {tab === 'Services' && <LayoutGrid size={16} />}
                     {tab === 'General' && <Settings size={16} />}
                     {tab === 'Media' && <Image size={16} />}
                     {tab}
@@ -2233,6 +2307,175 @@ const AdminPage = () => {
                               ))}
                             </tbody>
                           </table>
+                        </div>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+
+                {webContentTab === 'Skills' && (
+                  <motion.div key="skills" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                    {showAddSkill ? (
+                      <div className="white-card" style={{ padding: '30px' }}>
+                        <div className="card-header-ai" style={{ marginBottom: '25px' }}>
+                          <Code size={20} color="#b35a00" />
+                          <div>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#333' }}>{skillForm._id ? 'Edit Skill' : 'Add New Skill'}</h3>
+                            <p style={{ margin: 0, color: '#666', fontSize: '0.85rem' }}>Add a new technical skill.</p>
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                          <div className="login-input-group">
+                            <label>Skill Name</label>
+                            <input type="text" value={skillForm.name} onChange={e => setSkillForm({...skillForm, name: e.target.value})} placeholder="e.g. React.js" />
+                          </div>
+                          <div className="login-input-group">
+                            <label>Proficiency Level (%)</label>
+                            <input type="number" min="0" max="100" value={skillForm.level} onChange={e => setSkillForm({...skillForm, level: Number(e.target.value)})} placeholder="e.g. 90" />
+                          </div>
+                          <div className="login-input-group">
+                            <label>Category</label>
+                            <select value={skillForm.category} onChange={e => setSkillForm({...skillForm, category: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e8e0d5', outline: 'none' }}>
+                              <option value="Frontend Development">Frontend Development</option>
+                              <option value="Backend Development">Backend Development</option>
+                              <option value="Database & DevOps">Database & DevOps</option>
+                            </select>
+                          </div>
+                          <div className="login-input-group">
+                            <label>Order (optional)</label>
+                            <input type="number" value={skillForm.order} onChange={e => setSkillForm({...skillForm, order: Number(e.target.value)})} />
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                          <button onClick={handleSaveSkill} className="btn-primary" style={{ padding: '12px 25px', borderRadius: '15px' }}>Save Skill</button>
+                          <button onClick={() => setShowAddSkill(false)} className="btn-secondary" style={{ background: '#f5f5f5', color: '#555', padding: '12px 25px', borderRadius: '15px' }}>Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                          <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#333' }}>Manage Skills</h3>
+                          <button onClick={() => { setSkillForm({ name: '', level: 0, category: 'Frontend Development', order: 0 }); setShowAddSkill(true); }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '15px', fontSize: '0.9rem' }}>
+                            <Plus size={16} /> Add Skill
+                          </button>
+                        </div>
+                        <div className="projects-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+                          {skills.map(skill => (
+                            <div key={skill._id} className="white-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#fcf8f4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#b35a00' }}>
+                                    <Code size={20} />
+                                  </div>
+                                  <div>
+                                    <h4 style={{ margin: 0, fontWeight: '700', color: '#333' }}>{skill.name}</h4>
+                                    <span style={{ fontSize: '0.8rem', color: '#b35a00', background: '#fcf8f4', padding: '2px 8px', borderRadius: '10px' }}>{skill.category}</span>
+                                  </div>
+                                </div>
+                                <div style={{ fontWeight: '800', color: '#b35a00' }}>{skill.level}%</div>
+                              </div>
+                              <div style={{ width: '100%', height: '6px', background: '#f5f5f5', borderRadius: '3px', overflow: 'hidden' }}>
+                                <div style={{ width: `${skill.level}%`, height: '100%', background: '#b35a00' }}></div>
+                              </div>
+                              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <button onClick={() => { setSkillForm(skill); setShowAddSkill(true); }} style={{ flex: 1, padding: '8px', borderRadius: '10px', background: '#fcf8f4', color: '#b35a00', border: 'none', cursor: 'pointer', fontWeight: '600' }}>Edit</button>
+                                <button onClick={() => handleDeleteSkill(skill._id)} style={{ flex: 1, padding: '8px', borderRadius: '10px', background: '#fef2f2', color: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: '600' }}>Delete</button>
+                              </div>
+                            </div>
+                          ))}
+                          {skills.length === 0 && (
+                            <div style={{ padding: '40px', textAlign: 'center', background: 'white', borderRadius: '20px', border: '1px dashed #ccc', gridColumn: '1 / -1' }}>
+                              <p style={{ color: '#888' }}>No skills added yet.</p>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+
+                {webContentTab === 'Services' && (
+                  <motion.div key="services" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                    {showAddService ? (
+                      <div className="white-card" style={{ padding: '30px' }}>
+                        <div className="card-header-ai" style={{ marginBottom: '25px' }}>
+                          <LayoutGrid size={20} color="#8b5cf6" />
+                          <div>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#333' }}>{serviceForm._id ? 'Edit Service' : 'Add New Service'}</h3>
+                            <p style={{ margin: 0, color: '#666', fontSize: '0.85rem' }}>Add a new service offering.</p>
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                          <div className="login-input-group">
+                            <label>Service Title</label>
+                            <input type="text" value={serviceForm.title} onChange={e => setServiceForm({...serviceForm, title: e.target.value})} placeholder="e.g. Frontend Development" />
+                          </div>
+                          <div className="login-input-group">
+                            <label>Icon</label>
+                            <select value={serviceForm.icon} onChange={e => setServiceForm({...serviceForm, icon: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e8e0d5', outline: 'none' }}>
+                              <option value="Layout">Layout (Frontend)</option>
+                              <option value="Server">Server (Backend)</option>
+                              <option value="Database">Database</option>
+                              <option value="Sparkles">Sparkles (AI/Special)</option>
+                              <option value="Smartphone">Smartphone (Mobile)</option>
+                              <option value="Code">Code</option>
+                              <option value="PenTool">PenTool (Design)</option>
+                              <option value="Globe">Globe (Web)</option>
+                            </select>
+                          </div>
+                          <div className="login-input-group" style={{ gridColumn: '1 / -1' }}>
+                            <label>Short Description (Card)</label>
+                            <textarea value={serviceForm.description} onChange={e => setServiceForm({...serviceForm, description: e.target.value})} placeholder="Brief 1-2 sentence description" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e8e0d5', outline: 'none', height: '80px', resize: 'vertical' }}></textarea>
+                          </div>
+                          <div className="login-input-group" style={{ gridColumn: '1 / -1' }}>
+                            <label>Detailed Introduction (Modal)</label>
+                            <textarea value={serviceForm.details} onChange={e => setServiceForm({...serviceForm, details: e.target.value})} placeholder="Full details about the service" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e8e0d5', outline: 'none', height: '120px', resize: 'vertical' }}></textarea>
+                          </div>
+                          <div className="login-input-group" style={{ gridColumn: '1 / -1' }}>
+                            <label>Learning Concepts (Comma separated)</label>
+                            <input type="text" value={typeof serviceForm.learning === 'string' ? serviceForm.learning : (serviceForm.learning?.join(', ') || '')} onChange={e => setServiceForm({...serviceForm, learning: e.target.value})} placeholder="e.g. React, Node.js, SQL" />
+                          </div>
+                          <div className="login-input-group">
+                            <label>Color Hex (e.g. #8b5cf6)</label>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                              <input type="color" value={serviceForm.color} onChange={e => setServiceForm({...serviceForm, color: e.target.value})} style={{ width: '50px', height: '45px', padding: '0', border: 'none', borderRadius: '8px' }} />
+                              <input type="text" value={serviceForm.color} onChange={e => setServiceForm({...serviceForm, color: e.target.value})} style={{ flex: 1 }} />
+                            </div>
+                          </div>
+                          <div className="login-input-group">
+                            <label>Order (optional)</label>
+                            <input type="number" value={serviceForm.order} onChange={e => setServiceForm({...serviceForm, order: Number(e.target.value)})} />
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                          <button onClick={handleSaveService} className="btn-primary" style={{ padding: '12px 25px', borderRadius: '15px' }}>Save Service</button>
+                          <button onClick={() => setShowAddService(false)} className="btn-secondary" style={{ background: '#f5f5f5', color: '#555', padding: '12px 25px', borderRadius: '15px' }}>Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                          <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#333' }}>Manage Services</h3>
+                          <button onClick={() => { setServiceForm({ title: '', description: '', details: '', learning: '', color: '#8b5cf6', icon: 'Layout', order: 0 }); setShowAddService(true); }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '15px', fontSize: '0.9rem' }}>
+                            <Plus size={16} /> Add Service
+                          </button>
+                        </div>
+                        <div className="projects-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+                          {services.map(service => (
+                            <div key={service._id} className="white-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px', borderTop: `4px solid ${service.color}` }}>
+                              <h4 style={{ margin: 0, fontWeight: '700', color: '#333', fontSize: '1.1rem' }}>{service.title}</h4>
+                              <p style={{ margin: 0, color: '#666', fontSize: '0.9rem', flex: 1 }}>{service.description}</p>
+                              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <button onClick={() => { setServiceForm({...service, learning: service.learning?.join(', ') || ''}); setShowAddService(true); }} style={{ flex: 1, padding: '8px', borderRadius: '10px', background: '#f5f5f5', color: '#555', border: 'none', cursor: 'pointer', fontWeight: '600' }}>Edit</button>
+                                <button onClick={() => handleDeleteService(service._id)} style={{ flex: 1, padding: '8px', borderRadius: '10px', background: '#fef2f2', color: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: '600' }}>Delete</button>
+                              </div>
+                            </div>
+                          ))}
+                          {services.length === 0 && (
+                            <div style={{ padding: '40px', textAlign: 'center', background: 'white', borderRadius: '20px', border: '1px dashed #ccc', gridColumn: '1 / -1' }}>
+                              <p style={{ color: '#888' }}>No services added yet.</p>
+                            </div>
+                          )}
                         </div>
                       </>
                     )}

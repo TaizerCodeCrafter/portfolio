@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Code, Server, Database, Sparkles, Smartphone, Layout } from 'lucide-react';
+import { Code, Server, Database, Sparkles, Smartphone, Layout, PenTool, Globe } from 'lucide-react';
+import axios from 'axios';
 import './Services.css';
 
-const services = [
+const defaultServices = [
   {
-    icon: <Layout size={32} />,
+    icon: 'Layout',
     title: 'Frontend Development',
     description: 'Pixel-perfect, responsive, and dynamic user interfaces using React, Vue, and modern CSS.',
     details: 'Frontend development is the process of creating the visual and interactive part of a website that users interact with directly. It involves HTML (structure), CSS (styling), and JavaScript (functionality). Modern frameworks like React help build "Single Page Applications" that feel fast and fluid.',
@@ -13,7 +14,7 @@ const services = [
     color: '#8b5cf6'
   },
   {
-    icon: <Server size={32} />,
+    icon: 'Server',
     title: 'Backend Systems',
     description: 'Robust, scalable server-side architecture and APIs using Node.js, Python, and Java.',
     details: 'The backend is the "brain" of an application that runs on a server, away from the user\'s eyes. It handles data storage, security, and complex logic. Common tools include Node.js, Express, and databases like MongoDB or PostgreSQL.',
@@ -21,7 +22,7 @@ const services = [
     color: '#0ea5e9'
   },
   {
-    icon: <Database size={32} />,
+    icon: 'Database',
     title: 'Database Design',
     description: 'Efficient data modeling and management with SQL and NoSQL databases.',
     details: 'Database design is about organizing data efficiently so it can be retrieved quickly. Relational databases (SQL) use tables, while Non-relational (NoSQL) like MongoDB use flexible document structures. Good design prevents data duplication and errors.',
@@ -29,7 +30,7 @@ const services = [
     color: '#ec4899'
   },
   {
-    icon: <Sparkles size={32} />,
+    icon: 'Sparkles',
     title: 'AI Integration',
     description: 'Implementing LLMs, machine learning models, and smart features into real-world apps.',
     details: 'AI Integration involves adding "intelligence" to apps using models like GPT-4 or Gemini. This includes features like chatbots, automatic content generation, and image recognition. It bridges the gap between raw data and smart user experiences.',
@@ -37,7 +38,7 @@ const services = [
     color: '#10b981'
   },
   {
-    icon: <Smartphone size={32} />,
+    icon: 'Smartphone',
     title: 'Responsive Design',
     description: 'Ensuring your application looks and works perfectly across all devices and screen sizes.',
     details: 'Responsive design makes a website look good on everything from a tiny smartphone to a massive 4K monitor. We use flexible grids, images, and CSS Media Queries to rearrange content based on the screen width.',
@@ -45,7 +46,7 @@ const services = [
     color: '#f59e0b'
   },
   {
-    icon: <Code size={32} />,
+    icon: 'Code',
     title: 'API Development',
     description: 'Building secure, fast, and documented RESTful and GraphQL APIs.',
     details: 'APIs (Application Programming Interfaces) are sets of rules that allow two pieces of software to talk to each other. REST is the most common architectural style, while GraphQL allows clients to ask for exactly the data they need.',
@@ -54,8 +55,36 @@ const services = [
   }
 ];
 
+const IconMap = {
+  Layout: <Layout size={32} />,
+  Server: <Server size={32} />,
+  Database: <Database size={32} />,
+  Sparkles: <Sparkles size={32} />,
+  Smartphone: <Smartphone size={32} />,
+  Code: <Code size={32} />,
+  PenTool: <PenTool size={32} />,
+  Globe: <Globe size={32} />
+};
+
+const getIcon = (iconName) => IconMap[iconName] || <Code size={32} />;
+
 const Services = () => {
   const [selectedService, setSelectedService] = useState(null);
+  const [services, setServices] = useState(defaultServices);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await axios.get('/api/services');
+        if (res.data && res.data.length > 0) {
+          setServices(res.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch services:", error);
+      }
+    };
+    fetchServices();
+  }, []);
 
   return (
     <section id="services" className="section">
@@ -82,7 +111,7 @@ const Services = () => {
             style={{ cursor: 'pointer' }}
           >
             <div className="service-icon" style={{ color: service.color, background: `${service.color}15` }}>
-              {service.icon}
+              {getIcon(service.icon)}
             </div>
             <h3 className="service-title">{service.title}</h3>
             <p className="service-desc">{service.description}</p>
@@ -104,7 +133,7 @@ const Services = () => {
               <button className="close-modal" onClick={() => setSelectedService(null)}>×</button>
               <div className="modal-header">
                 <div className="modal-icon" style={{ color: selectedService.color, background: `${selectedService.color}15` }}>
-                  {selectedService.icon}
+                  {getIcon(selectedService.icon)}
                 </div>
                 <h2 className="modal-title">{selectedService.title}</h2>
               </div>
