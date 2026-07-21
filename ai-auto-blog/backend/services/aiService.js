@@ -4,6 +4,23 @@ const getValidModel = (modelName) => {
   return modelName || "gemini-1.5-flash";
 };
 
+const extractJSON = (text) => {
+  try {
+    let cleanText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+    return JSON.parse(cleanText);
+  } catch (err) {
+    const jsonMatch = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch (innerErr) {
+        throw new Error("Extracted JSON is still invalid: " + innerErr.message);
+      }
+    }
+    throw new Error("Could not find valid JSON in AI response.");
+  }
+};
+
 const generateBlogPost = async (data, config) => {
   try {
     if (!config.geminiApiKey) {
@@ -14,7 +31,10 @@ const generateBlogPost = async (data, config) => {
     // Use the model from config, but ensure it's a valid one from the user's available list
     const modelName = getValidModel(config.aiModel);
     // Many new models like flash-latest are best accessed via v1beta currently
-    const model = genAI.getGenerativeModel({ model: modelName });
+    const model = genAI.getGenerativeModel({ 
+      model: modelName,
+      generationConfig: { responseMimeType: "application/json" }
+    });
 
     const topicInstruction = data.topic ? `Topic: ${data.topic}` : `Topic: Choose a highly trending, unique, and engaging tech/development/AI topic for today.`;
     const keywordsInstruction = data.keywords ? `Keywords: ${data.keywords}` : `Keywords: Auto-generate relevant high-traffic keywords.`;
@@ -52,10 +72,7 @@ const generateBlogPost = async (data, config) => {
     const response = await result.response;
     let text = response.text();
     
-    // Clean JSON if it contains markdown formatting
-    text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-
-    const blogData = JSON.parse(text);
+    const blogData = extractJSON(text);
 
     return {
       ...blogData,
@@ -75,7 +92,10 @@ const generateBlogPost = async (data, config) => {
 const optimizeSEO = async (data, config) => {
   try {
     const genAI = new GoogleGenerativeAI(config.geminiApiKey);
-    const model = genAI.getGenerativeModel({ model: getValidModel(config.aiModel) });
+    const model = genAI.getGenerativeModel({ 
+      model: getValidModel(config.aiModel),
+      generationConfig: { responseMimeType: "application/json" }
+    });
 
     const prompt = `
       Analyze the following blog content for SEO based on the target keyword "${data.keyword}".
@@ -90,8 +110,8 @@ const optimizeSEO = async (data, config) => {
     `;
 
     const result = await model.generateContent(prompt);
-    const text = (await result.response).text().replace(/```json/gi, '').replace(/```/g, '').trim();
-    return JSON.parse(text);
+    const text = (await result.response).text();
+    return extractJSON(text);
   } catch (error) {
     console.error('SEO Opt Error:', error.message);
     throw error;
@@ -101,7 +121,10 @@ const optimizeSEO = async (data, config) => {
 const getTrendingTopics = async (config) => {
   try {
     const genAI = new GoogleGenerativeAI(config.geminiApiKey);
-    const model = genAI.getGenerativeModel({ model: getValidModel(config.aiModel) });
+    const model = genAI.getGenerativeModel({ 
+      model: getValidModel(config.aiModel),
+      generationConfig: { responseMimeType: "application/json" }
+    });
 
     const prompt = `
       Identify 6 high-growth trending topics in technology, web development, or AI for today.
@@ -115,9 +138,9 @@ const getTrendingTopics = async (config) => {
     `;
 
     const result = await model.generateContent(prompt);
-    const text = (await result.response).text().replace(/```json/gi, '').replace(/```/g, '').trim();
+    const text = (await result.response).text();
     console.log('DEBUG: Raw Trending Response:', text);
-    return JSON.parse(text);
+    return extractJSON(text);
   } catch (error) {
     console.error('Trending Topics Error:', error.message);
     throw error;
@@ -127,7 +150,10 @@ const getTrendingTopics = async (config) => {
 const generateTags = async (content, config) => {
   try {
     const genAI = new GoogleGenerativeAI(config.geminiApiKey);
-    const model = genAI.getGenerativeModel({ model: getValidModel(config.aiModel) });
+    const model = genAI.getGenerativeModel({ 
+      model: getValidModel(config.aiModel),
+      generationConfig: { responseMimeType: "application/json" }
+    });
 
     const prompt = `
       Extract 5-10 highly relevant tags/keywords from the following blog content.
@@ -138,8 +164,8 @@ const generateTags = async (content, config) => {
     `;
 
     const result = await model.generateContent(prompt);
-    const text = (await result.response).text().replace(/```json/gi, '').replace(/```/g, '').trim();
-    return JSON.parse(text);
+    const text = (await result.response).text();
+    return extractJSON(text);
   } catch (error) {
     console.error('Tag Generation Error:', error.message);
     throw error;

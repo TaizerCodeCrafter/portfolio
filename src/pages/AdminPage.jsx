@@ -426,7 +426,8 @@ const AdminPage = () => {
       showAlert('SEO Analysis Complete!');
     } catch (err) {
       console.error(err);
-      showAlert('SEO Analysis Failed!', 'error');
+      const errorMessage = err.response?.data?.message || 'SEO Analysis Failed!';
+      showAlert(errorMessage, 'error');
     }
     setIsGenerating(false);
   };
@@ -440,7 +441,8 @@ const AdminPage = () => {
       showAlert('Latest Trends Discovered!');
     } catch (err) {
       console.error(err);
-      showAlert('Failed to fetch trends!', 'error');
+      const errorMessage = err.response?.data?.message || 'Failed to fetch trends!';
+      showAlert(errorMessage, 'error');
     }
     setIsGenerating(false);
   };
@@ -458,7 +460,8 @@ const AdminPage = () => {
       showAlert('AI Generated Content Ready!');
     } catch (err) {
       console.error(err);
-      showAlert('AI Generation Failed!', 'error');
+      const errorMessage = err.response?.data?.message || 'AI Generation Failed!';
+      showAlert(errorMessage, 'error');
     }
     setIsGenerating(false);
   };
@@ -480,7 +483,8 @@ const AdminPage = () => {
         fetchData();
       } catch (err) {
         console.error(err);
-        showAlert('AI Generation Failed', 'error');
+        const errorMessage = err.response?.data?.message || 'Failed to publish AI article!';
+        showAlert(errorMessage, 'error');
       }
       setIsGenerating(false);
     });
