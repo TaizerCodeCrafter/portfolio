@@ -1,7 +1,11 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const getValidModel = (modelName) => {
-  return modelName || "gemini-1.5-flash";
+  let model = modelName || "gemini-1.5-flash";
+  if (model.includes("-latest")) {
+    model = model.replace("-latest", "");
+  }
+  return model;
 };
 
 const extractJSON = (text) => {

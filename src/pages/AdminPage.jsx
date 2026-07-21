@@ -1475,8 +1475,8 @@ const AdminPage = () => {
                               value={aiSettings.aiModel}
                               onChange={(e) => setAiSettings({...aiSettings, aiModel: e.target.value})}
                             >
-                              <option value="gemini-1.5-flash-latest">gemini-1.5-flash-latest (Latest & Fast)</option>
-                              <option value="gemini-1.5-pro-latest">gemini-1.5-pro-latest (Latest & Smart)</option>
+                              <option value="gemini-1.5-flash">gemini-1.5-flash (Fast)</option>
+                              <option value="gemini-1.5-pro">gemini-1.5-pro (Smart)</option>
                               <option value="gemini-pro">gemini-pro (Standard)</option>
                             </select>
                           </div>
