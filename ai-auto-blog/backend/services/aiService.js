@@ -1,9 +1,9 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const getValidModel = (modelName) => {
-  let model = modelName || "gemini-3.5-flash";
+  let model = modelName || "gemini-3.5-flash-lite";
   if (model.includes("-latest") || model.includes("1.5") || model === "gemini-pro") {
-    model = "gemini-3.5-flash"; // Auto-upgrade unsupported models for this API key
+    model = "gemini-3.5-flash-lite"; // Auto-upgrade unsupported models for this API key
   }
   return model;
 };
@@ -17,7 +17,10 @@ const handleAIError = (error, context) => {
     throw new Error('Your Gemini API Key is invalid. Please check and update it in Settings.');
   }
   if (error.message.includes('404') && error.message.includes('not found')) {
-    throw new Error('Your API Key does not support this model. Please select a newer model (like gemini-3.5-flash) in Settings.');
+    throw new Error('Your API Key does not support this model. Please select a newer model (like gemini-3.5-flash-lite) in Settings.');
+  }
+  if (error.message.includes('503') || error.message.includes('Service Unavailable') || error.message.includes('overloaded')) {
+    throw new Error('Google Gemini API is currently overloaded or down. Please try again in a few minutes, or switch to the Lite model.');
   }
   throw error;
 };
