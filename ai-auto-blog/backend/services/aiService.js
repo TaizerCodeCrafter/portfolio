@@ -8,6 +8,17 @@ const getValidModel = (modelName) => {
   return model;
 };
 
+const handleAIError = (error, context) => {
+  console.error(`${context} Error:`, error.message);
+  if (error.message.includes('401') || error.message.includes('Unauthorized') || error.message.includes('invalid authentication credentials')) {
+    throw new Error('Your Gemini API Key is invalid or unauthorized. Please check and update your API Key in Settings.');
+  }
+  if (error.message.includes('400') && error.message.includes('API key not valid')) {
+    throw new Error('Your Gemini API Key is invalid. Please check and update it in Settings.');
+  }
+  throw error;
+};
+
 const extractJSON = (text) => {
   try {
     let cleanText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -27,11 +38,11 @@ const extractJSON = (text) => {
 
 const generateBlogPost = async (data, config) => {
   try {
-    if (!config.geminiApiKey) {
+    if (!config.geminiApiKey || !config.geminiApiKey.trim()) {
       throw new Error('Gemini API Key is missing. Please add it in AI Settings.');
     }
 
-    const genAI = new GoogleGenerativeAI(config.geminiApiKey);
+    const genAI = new GoogleGenerativeAI(config.geminiApiKey.trim());
     // Use the model from config, but ensure it's a valid one from the user's available list
     const modelName = getValidModel(config.aiModel);
     // Many new models like flash-latest are best accessed via v1beta currently
@@ -88,14 +99,13 @@ const generateBlogPost = async (data, config) => {
       }
     };
   } catch (error) {
-    console.error('Gemini Error:', error.message);
-    throw error;
+    handleAIError(error, 'Gemini');
   }
 };
 
 const optimizeSEO = async (data, config) => {
   try {
-    const genAI = new GoogleGenerativeAI(config.geminiApiKey);
+    const genAI = new GoogleGenerativeAI(config.geminiApiKey.trim());
     const model = genAI.getGenerativeModel({ 
       model: getValidModel(config.aiModel),
       generationConfig: { responseMimeType: "application/json" }
@@ -117,14 +127,13 @@ const optimizeSEO = async (data, config) => {
     const text = (await result.response).text();
     return extractJSON(text);
   } catch (error) {
-    console.error('SEO Opt Error:', error.message);
-    throw error;
+    handleAIError(error, 'SEO Opt');
   }
 };
 
 const getTrendingTopics = async (config) => {
   try {
-    const genAI = new GoogleGenerativeAI(config.geminiApiKey);
+    const genAI = new GoogleGenerativeAI(config.geminiApiKey.trim());
     const model = genAI.getGenerativeModel({ 
       model: getValidModel(config.aiModel),
       generationConfig: { responseMimeType: "application/json" }
@@ -146,14 +155,13 @@ const getTrendingTopics = async (config) => {
     console.log('DEBUG: Raw Trending Response:', text);
     return extractJSON(text);
   } catch (error) {
-    console.error('Trending Topics Error:', error.message);
-    throw error;
+    handleAIError(error, 'Trending Topics');
   }
 };
 
 const generateTags = async (content, config) => {
   try {
-    const genAI = new GoogleGenerativeAI(config.geminiApiKey);
+    const genAI = new GoogleGenerativeAI(config.geminiApiKey.trim());
     const model = genAI.getGenerativeModel({ 
       model: getValidModel(config.aiModel),
       generationConfig: { responseMimeType: "application/json" }
@@ -171,13 +179,12 @@ const generateTags = async (content, config) => {
     const text = (await result.response).text();
     return extractJSON(text);
   } catch (error) {
-    console.error('Tag Generation Error:', error.message);
-    throw error;
+    handleAIError(error, 'Tag Generation');
   }
 };
 
 const chatWithAI = async (userMessage, context, config) => {
-  const genAI = new GoogleGenerativeAI(config.geminiApiKey);
+  const genAI = new GoogleGenerativeAI(config.geminiApiKey.trim());
   const modelName = getValidModel(config.aiModel);
   const model = genAI.getGenerativeModel({ model: modelName });
 
@@ -211,8 +218,7 @@ const chatWithAI = async (userMessage, context, config) => {
         retries--;
         continue;
       }
-      console.error('AI Chat Error:', error.message);
-      throw error;
+      handleAIError(error, 'AI Chat');
     }
   }
   throw new Error("AI is currently under heavy load. Please try again in a few minutes.");
