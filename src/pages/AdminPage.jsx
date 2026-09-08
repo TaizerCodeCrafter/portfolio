@@ -9,7 +9,7 @@ import {
   Award, Coffee, Star, Heart, Cpu, Rocket,
   AlertCircle, CheckCircle2, Info, Maximize, Minimize, AlignCenter, AlignRight, Edit2, PenTool, Layout, Server, Database, Smartphone, LayoutGrid,
   Building2, ExternalLink, CreditCard, Package as PackageIcon, QrCode,
-  Flame, ArrowUp, ArrowDown, Copy
+  Flame, ArrowUp, ArrowDown, Copy, Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
