@@ -445,6 +445,18 @@ const ContactPage = () => {
               >
                 <MessageSquare size={18} /> Open WhatsApp Chat
               </a>
+
+              {settings.websiteQrActive !== false && (
+                <div style={{ marginTop: '20px', padding: '16px', borderRadius: '16px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ width: '64px', height: '64px', background: 'white', borderRadius: '12px', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 10px rgba(0,0,0,0.15)' }}>
+                    <img src={settings.websiteQr || '/website-qr.png'} alt="Website QR Code" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  </div>
+                  <div>
+                    <h5 style={{ margin: '0 0 3px 0', fontSize: '0.88rem', fontWeight: '800', color: 'var(--text-primary)' }}>{settings.websiteQrLabel || 'Scan on Mobile'}</h5>
+                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Open this portfolio on your phone to call or chat instantly.</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

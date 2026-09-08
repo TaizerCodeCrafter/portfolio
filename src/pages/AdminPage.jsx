@@ -8,7 +8,7 @@ import {
   Bold, Italic, Underline, List, Link as LinkIcon, Video, RotateCcw, RotateCw, Type, AlignLeft, Quote, Strikethrough, Code, ListOrdered, Minus, File,
   Award, Coffee, Star, Heart, Cpu, Rocket,
   AlertCircle, CheckCircle2, Info, Maximize, Minimize, AlignCenter, AlignRight, Edit2, PenTool, Layout, Server, Database, Smartphone, LayoutGrid,
-  Building2, ExternalLink, CreditCard, Package as PackageIcon
+  Building2, ExternalLink, CreditCard, Package as PackageIcon, QrCode
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -26,6 +26,7 @@ const AdminPage = () => {
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
   const docInputRef = useRef(null);
+  const qrInputRef = useRef(null);
   const [selectedImg, setSelectedImg] = useState(null);
   const [imgToolbarPos, setImgToolbarPos] = useState({ top: 0, left: 0 });
 
@@ -835,6 +836,35 @@ const AdminPage = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const [isUploadingQr, setIsUploadingQr] = useState(false);
+
+  const handleQrUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      return showAlert('QR Image file must be under 5MB', 'error');
+    }
+    setIsUploadingQr(true);
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        await axios.post('/api/settings', { key: 'websiteQr', value: reader.result });
+        setSettings(prev => ({ ...prev, websiteQr: reader.result }));
+        showAlert('Website QR Code updated successfully!');
+      } catch (err) {
+        showAlert('Failed to update QR code!', 'error');
+      } finally {
+        setIsUploadingQr(false);
+        if (e.target) e.target.value = '';
+      }
+    };
+    reader.onerror = () => {
+      showAlert('Error reading file!', 'error');
+      setIsUploadingQr(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   const fetchAiSettings = async () => {
@@ -2580,6 +2610,139 @@ const AdminPage = () => {
                             <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
                               {settings.sideTagActive !== false ? '✅ Active on all public pages' : '❌ Currently hidden'} ({settings.sideTagPosition || 'left'} side)
                             </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Website QR Code Management */}
+                      <div style={{ marginTop: '25px', padding: '25px', background: '#fcf8f4', borderRadius: '20px', border: '1px solid #e8e0d5', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <h4 style={{ fontWeight: '800', margin: 0, fontSize: '1.1rem' }}>Website QR Code Management</h4>
+                              <span style={{ 
+                                background: settings.websiteQrActive !== false ? '#ecfdf5' : '#f1f5f9', 
+                                color: settings.websiteQrActive !== false ? '#059669' : '#64748b', 
+                                fontSize: '0.75rem', 
+                                fontWeight: '800', 
+                                padding: '3px 10px', 
+                                borderRadius: '20px' 
+                              }}>
+                                {settings.websiteQrActive !== false ? '● Active on Website' : '○ Hidden'}
+                              </span>
+                            </div>
+                            <p style={{ fontSize: '0.85rem', color: '#666', margin: '6px 0 0 0' }}>
+                              Showcase a scannable QR code on the footer and contact page so mobile visitors can instantly view your portfolio.
+                            </p>
+                          </div>
+
+                          <label className="switch">
+                            <input 
+                              type="checkbox" 
+                              checked={settings.websiteQrActive !== false} 
+                              onChange={(e) => handleUpdateSetting('websiteQrActive', e.target.checked)} 
+                            />
+                            <span className="slider round"></span>
+                          </label>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
+                          {/* Left: Preview Card */}
+                          <div style={{ background: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '14px' }}>
+                            <div style={{ width: '150px', height: '150px', padding: '10px', background: '#ffffff', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: '0 4px 14px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <img 
+                                src={settings.websiteQr || '/website-qr.png'} 
+                                alt="Website QR Code Preview" 
+                                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                              />
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: '700', fontSize: '0.95rem', color: '#1e293b' }}>
+                                {settings.websiteQrLabel || 'Scan on Mobile'}
+                              </div>
+                              <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                                Displayed on Footer & Contact Page
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
+                              <a 
+                                href={settings.websiteQr || '/website-qr.png'} 
+                                download="website-qr.png"
+                                style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '10px', color: '#334155', fontSize: '0.82rem', fontWeight: '700', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                              >
+                                Download QR
+                              </a>
+                              {settings.websiteQr && (
+                                <button 
+                                  type="button"
+                                  onClick={() => {
+                                    handleUpdateSetting('websiteQr', '');
+                                    setSettings(prev => ({ ...prev, websiteQr: '' }));
+                                    showAlert('Reset to default QR Code!');
+                                  }}
+                                  style={{ padding: '8px 14px', background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '10px', color: '#e11d48', fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer' }}
+                                >
+                                  Reset to Default
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Right: Upload & Controls */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div className="form-group">
+                              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                                Upload New QR Code Image
+                              </label>
+                              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <button 
+                                  type="button"
+                                  onClick={() => qrInputRef.current?.click()}
+                                  className="btn-primary"
+                                  disabled={isUploadingQr}
+                                  style={{ background: '#b35a00', color: 'white', padding: '10px 18px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', opacity: isUploadingQr ? 0.7 : 1 }}
+                                >
+                                  {isUploadingQr ? <div className="loader-ai" style={{ width: '16px', height: '16px' }}></div> : <Upload size={16} />}
+                                  {isUploadingQr ? 'Uploading...' : 'Choose Image (PNG/JPG)'}
+                                </button>
+                                <input 
+                                  type="file" 
+                                  ref={qrInputRef} 
+                                  hidden 
+                                  accept="image/png,image/jpeg,image/webp,image/svg+xml" 
+                                  onChange={handleQrUpload} 
+                                />
+                                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Max 5MB (PNG recommended)</span>
+                              </div>
+                            </div>
+
+                            <div className="form-group">
+                              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                                Or Custom Image URL
+                              </label>
+                              <input 
+                                type="text"
+                                placeholder="e.g. /website-qr.png or https://example.com/qr.png"
+                                value={settings.websiteQr || ''}
+                                onChange={(e) => setSettings(prev => ({ ...prev, websiteQr: e.target.value }))}
+                                onBlur={() => handleUpdateSetting('websiteQr', settings.websiteQr || '')}
+                                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white' }}
+                              />
+                            </div>
+
+                            <div className="form-group">
+                              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                                QR Tag Label / Subtitle
+                              </label>
+                              <input 
+                                type="text"
+                                placeholder="e.g. Scan on Mobile"
+                                value={settings.websiteQrLabel || ''}
+                                onChange={(e) => setSettings(prev => ({ ...prev, websiteQrLabel: e.target.value }))}
+                                onBlur={() => handleUpdateSetting('websiteQrLabel', settings.websiteQrLabel || 'Scan on Mobile')}
+                                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white' }}
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>

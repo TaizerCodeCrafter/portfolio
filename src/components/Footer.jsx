@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Mail, Heart, Lock, CheckCircle2, AlertCircle, 
   ArrowRight, HelpCircle, Shield, FileText, ChevronDown, 
-  Sparkles, MapPin, Phone, MessageSquare, ExternalLink, X, Check
+  Sparkles, MapPin, Phone, MessageSquare, ExternalLink, X, Check,
+  QrCode, Download, Copy
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -48,8 +49,15 @@ const Footer = () => {
     contactLocation: 'Colombo, Sri Lanka'
   });
 
-  const [activeModal, setActiveModal] = useState(null); // 'faq' | 'privacy' | 'terms' | null
+  const [activeModal, setActiveModal] = useState(null); // 'faq' | 'privacy' | 'terms' | 'qr' | null
   const [expandedFaq, setExpandedFaq] = useState(0);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.origin);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2500);
+  };
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -155,6 +163,26 @@ const Footer = () => {
                 <MapPin size={14} /> {settings.contactLocation || 'Colombo, Sri Lanka'}
               </div>
             </div>
+
+            {/* Website QR Code Widget */}
+            {settings.websiteQrActive !== false && (
+              <div className="footer-qr-card" onClick={() => setActiveModal('qr')} title="Click to view full QR code">
+                <div className="footer-qr-img-box">
+                  <img 
+                    src={settings.websiteQr || '/website-qr.png'} 
+                    alt="TaizerCodeCrafter Website QR Code" 
+                    className="footer-qr-thumb"
+                  />
+                </div>
+                <div className="footer-qr-text-wrap">
+                  <div className="footer-qr-tag">
+                    <QrCode size={12} />
+                    <span>{settings.websiteQrLabel || 'Scan on Mobile'}</span>
+                  </div>
+                  <span className="footer-qr-desc">Instant access to portfolio</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Column 2: Quick Links */}
@@ -229,6 +257,9 @@ const Footer = () => {
               <button type="button" onClick={() => setActiveModal('terms')} className="resource-btn">
                 <FileText size={14} /> Terms of Service
               </button>
+              <button type="button" onClick={() => setActiveModal('qr')} className="resource-btn">
+                <QrCode size={14} /> Scan QR
+              </button>
             </div>
           </div>
         </div>
@@ -245,6 +276,8 @@ const Footer = () => {
               <button type="button" onClick={() => setActiveModal('privacy')}>Privacy</button>
               <span>•</span>
               <button type="button" onClick={() => setActiveModal('terms')}>Terms</button>
+              <span>•</span>
+              <button type="button" onClick={() => setActiveModal('qr')}>QR Code</button>
               <Link to="/admin" title="Admin Portal" className="admin-lock-link">
                 <Lock size={12} />
               </Link>
@@ -286,16 +319,19 @@ const Footer = () => {
                   {activeModal === 'faq' && <HelpCircle size={22} className="modal-icon-faq" />}
                   {activeModal === 'privacy' && <Shield size={22} className="modal-icon-privacy" />}
                   {activeModal === 'terms' && <FileText size={22} className="modal-icon-terms" />}
+                  {activeModal === 'qr' && <QrCode size={22} className="modal-icon-qr" />}
                   <div>
                     <h3>
                       {activeModal === 'faq' && 'Frequently Asked Questions (FAQ)'}
                       {activeModal === 'privacy' && 'Privacy Policy'}
                       {activeModal === 'terms' && 'Terms of Service'}
+                      {activeModal === 'qr' && 'Website QR Code'}
                     </h3>
                     <p>
                       {activeModal === 'faq' && 'Find instant answers to common questions about my development workflow.'}
                       {activeModal === 'privacy' && 'How we collect, protect, and handle your information.'}
                       {activeModal === 'terms' && 'Clear, professional terms governing projects and deliverables.'}
+                      {activeModal === 'qr' && 'Scan with any smartphone camera to browse or share this portfolio.'}
                     </p>
                   </div>
                 </div>
@@ -419,6 +455,43 @@ const Footer = () => {
                     <p>
                       All web projects include complimentary post-launch bug fixing and support to ensure seamless operation on target browsers and hosting environments.
                     </p>
+                  </div>
+                )}
+
+                {/* 4. QR Code Modal */}
+                {activeModal === 'qr' && (
+                  <div className="qr-modal-body">
+                    <div className="qr-enlarged-card">
+                      <img 
+                        src={settings.websiteQr || '/website-qr.png'} 
+                        alt="TaizerCodeCrafter Website QR Code" 
+                        className="qr-enlarged-img" 
+                      />
+                    </div>
+                    <div className="qr-modal-details">
+                      <h4>Point your camera to scan</h4>
+                      <p>
+                        Scan this QR code with any smartphone camera or QR reader to instantly open and browse this portfolio on your mobile device.
+                      </p>
+                      <div className="qr-modal-actions">
+                        <a 
+                          href={settings.websiteQr || '/website-qr.png'} 
+                          download="TaizerCodeCrafter-QR.png" 
+                          className="btn-primary" 
+                          style={{ padding: '10px 20px', borderRadius: '12px', fontSize: '0.88rem', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                        >
+                          <Download size={15} /> Download QR Image
+                        </a>
+                        <button 
+                          type="button" 
+                          onClick={handleCopyLink} 
+                          className="btn-outline" 
+                          style={{ padding: '10px 18px', borderRadius: '12px', fontSize: '0.88rem', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                        >
+                          {copiedLink ? <><Check size={15} color="#10b981" /> Link Copied!</> : <><Copy size={15} /> Copy Website Link</>}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

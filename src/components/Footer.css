@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Modern 4-Column Footer & Interactive Legal / FAQ Modals
+   Modern 4-Column Footer & Interactive Legal / FAQ / QR Modals
    ========================================================================== */
 
 .footer {
@@ -254,6 +254,82 @@
   color: #334155;
 }
 
+/* Footer QR Code Widget */
+.footer-qr-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  width: fit-content;
+  margin-top: 6px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.footer-qr-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 157, 66, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25), 0 0 15px rgba(255, 157, 66, 0.15);
+}
+
+[data-theme='light'] .footer-qr-card {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-theme='light'] .footer-qr-card:hover {
+  background: #ffffff;
+  border-color: #b35a00;
+  box-shadow: 0 8px 20px rgba(179, 90, 0, 0.1);
+}
+
+.footer-qr-img-box {
+  width: 52px;
+  height: 52px;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.footer-qr-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.footer-qr-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.footer-qr-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #ff9d42;
+}
+
+[data-theme='light'] .footer-qr-tag {
+  color: #b35a00;
+}
+
+.footer-qr-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
 /* Column Titles & Links */
 .footer-col-title {
   font-size: 1.05rem;
@@ -362,7 +438,7 @@
   color: #ef4444;
 }
 
-/* Resource Badges (FAQ, Privacy, Terms) */
+/* Resource Badges (FAQ, Privacy, Terms, QR) */
 .footer-resource-badges {
   display: flex;
   flex-wrap: wrap;
@@ -514,7 +590,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   4. Interactive Modals (FAQ, Privacy Policy, Terms)
+   4. Interactive Modals (FAQ, Privacy Policy, Terms, QR Code)
    -------------------------------------------------------------------------- */
 .footer-modal-overlay {
   position: fixed;
@@ -570,6 +646,7 @@
 .modal-icon-faq { color: #ff9d42; flex-shrink: 0; margin-top: 2px; }
 .modal-icon-privacy { color: #10b981; flex-shrink: 0; margin-top: 2px; }
 .modal-icon-terms { color: #0ea5e9; flex-shrink: 0; margin-top: 2px; }
+.modal-icon-qr { color: #ec4899; flex-shrink: 0; margin-top: 2px; }
 
 .modal-title-wrap h3 {
   font-size: 1.25rem;
@@ -754,6 +831,65 @@
   text-decoration: underline;
 }
 
+/* Enlarged QR Modal */
+.qr-modal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 22px;
+  padding: 10px 0;
+}
+
+.qr-enlarged-card {
+  width: 220px;
+  height: 220px;
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 24px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 157, 66, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid #18181b;
+}
+
+.qr-enlarged-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.qr-modal-details {
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.qr-modal-details h4 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.qr-modal-details p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.qr-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 /* --------------------------------------------------------------------------
    5. Mobile Responsiveness
    -------------------------------------------------------------------------- */
@@ -797,6 +933,10 @@
 
   .footer-contact-chips {
     align-items: center;
+  }
+
+  .footer-qr-card {
+    margin: 6px auto 0 auto;
   }
 
   .footer-col {
