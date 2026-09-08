@@ -2439,12 +2439,13 @@ const AdminPage = () => {
           {activeTab === 'Web Content' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className="ai-tabs" style={{ marginBottom: '10px' }}>
-                {['Stats', 'Testimonials', 'Skills', 'Services', 'Packages', 'Companies', 'General', 'Media'].map(tab => (
+                {['Hero & Bio', 'Stats', 'Testimonials', 'Skills', 'Services', 'Packages', 'Companies', 'General', 'Media'].map(tab => (
                   <button 
                     key={tab} 
                     className={`ai-tab-btn ${webContentTab === tab ? 'active' : ''}`}
                     onClick={() => setWebContentTab(tab)}
                   >
+                    {tab === 'Hero & Bio' && <Sparkles size={16} />}
                     {tab === 'Stats' && <Activity size={16} />}
                     {tab === 'Testimonials' && <MessageSquare size={16} />}
                     {tab === 'Skills' && <Code size={16} />}
@@ -2459,6 +2460,258 @@ const AdminPage = () => {
               </div>
 
               <AnimatePresence mode="wait">
+                {webContentTab === 'Hero & Bio' && (
+                  <motion.div key="hero" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                    <div className="white-card" style={{ padding: '30px' }}>
+                      <div className="card-header-ai" style={{ marginBottom: '25px' }}>
+                        <Sparkles size={22} color="#b35a00" />
+                        <div>
+                          <h3>Hero Section & Bio Management</h3>
+                          <p>Customize your homepage headline, animated typewriter titles, introductory bio, and profile visual.</p>
+                        </div>
+                      </div>
+
+                      {/* Live Preview Box */}
+                      <div style={{ background: '#0a0a0f', borderRadius: '20px', padding: '25px', color: 'white', marginBottom: '25px', border: '1px solid rgba(255, 157, 66, 0.25)', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', top: 0, right: 0, width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(255,157,66,0.15), transparent 70%)', pointerEvents: 'none' }}></div>
+                        <span style={{ fontSize: '0.72rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.8px', color: '#ff9d42' }}>
+                          Live Homepage Preview
+                        </span>
+                        
+                        <div style={{ marginTop: '15px' }}>
+                          {settings.isHeroBadgeActive !== false && (
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '5px 14px', borderRadius: '20px', background: 'rgba(255, 157, 66, 0.15)', border: '1px solid #ff9d42', color: '#ff9d42', fontSize: '0.8rem', fontWeight: '700', marginBottom: '12px' }}>
+                              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#ff9d42' }}></span>
+                              {settings.heroBadgeText || 'Available for Freelance Work'}
+                            </div>
+                          )}
+
+                          <h2 style={{ fontSize: '1.8rem', fontWeight: '800', margin: '0 0 8px 0', color: 'white' }}>
+                            {settings.heroGreeting || "Hi, I'm"} <span style={{ color: '#ff9d42' }}>{settings.heroName || "Supun Dilshan"}</span>
+                          </h2>
+
+                          <div style={{ fontSize: '1.15rem', fontWeight: '700', color: '#38bdf8', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Globe size={18} color="#38bdf8" />
+                            <span>
+                              {(Array.isArray(settings.heroTypewriterWords) && settings.heroTypewriterWords[0]) || 
+                               (typeof settings.heroTypewriterWords === 'string' && settings.heroTypewriterWords.split('\n')[0]) || 
+                               '💻 Full Stack Developer'}
+                            </span>
+                          </div>
+
+                          <p style={{ margin: '0 0 16px 0', fontSize: '0.92rem', color: '#cbd5e1', lineHeight: '1.5', maxWidth: '650px', whiteSpace: 'pre-line' }}>
+                            {settings.heroSubtitle || `I build real-world scalable apps and explore AI & Future Tech.\nFrom frontend to backend APIs, I deliver premium, high-quality digital experiences.`}
+                          </p>
+
+                          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                            <span style={{ padding: '8px 18px', background: '#b35a00', color: 'white', borderRadius: '12px', fontSize: '0.82rem', fontWeight: '700' }}>
+                              {settings.heroBtnPrimaryText || 'View My Work'} →
+                            </span>
+                            <span style={{ padding: '8px 18px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '12px', fontSize: '0.82rem', fontWeight: '700' }}>
+                              {settings.heroBtnSecondaryText || 'Contact Me'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Editing Controls */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '22px' }}>
+                        {/* Greeting & Name */}
+                        <div className="form-group">
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                            Greeting Prefix
+                          </label>
+                          <input 
+                            type="text"
+                            placeholder="e.g. Hi, I'm"
+                            value={settings.heroGreeting || ''}
+                            onChange={(e) => setSettings(prev => ({ ...prev, heroGreeting: e.target.value }))}
+                            onBlur={() => handleUpdateSetting('heroGreeting', settings.heroGreeting || "Hi, I'm")}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1' }}
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                            Full Name Displayed
+                          </label>
+                          <input 
+                            type="text"
+                            placeholder="e.g. Supun Dilshan"
+                            value={settings.heroName || ''}
+                            onChange={(e) => setSettings(prev => ({ ...prev, heroName: e.target.value }))}
+                            onBlur={() => handleUpdateSetting('heroName', settings.heroName || "Supun Dilshan")}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1' }}
+                          />
+                        </div>
+
+                        {/* Availability Badge */}
+                        <div className="form-group">
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                            Top Badge Text
+                          </label>
+                          <input 
+                            type="text"
+                            placeholder="e.g. Available for Freelance Work"
+                            value={settings.heroBadgeText || ''}
+                            onChange={(e) => setSettings(prev => ({ ...prev, heroBadgeText: e.target.value }))}
+                            onBlur={() => handleUpdateSetting('heroBadgeText', settings.heroBadgeText || "Available for Freelance Work")}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1' }}
+                          />
+                        </div>
+
+                        <div className="form-group" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '8px' }}>
+                            Show Availability Badge?
+                          </label>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <label className="switch">
+                              <input 
+                                type="checkbox"
+                                checked={settings.isHeroBadgeActive !== false}
+                                onChange={(e) => {
+                                  setSettings(prev => ({ ...prev, isHeroBadgeActive: e.target.checked }));
+                                  handleUpdateSetting('isHeroBadgeActive', e.target.checked);
+                                }}
+                              />
+                              <span className="slider round"></span>
+                            </label>
+                            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                              {settings.isHeroBadgeActive !== false ? 'Visible on top of headline' : 'Hidden'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Animated Typewriter Titles */}
+                        <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                            Animated Typewriter Roles / Titles (Enter one per line)
+                          </label>
+                          <textarea 
+                            rows={4}
+                            placeholder="💻 Full Stack Developer&#10;🌐 Frontend | Backend | APIs&#10;🤖 Exploring AI & Future Tech&#10;🚀 Building real-world scalable apps"
+                            value={
+                              Array.isArray(settings.heroTypewriterWords)
+                                ? settings.heroTypewriterWords.join('\n')
+                                : typeof settings.heroTypewriterWords === 'string'
+                                  ? settings.heroTypewriterWords
+                                  : "💻 Full Stack Developer\n🌐 Frontend | Backend | APIs\n🤖 Exploring AI & Future Tech\n🚀 Building real-world scalable apps"
+                            }
+                            onChange={(e) => {
+                              const text = e.target.value;
+                              const words = text.split('\n');
+                              setSettings(prev => ({ ...prev, heroTypewriterWords: words }));
+                            }}
+                            onBlur={(e) => {
+                              const words = e.target.value.split('\n').map(w => w.trim()).filter(Boolean);
+                              handleUpdateSetting('heroTypewriterWords', words);
+                            }}
+                            style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.9rem' }}
+                          />
+                          <span style={{ fontSize: '0.78rem', color: '#64748b' }}>These rotate automatically with smooth typewriter animation on your homepage.</span>
+                        </div>
+
+                        {/* Bio Paragraph */}
+                        <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                            Introductory Bio / Subtitle (Shown under Typewriter)
+                          </label>
+                          <textarea 
+                            rows={3}
+                            placeholder="I build real-world scalable apps and explore AI & Future Tech.&#10;From frontend to backend APIs, I deliver premium, high-quality digital experiences."
+                            value={settings.heroSubtitle ?? "I build real-world scalable apps and explore AI & Future Tech.\nFrom frontend to backend APIs, I deliver premium, high-quality digital experiences."}
+                            onChange={(e) => setSettings(prev => ({ ...prev, heroSubtitle: e.target.value }))}
+                            onBlur={() => handleUpdateSetting('heroSubtitle', settings.heroSubtitle)}
+                            style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', resize: 'vertical', fontSize: '0.9rem' }}
+                          />
+                          <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Line breaks will be preserved when displayed on the homepage.</span>
+                        </div>
+
+                        {/* CTA Buttons */}
+                        <div className="form-group">
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                            Primary Button Label
+                          </label>
+                          <input 
+                            type="text"
+                            placeholder="View My Work"
+                            value={settings.heroBtnPrimaryText || ''}
+                            onChange={(e) => setSettings(prev => ({ ...prev, heroBtnPrimaryText: e.target.value }))}
+                            onBlur={() => handleUpdateSetting('heroBtnPrimaryText', settings.heroBtnPrimaryText || "View My Work")}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1' }}
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                            Secondary Button Label
+                          </label>
+                          <input 
+                            type="text"
+                            placeholder="Contact Me"
+                            value={settings.heroBtnSecondaryText || ''}
+                            onChange={(e) => setSettings(prev => ({ ...prev, heroBtnSecondaryText: e.target.value }))}
+                            onBlur={() => handleUpdateSetting('heroBtnSecondaryText', settings.heroBtnSecondaryText || "Contact Me")}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1' }}
+                          />
+                        </div>
+
+                        {/* Profile Image & Badges */}
+                        <div className="form-group" style={{ gridColumn: '1 / -1', background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                          <h5 style={{ margin: '0 0 12px 0', fontSize: '0.95rem', fontWeight: '800', color: '#1e293b' }}>
+                            Profile Visual & Floating Badges
+                          </h5>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', marginBottom: '6px' }}>Photo URL (or /my.png)</label>
+                              <input 
+                                type="text"
+                                placeholder="/my.png"
+                                value={settings.heroImage || ''}
+                                onChange={(e) => setSettings(prev => ({ ...prev, heroImage: e.target.value }))}
+                                onBlur={() => handleUpdateSetting('heroImage', settings.heroImage || "/my.png")}
+                                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontSize: '0.85rem' }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', marginBottom: '6px' }}>Floating Badge 1</label>
+                              <input 
+                                type="text"
+                                placeholder="💻 Frontend"
+                                value={settings.heroBadge1 || ''}
+                                onChange={(e) => setSettings(prev => ({ ...prev, heroBadge1: e.target.value }))}
+                                onBlur={() => handleUpdateSetting('heroBadge1', settings.heroBadge1 || "💻 Frontend")}
+                                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontSize: '0.85rem' }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', marginBottom: '6px' }}>Floating Badge 2</label>
+                              <input 
+                                type="text"
+                                placeholder="⚙️ Backend"
+                                value={settings.heroBadge2 || ''}
+                                onChange={(e) => setSettings(prev => ({ ...prev, heroBadge2: e.target.value }))}
+                                onBlur={() => handleUpdateSetting('heroBadge2', settings.heroBadge2 || "⚙️ Backend")}
+                                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontSize: '0.85rem' }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', marginBottom: '6px' }}>Floating Badge 3</label>
+                              <input 
+                                type="text"
+                                placeholder="🚀 AI & Tech"
+                                value={settings.heroBadge3 || ''}
+                                onChange={(e) => setSettings(prev => ({ ...prev, heroBadge3: e.target.value }))}
+                                onBlur={() => handleUpdateSetting('heroBadge3', settings.heroBadge3 || "🚀 AI & Tech")}
+                                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontSize: '0.85rem' }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
                 {webContentTab === 'General' && (
                   <motion.div key="general" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                     <div className="white-card" style={{ padding: '30px' }}>

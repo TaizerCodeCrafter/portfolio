@@ -48,17 +48,36 @@ const Hero = () => {
     }
     window.location.href = '/api/cv/download';
   };
+  const defaultTypewriterWords = [
+    '💻 Full Stack Developer',
+    '🌐 Frontend | Backend | APIs',
+    '🤖 Exploring AI & Future Tech',
+    '🚀 Building real-world scalable apps'
+  ];
+
+  const getTypewriterWords = () => {
+    if (Array.isArray(settings.heroTypewriterWords) && settings.heroTypewriterWords.length > 0) {
+      return settings.heroTypewriterWords;
+    }
+    if (typeof settings.heroTypewriterWords === 'string' && settings.heroTypewriterWords.trim()) {
+      return settings.heroTypewriterWords.split('\n').map(w => w.trim()).filter(Boolean);
+    }
+    return defaultTypewriterWords;
+  };
+
   return (
     <section id="home" className="hero-section">
       <div className="hero-content">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="badge"
-        >
-          <span className="pulse-dot"></span> Available for Freelance Work
-        </motion.div>
+        {(settings.isHeroBadgeActive !== false) && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="badge"
+          >
+            <span className="pulse-dot"></span> {settings.heroBadgeText || 'Available for Freelance Work'}
+          </motion.div>
+        )}
         
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
@@ -66,16 +85,11 @@ const Hero = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="hero-title"
         >
-          Hi, I'm Supun Dilshan <br />
+          {settings.heroGreeting || "Hi, I'm"} {settings.heroName || "Supun Dilshan"} <br />
           <div className="typewriter-container">
             <span className="text-gradient typewriter-text">
               <Typewriter
-                words={[
-                  '💻 Full Stack Developer',
-                  '🌐 Frontend | Backend | APIs',
-                  '🤖 Exploring AI & Future Tech',
-                  '🚀 Building real-world scalable apps'
-                ]}
+                words={getTypewriterWords()}
                 loop={true}
                 cursor
                 cursorStyle='|'
@@ -92,9 +106,9 @@ const Hero = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           className="hero-subtitle"
+          style={{ whiteSpace: 'pre-line' }}
         >
-          I build real-world scalable apps and explore AI & Future Tech. <br/>
-          From frontend to backend APIs, I deliver premium, high-quality digital experiences.
+          {settings.heroSubtitle || `I build real-world scalable apps and explore AI & Future Tech.\nFrom frontend to backend APIs, I deliver premium, high-quality digital experiences.`}
         </motion.p>
         
         <motion.div 
@@ -104,10 +118,10 @@ const Hero = () => {
           className="hero-actions"
         >
           <Link to="/projects" className="btn-primary">
-            View My Work <ArrowRight size={18} />
+            {settings.heroBtnPrimaryText || 'View My Work'} <ArrowRight size={18} />
           </Link>
           <Link to="/contact" className="btn-outline">
-            Contact Me
+            {settings.heroBtnSecondaryText || 'Contact Me'}
           </Link>
           {(settings.isCvActive !== false && settings.cvUrl) && (
             <a 
@@ -144,13 +158,13 @@ const Hero = () => {
           <img src={settings.heroImage || "/my.png"} alt="TaizerCodeCrafter - Full Stack Developer" className="profile-image floating" />
           
           <div className="floating-badge badge-1 glass floating" style={{ animationDelay: '0s' }}>
-            <span>💻</span> Frontend
+            <span>{settings.heroBadge1 || '💻 Frontend'}</span>
           </div>
           <div className="floating-badge badge-2 glass floating" style={{ animationDelay: '1.5s' }}>
-            <span>⚙️</span> Backend
+            <span>{settings.heroBadge2 || '⚙️ Backend'}</span>
           </div>
           <div className="floating-badge badge-3 glass floating" style={{ animationDelay: '3s' }}>
-            <span>🚀</span> AI & Tech
+            <span>{settings.heroBadge3 || '🚀 AI & Tech'}</span>
           </div>
         </div>
       </div>
