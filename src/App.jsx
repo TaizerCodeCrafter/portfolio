@@ -10,6 +10,7 @@ import AdminPage from './pages/AdminPage';
 import BlogDetailPage from './pages/BlogDetailPage';
 import PackagesPage from './pages/PackagesPage';
 import ContactPage from './pages/ContactPage';
+import FloatingSideTag from './components/FloatingSideTag';
 
 function AppContent() {
   const location = useLocation();
@@ -21,6 +22,7 @@ function AppContent() {
       <div className="bg-glow-2"></div>
       
       {!isAdmin && <Navbar />}
+      {!isAdmin && <FloatingSideTag />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/packages" element={<PackagesPage />} />

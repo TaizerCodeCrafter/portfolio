@@ -2357,6 +2357,232 @@ const AdminPage = () => {
                           </label>
                         </div>
                       </div>
+
+                      {/* Floating Side Tag & Blog Feature Ribbon */}
+                      <div style={{ marginTop: '25px', padding: '25px', background: '#fcf8f4', borderRadius: '20px', border: '1px solid #e8e0d5', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <h4 style={{ fontWeight: '800', margin: 0, fontSize: '1.1rem' }}>Floating Side Tag & Blog Feature Ribbon</h4>
+                              <span style={{ 
+                                background: settings.sideTagActive !== false ? '#ecfdf5' : '#f1f5f9', 
+                                color: settings.sideTagActive !== false ? '#059669' : '#64748b', 
+                                fontSize: '0.75rem', 
+                                fontWeight: '800', 
+                                padding: '3px 10px', 
+                                borderRadius: '20px' 
+                              }}>
+                                {settings.sideTagActive !== false ? '● Active on Website' : '○ Disabled'}
+                              </span>
+                            </div>
+                            <p style={{ fontSize: '0.85rem', color: '#666', margin: '6px 0 0 0' }}>
+                              Display an animated floating ribbon/tag on the side of the website to highlight your latest blog or a custom link with preview.
+                            </p>
+                          </div>
+
+                          <label className="switch">
+                            <input 
+                              type="checkbox" 
+                              checked={settings.sideTagActive !== false} 
+                              onChange={(e) => handleUpdateSetting('sideTagActive', e.target.checked)} 
+                            />
+                            <span className="slider round"></span>
+                          </label>
+                        </div>
+
+                        {/* Tag Configuration Controls */}
+                        <div style={{ borderTop: '1px solid #e8e0d5', paddingTop: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+                          <div className="form-group">
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                              Tag Badge Text
+                            </label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g. 🔥 Latest Article" 
+                              value={settings.sideTagBadgeText || ''}
+                              onChange={(e) => setSettings(prev => ({ ...prev, sideTagBadgeText: e.target.value }))}
+                              onBlur={() => handleUpdateSetting('sideTagBadgeText', settings.sideTagBadgeText || '🔥 Latest Article')}
+                              className="admin-input"
+                              style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1' }}
+                            />
+                            <span style={{ fontSize: '0.75rem', color: '#888' }}>Text displayed inside the floating side pill.</span>
+                          </div>
+
+                          <div className="form-group">
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                              Content Mode
+                            </label>
+                            <select 
+                              value={settings.sideTagMode || 'auto'}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setSettings(prev => ({ ...prev, sideTagMode: val }));
+                                handleUpdateSetting('sideTagMode', val);
+                              }}
+                              className="admin-input"
+                              style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white' }}
+                            >
+                              <option value="auto">Auto (Always Show Latest Published Blog)</option>
+                              <option value="select">Select Specific Blog from Database</option>
+                              <option value="custom">Custom Link & Content</option>
+                            </select>
+                            <span style={{ fontSize: '0.75rem', color: '#888' }}>Select how the preview card gets its content.</span>
+                          </div>
+
+                          <div className="form-group">
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                              Screen Edge Position
+                            </label>
+                            <select 
+                              value={settings.sideTagPosition || 'left'}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setSettings(prev => ({ ...prev, sideTagPosition: val }));
+                                handleUpdateSetting('sideTagPosition', val);
+                              }}
+                              className="admin-input"
+                              style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white' }}
+                            >
+                              <option value="left">Left Edge (Recommended - away from Chatbot)</option>
+                              <option value="right">Right Edge</option>
+                            </select>
+                            <span style={{ fontSize: '0.75rem', color: '#888' }}>Left edge avoids overlapping the floating AI chatbot.</span>
+                          </div>
+
+                          <div className="form-group">
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>
+                              Button Action Text
+                            </label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g. Read Article" 
+                              value={settings.sideTagButtonText || ''}
+                              onChange={(e) => setSettings(prev => ({ ...prev, sideTagButtonText: e.target.value }))}
+                              onBlur={() => handleUpdateSetting('sideTagButtonText', settings.sideTagButtonText || 'Read Article')}
+                              className="admin-input"
+                              style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1' }}
+                            />
+                            <span style={{ fontSize: '0.75rem', color: '#888' }}>Button label inside the expanded preview card.</span>
+                          </div>
+                        </div>
+
+                        {/* Mode: Select specific blog */}
+                        {settings.sideTagMode === 'select' && (
+                          <div style={{ background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '8px' }}>
+                              Choose Blog to Showcase
+                            </label>
+                            <select 
+                              value={settings.sideTagSelectedBlogId || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setSettings(prev => ({ ...prev, sideTagSelectedBlogId: val }));
+                                handleUpdateSetting('sideTagSelectedBlogId', val);
+                              }}
+                              style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', background: 'white' }}
+                            >
+                              <option value="">-- Choose a Blog ({blogs.length} available) --</option>
+                              {blogs.map(b => (
+                                <option key={b._id} value={b._id}>
+                                  {b.title} ({b.category || 'Tech'} - {new Date(b.createdAt).toLocaleDateString()})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {/* Mode: Custom link & content */}
+                        {settings.sideTagMode === 'custom' && (
+                          <div style={{ background: 'white', padding: '18px', borderRadius: '14px', border: '1px solid #e2e8f0', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+                            <div className="form-group">
+                              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>Custom Card Title</label>
+                              <input 
+                                type="text"
+                                placeholder="e.g. My New Web Development Guide"
+                                value={settings.sideTagCustomTitle || ''}
+                                onChange={(e) => setSettings(prev => ({ ...prev, sideTagCustomTitle: e.target.value }))}
+                                onBlur={() => handleUpdateSetting('sideTagCustomTitle', settings.sideTagCustomTitle || '')}
+                                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1' }}
+                              />
+                            </div>
+
+                            <div className="form-group">
+                              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>Target Link (URL or /route)</label>
+                              <input 
+                                type="text"
+                                placeholder="e.g. /blog/my-guide or https://example.com"
+                                value={settings.sideTagCustomLink || ''}
+                                onChange={(e) => setSettings(prev => ({ ...prev, sideTagCustomLink: e.target.value }))}
+                                onBlur={() => handleUpdateSetting('sideTagCustomLink', settings.sideTagCustomLink || '')}
+                                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1' }}
+                              />
+                            </div>
+
+                            <div className="form-group">
+                              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>Custom Category / Pill</label>
+                              <input 
+                                type="text"
+                                placeholder="e.g. Special Guide"
+                                value={settings.sideTagCustomCategory || ''}
+                                onChange={(e) => setSettings(prev => ({ ...prev, sideTagCustomCategory: e.target.value }))}
+                                onBlur={() => handleUpdateSetting('sideTagCustomCategory', settings.sideTagCustomCategory || '')}
+                                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1' }}
+                              />
+                            </div>
+
+                            <div className="form-group">
+                              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>Custom Image URL</label>
+                              <input 
+                                type="text"
+                                placeholder="https://..."
+                                value={settings.sideTagCustomImage || ''}
+                                onChange={(e) => setSettings(prev => ({ ...prev, sideTagCustomImage: e.target.value }))}
+                                onBlur={() => handleUpdateSetting('sideTagCustomImage', settings.sideTagCustomImage || '')}
+                                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1' }}
+                              />
+                            </div>
+
+                            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '6px' }}>Short Description / Excerpt</label>
+                              <textarea 
+                                rows={2}
+                                placeholder="A brief 1-2 sentence description..."
+                                value={settings.sideTagCustomExcerpt || ''}
+                                onChange={(e) => setSettings(prev => ({ ...prev, sideTagCustomExcerpt: e.target.value }))}
+                                onBlur={() => handleUpdateSetting('sideTagCustomExcerpt', settings.sideTagCustomExcerpt || '')}
+                                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', resize: 'vertical' }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Live Preview Box */}
+                        <div style={{ background: '#12121a', padding: '20px', borderRadius: '14px', color: 'white' }}>
+                          <span style={{ fontSize: '0.72rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.8px', color: '#ff9d42' }}>
+                            Live Public Preview
+                          </span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginTop: '12px', flexWrap: 'wrap' }}>
+                            <div style={{ 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '8px', 
+                              padding: '8px 16px', 
+                              borderRadius: '20px', 
+                              background: 'rgba(255, 157, 66, 0.15)', 
+                              border: '1px solid #ff9d42', 
+                              color: 'white', 
+                              fontSize: '0.85rem', 
+                              fontWeight: '700' 
+                            }}>
+                              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff9d42', display: 'inline-block' }}></span>
+                              {settings.sideTagBadgeText || '🔥 Latest Article'}
+                            </div>
+                            <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                              {settings.sideTagActive !== false ? '✅ Active on all public pages' : '❌ Currently hidden'} ({settings.sideTagPosition || 'left'} side)
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </motion.div>
                 )}
