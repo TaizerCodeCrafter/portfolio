@@ -22,7 +22,10 @@ async function ensureDb() {
     return;
   }
 
-  const MONGO_URI = process.env.MONGODB_URI || FALLBACK_URI;
+  let MONGO_URI = process.env.MONGODB_URI || FALLBACK_URI;
+  if (MONGO_URI.startsWith('mongodb+srv://')) {
+    MONGO_URI = FALLBACK_URI;
+  }
   try {
     connectPromise = mongoose.connect(MONGO_URI);
     await connectPromise;

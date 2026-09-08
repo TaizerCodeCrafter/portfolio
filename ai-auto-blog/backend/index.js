@@ -69,7 +69,11 @@ app.get('/api/cron/run', async (req, res) => {
 });
 
 const FALLBACK_URI = 'mongodb://supundilshan358_db_user:ZaAoLY6pOTlsPg5D@ac-h1v7wnr-shard-00-00.ouxm37c.mongodb.net:27017,ac-h1v7wnr-shard-00-01.ouxm37c.mongodb.net:27017,ac-h1v7wnr-shard-00-02.ouxm37c.mongodb.net:27017/my-portfolio-blog?ssl=true&replicaSet=atlas-xaj0ke-shard-0&authSource=admin&appName=Cluster0';
-const MONGO_URI = process.env.MONGODB_URI || FALLBACK_URI;
+let MONGO_URI = process.env.MONGODB_URI || FALLBACK_URI;
+if (MONGO_URI.startsWith('mongodb+srv://')) {
+  console.log('⚠️ mongodb+srv URI detected. Auto-substituting direct replica-set URI to avoid DNS query hanging.');
+  MONGO_URI = FALLBACK_URI;
+}
 
 const connectDB = async () => {
   try {
