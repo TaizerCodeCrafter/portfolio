@@ -133,13 +133,11 @@ const ContactPage = () => {
 
         {/* Selected Package Banner (if redirected from /packages) */}
         {packageParam && (
-          <div className="package-selected-banner glass">
+          <div className="package-selected-banner">
             <div>
               <span className="badge">Selected Package</span>
-              <h3 style={{ margin: '6px 0 0 0', fontWeight: '800', fontSize: '1.2rem', color: '#b35a00' }}>
-                {packageParam}
-              </h3>
-              <p style={{ margin: '4px 0 0 0', fontSize: '0.88rem', color: '#64748b' }}>
+              <h3>{packageParam}</h3>
+              <p>
                 The form below is pre-configured with this package. Fill out your details or chat directly on WhatsApp!
               </p>
             </div>
@@ -262,22 +260,22 @@ const ContactPage = () => {
         {/* Main Grid: Form + Why Work With Me */}
         <div className="contact-main-grid">
           {/* Left: Message Form */}
-          <div className="contact-form-card glass">
-            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '8px', color: 'var(--text-color, #1e293b)' }}>
+          <div className="contact-form-card">
+            <h3 className="contact-card-title">
               Send a Detailed Message
             </h3>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted, #64748b)', marginBottom: '25px' }}>
+            <p className="contact-card-subtitle">
               Fill in your project requirements and I will respond with a tailored proposal.
             </p>
 
             {submitted ? (
               <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                 <CheckCircle2 size={56} color="#10b981" style={{ margin: '0 auto 16px auto' }} />
-                <h3 style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '8px' }}>Message Received!</h3>
-                <p style={{ color: '#64748b', maxWidth: '400px', margin: '0 auto 20px auto', fontSize: '0.92rem' }}>
+                <h3 className="contact-card-title">Message Received!</h3>
+                <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', margin: '0 auto 20px auto', fontSize: '0.92rem' }}>
                   Thank you for reaching out. Your message has been delivered directly to my inbox. I will review it and get back to you shortly.
                 </p>
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
                   <button onClick={() => setSubmitted(false)} className="btn-secondary" style={{ padding: '10px 20px', borderRadius: '12px' }}>
                     Send Another Message
                   </button>
@@ -288,50 +286,50 @@ const ContactPage = () => {
               </div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-                  <div className="form-group">
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '8px' }}>Your Name *</label>
+                <div className="contact-form-row">
+                  <div className="contact-form-group">
+                    <label className="contact-label">Your Name *</label>
                     <input 
                       type="text" 
                       placeholder="e.g. John Doe"
                       required 
                       value={formData.name}
                       onChange={e => setFormData({...formData, name: e.target.value})}
-                      style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-color, #cbd5e1)', background: 'var(--bg-input, rgba(255,255,255,0.8))', color: 'inherit' }}
+                      className="contact-input"
                     />
                   </div>
 
-                  <div className="form-group">
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '8px' }}>Email Address *</label>
+                  <div className="contact-form-group">
+                    <label className="contact-label">Email Address *</label>
                     <input 
                       type="email" 
                       placeholder="john@example.com"
                       required 
                       value={formData.email}
                       onChange={e => setFormData({...formData, email: e.target.value})}
-                      style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-color, #cbd5e1)', background: 'var(--bg-input, rgba(255,255,255,0.8))', color: 'inherit' }}
+                      className="contact-input"
                     />
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-                  <div className="form-group">
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '8px' }}>WhatsApp / Phone (Optional)</label>
+                <div className="contact-form-row">
+                  <div className="contact-form-group">
+                    <label className="contact-label">WhatsApp / Phone (Optional)</label>
                     <input 
                       type="text" 
                       placeholder="+94 7X XXX XXXX"
                       value={formData.phone}
                       onChange={e => setFormData({...formData, phone: e.target.value})}
-                      style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-color, #cbd5e1)', background: 'var(--bg-input, rgba(255,255,255,0.8))', color: 'inherit' }}
+                      className="contact-input"
                     />
                   </div>
 
-                  <div className="form-group">
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '8px' }}>Estimated Budget</label>
+                  <div className="contact-form-group">
+                    <label className="contact-label">Estimated Budget</label>
                     <select 
                       value={formData.budget}
                       onChange={e => setFormData({...formData, budget: e.target.value})}
-                      style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-color, #cbd5e1)', background: 'var(--bg-input, rgba(255,255,255,0.8))', color: 'inherit' }}
+                      className="contact-select"
                     >
                       <option value="< $150">&lt; $150 (Basic / Starter)</option>
                       <option value="$150 - $350">$150 - $350 (Business Website)</option>
@@ -341,31 +339,31 @@ const ContactPage = () => {
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '8px' }}>Subject</label>
+                <div className="contact-form-group">
+                  <label className="contact-label">Subject</label>
                   <input 
                     type="text" 
                     placeholder="e.g. Website development inquiry"
                     value={formData.subject}
                     onChange={e => setFormData({...formData, subject: e.target.value})}
-                    style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-color, #cbd5e1)', background: 'var(--bg-input, rgba(255,255,255,0.8))', color: 'inherit' }}
+                    className="contact-input"
                   />
                 </div>
 
-                <div className="form-group">
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '8px' }}>Project Details & Requirements *</label>
+                <div className="contact-form-group">
+                  <label className="contact-label">Project Details & Requirements *</label>
                   <textarea 
                     rows={5}
                     placeholder="Tell me about your project, timeline, features needed, or any questions..."
                     required
                     value={formData.message}
                     onChange={e => setFormData({...formData, message: e.target.value})}
-                    style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '1px solid var(--border-color, #cbd5e1)', background: 'var(--bg-input, rgba(255,255,255,0.8))', color: 'inherit', resize: 'vertical' }}
+                    className="contact-textarea"
                   ></textarea>
                 </div>
 
                 {error && (
-                  <div style={{ color: '#ef4444', background: '#fee2e2', padding: '12px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: '600' }}>
+                  <div style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: '600' }}>
                     {error}
                   </div>
                 )}
@@ -373,15 +371,8 @@ const ContactPage = () => {
                 <button 
                   type="submit" 
                   disabled={isSubmitting} 
-                  className="btn-primary" 
+                  className="btn-primary contact-submit-btn" 
                   style={{ 
-                    padding: '14px 30px', 
-                    borderRadius: '14px', 
-                    fontSize: '1rem', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    gap: '10px',
                     opacity: isSubmitting ? 0.7 : 1,
                     cursor: isSubmitting ? 'not-allowed' : 'pointer'
                   }}
@@ -394,8 +385,8 @@ const ContactPage = () => {
           </div>
 
           {/* Right: Side Highlights */}
-          <div className="contact-side-card glass">
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--text-color, #1e293b)' }}>
+          <div className="contact-side-card">
+            <h3 className="contact-card-title" style={{ fontSize: '1.25rem' }}>
               Why Work With Me?
             </h3>
 
@@ -429,9 +420,9 @@ const ContactPage = () => {
               </div>
             </div>
 
-            <div style={{ borderTop: '1px solid var(--border-color, #e2e8f0)', paddingTop: '20px' }}>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: '800', marginBottom: '8px' }}>Need an instant quote?</h4>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted, #64748b)', marginBottom: '14px' }}>
+            <div className="side-cta-box">
+              <h4>Need an instant quote?</h4>
+              <p>
                 Chat directly on WhatsApp for an immediate estimate and discussion.
               </p>
               <a 

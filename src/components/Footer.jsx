@@ -49,8 +49,8 @@ const Footer = () => {
 
   return (
     <footer id="contact" className="footer">
-      <div className="footer-content">
-        <div className="footer-content">
+      <div className="footer-container">
+        <div className="footer-top">
           <div className="footer-info">
             <h2 className="footer-logo">Taizer<span className="text-gradient">CodeCrafter</span></h2>
             <p className="footer-tagline">Building digital experiences that matter.</p>
@@ -105,8 +105,8 @@ const Footer = () => {
         
         <div className="footer-bottom glass">
           <p className="copyright">
-            © {new Date().getFullYear()} TaizerCodeCrafter. Built with <Heart size={14} className="heart-icon" /> and Vite. 
-            <Link to="/admin" style={{ marginLeft: '10px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}>
+            <span>© {new Date().getFullYear()} TaizerCodeCrafter. Built with <Heart size={14} className="heart-icon" /> and Vite.</span>
+            <Link to="/admin" title="Admin Portal" style={{ marginLeft: '6px', color: 'var(--text-secondary)', display: 'inline-flex', alignItems: 'center' }}>
               <Lock size={12} />
             </Link>
           </p>

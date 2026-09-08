@@ -196,3 +196,24 @@
   justify-content: center;
   cursor: pointer;
 }
+
+@media (max-width: 768px) {
+  .chatbot-toggle-btn {
+    bottom: 20px;
+    right: 20px;
+    width: 52px;
+    height: 52px;
+  }
+
+  .chatbot-window {
+    bottom: 80px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: 380px;
+    margin: 0 auto;
+    height: 480px;
+    max-height: calc(100vh - 100px);
+    border-radius: 20px;
+  }
+}
