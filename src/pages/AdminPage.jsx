@@ -1356,6 +1356,26 @@ const AdminPage = () => {
                       />
                     </div>
                     <div className="login-input-group">
+                      <label><MessageSquare size={16} /> WhatsApp Number (e.g. +947XXXXXXXX)</label>
+                      <input 
+                        type="text" 
+                        placeholder="+947XXXXXXXX"
+                        value={settings.contactWhatsapp || ''} 
+                        onChange={e => setSettings({...settings, contactWhatsapp: e.target.value})} 
+                        onBlur={() => handleUpdateSetting('contactWhatsapp', settings.contactWhatsapp)}
+                      />
+                    </div>
+                    <div className="login-input-group">
+                      <label><ExternalLink size={16} /> WhatsApp Group / Community URL (Optional)</label>
+                      <input 
+                        type="text" 
+                        placeholder="https://chat.whatsapp.com/..."
+                        value={settings.whatsappGroupUrl || ''} 
+                        onChange={e => setSettings({...settings, whatsappGroupUrl: e.target.value})} 
+                        onBlur={() => handleUpdateSetting('whatsappGroupUrl', settings.whatsappGroupUrl)}
+                      />
+                    </div>
+                    <div className="login-input-group">
                       <label><MapPin size={16} /> Contact Location</label>
                       <input 
                         type="text" 

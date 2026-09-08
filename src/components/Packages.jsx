@@ -97,19 +97,9 @@ const Packages = ({ isPage = false }) => {
 
   const handleSelectPackage = (pkg) => {
     const message = `Hi, I am interested in ordering the "${pkg.title}" (${pkg.currency || '$'}${pkg.price}) package. Could we discuss the details?`;
-    // Store in sessionStorage so contact form can auto-fill if on page or redirected
     sessionStorage.setItem('selected_package_msg', message);
     sessionStorage.setItem('selected_package_title', pkg.title);
-    
-    // Smooth scroll to contact or redirect to /#contact
-    if (window.location.pathname === '/') {
-      const contactEl = document.getElementById('contact') || document.getElementById('contact-form');
-      if (contactEl) {
-        contactEl.scrollIntoView({ behavior: 'smooth' });
-        return;
-      }
-    }
-    window.location.href = '/#contact';
+    window.location.href = `/contact?package=${encodeURIComponent(pkg.title)}`;
   };
 
   return (

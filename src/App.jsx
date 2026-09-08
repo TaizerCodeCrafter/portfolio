@@ -9,6 +9,7 @@ import AdminPage from './pages/AdminPage';
 
 import BlogDetailPage from './pages/BlogDetailPage';
 import PackagesPage from './pages/PackagesPage';
+import ContactPage from './pages/ContactPage';
 
 function AppContent() {
   const location = useLocation();
@@ -23,6 +24,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/packages" element={<PackagesPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogDetailPage />} />

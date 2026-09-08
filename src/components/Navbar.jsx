@@ -29,7 +29,7 @@ const Navbar = () => {
     { name: 'Projects', href: '/projects', isRoute: true },
     { name: 'Packages', href: '/packages', isRoute: true },
     { name: 'Blog', href: '/#blog' },
-    { name: 'Contact', href: '/#contact' },
+    { name: 'Contact', href: '/contact', isRoute: true },
   ];
 
   return (
@@ -64,7 +64,7 @@ const Navbar = () => {
           <button className="theme-toggle-btn" onClick={toggleTheme}>
             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          <a href="/#contact" className="btn-primary" style={{ padding: '8px 20px' }}>Hire Me</a>
+          <Link to="/contact" className="btn-primary" style={{ padding: '8px 20px' }}>Hire Me</Link>
         </div>
 
         <button className="mobile-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
