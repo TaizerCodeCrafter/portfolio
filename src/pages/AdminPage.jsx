@@ -351,14 +351,41 @@ const AdminPage = () => {
     }
   };
 
-  const handleProfilePhotoUpload = (e) => {
+  const compressImageFile = (file, maxWidth = 1200, quality = 0.8) => {
+    return new Promise((resolve) => {
+      if (!file || !file.type || !file.type.startsWith('image/')) {
+        return resolve(null);
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => resolve(event.target.result);
+        img.src = event.target.result;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleProfilePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSettingsForm(prev => ({ ...prev, photo: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      const compressed = await compressImageFile(file, 400, 0.85);
+      if (compressed) setSettingsForm(prev => ({ ...prev, photo: compressed }));
     }
   };
 
@@ -396,12 +423,13 @@ const AdminPage = () => {
     syncContent();
   };
 
-  const handleEditorImageUpload = (e) => {
+  const handleEditorImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => execCommand('insertHTML', `<img src="${reader.result}" style="width:100%; border-radius:15px; display:block; margin:15px auto; cursor:pointer;" draggable="true" />`);
-      reader.readAsDataURL(file);
+      const compressed = await compressImageFile(file, 1000, 0.75);
+      if (compressed) {
+        execCommand('insertHTML', `<img src="${compressed}" style="width:100%; border-radius:15px; display:block; margin:15px auto; cursor:pointer;" draggable="true" />`);
+      }
     }
   };
 
@@ -475,29 +503,38 @@ const AdminPage = () => {
     }
   }, [showAddBlog, blogForm._id]);
 
-  const handleEditBlog = (blog) => {
+  const handleEditBlog = async (blog) => {
+    let fullBlog = blog;
+    if (!fullBlog.content && fullBlog.slug) {
+      try {
+        const res = await axios.get(`/api/blogs/${fullBlog.slug}`);
+        if (res.data) fullBlog = res.data;
+      } catch (err) {
+        console.error('Failed to load full blog content:', err);
+      }
+    }
     setBlogForm({
-      _id: blog._id,
-      title: blog.title,
-      slug: blog.slug,
-      category: blog.category || 'Technology',
-      content: blog.content,
-      image: blog.image || blog.coverImage || '',
-      altText: blog.altText || '',
-      tags: blog.tags ? (Array.isArray(blog.tags) ? blog.tags.join(', ') : blog.tags) : '',
-      status: blog.status,
-      isFeatured: blog.isFeatured || false,
-      seoTitle: blog.seoTitle || blog.seo?.metaTitle || '',
-      seoDescription: blog.seoDescription || blog.seo?.metaDescription || '',
-      focusKeyword: blog.focusKeyword || (blog.seo?.keywords ? blog.seo.keywords.join(', ') : ''),
-      ogTitle: blog.ogTitle || '',
-      ogDescription: blog.ogDescription || '',
-      ogImage: blog.ogImage || '',
-      twitterTitle: blog.twitterTitle || '',
-      twitterDescription: blog.twitterDescription || '',
-      twitterImage: blog.twitterImage || '',
-      canonicalUrl: blog.canonicalUrl || '',
-      noIndex: blog.noIndex || false
+      _id: fullBlog._id,
+      title: fullBlog.title,
+      slug: fullBlog.slug,
+      category: fullBlog.category || 'Technology',
+      content: fullBlog.content || '',
+      image: fullBlog.image || fullBlog.coverImage || '',
+      altText: fullBlog.altText || '',
+      tags: fullBlog.tags ? (Array.isArray(fullBlog.tags) ? fullBlog.tags.join(', ') : fullBlog.tags) : '',
+      status: fullBlog.status,
+      isFeatured: fullBlog.isFeatured || false,
+      seoTitle: fullBlog.seoTitle || fullBlog.seo?.metaTitle || '',
+      seoDescription: fullBlog.seoDescription || fullBlog.seo?.metaDescription || '',
+      focusKeyword: fullBlog.focusKeyword || (fullBlog.seo?.keywords ? fullBlog.seo.keywords.join(', ') : ''),
+      ogTitle: fullBlog.ogTitle || '',
+      ogDescription: fullBlog.ogDescription || '',
+      ogImage: fullBlog.ogImage || '',
+      twitterTitle: fullBlog.twitterTitle || '',
+      twitterDescription: fullBlog.twitterDescription || '',
+      twitterImage: fullBlog.twitterImage || '',
+      canonicalUrl: fullBlog.canonicalUrl || '',
+      noIndex: fullBlog.noIndex || false
     });
     setEditorTab('Content');
     setShowAddBlog(true);
@@ -581,20 +618,27 @@ const AdminPage = () => {
   const handleSaveGeneratedBlog = async () => {
     if (!generatedPreview) return;
     try {
-      const cleanTitle = (generatedPreview.title || '').replace(/[^a-zA-Z0-9 ]/g, '');
+      const cleanTitle = (generatedPreview.title || '').replace(/[^a-zA-Z0-9 ]/g, '').trim();
+      const coverImg = generatedPreview.image || `https://image.pollinations.ai/prompt/${encodeURIComponent('technology blog cover ' + cleanTitle)}?width=800&height=500&nologo=true&seed=${Math.floor(Math.random() * 10000)}`;
+      
       await axios.post('/api/blogs', {
         ...generatedPreview,
         status: aiForm.autoPublish ? 'published' : 'draft',
-        image: generatedPreview.image || `https://image.pollinations.ai/prompt/${encodeURIComponent('technology blog cover ' + cleanPrompt)}?width=800&height=500&nologo=true&seed=${Math.floor(Math.random() * 10000)}`,
+        image: coverImg,
         seoTitle: generatedPreview.seo?.metaTitle || generatedPreview.title,
         seoDescription: generatedPreview.seo?.metaDescription || generatedPreview.metaDescription,
-        focusKeyword: generatedPreview.seo?.keywords ? generatedPreview.seo.keywords.join(', ') : (generatedPreview.keywords ? generatedPreview.keywords.join(', ') : '')
+        focusKeyword: generatedPreview.seo?.keywords 
+          ? (Array.isArray(generatedPreview.seo.keywords) ? generatedPreview.seo.keywords.join(', ') : generatedPreview.seo.keywords)
+          : (generatedPreview.keywords ? (Array.isArray(generatedPreview.keywords) ? generatedPreview.keywords.join(', ') : generatedPreview.keywords) : '')
       });
       showAlert('Blog Saved Successfully!');
       setGeneratedPreview(null);
       setAiForm({ ...aiForm, topic: '', keywords: '' });
       fetchData();
-    } catch (err) { showAlert('Failed to save!', 'error'); }
+    } catch (err) { 
+      console.error('Save blog error:', err);
+      showAlert(err.response?.data?.message || 'Failed to save!', 'error'); 
+    }
   };
 
   // Projects Handlers
@@ -1368,7 +1412,7 @@ const AdminPage = () => {
                           <div className="white-card" style={{ padding: '20px' }}>
                             <div className="card-title">Cover Image</div>
                             <div style={{ position: 'relative', marginTop: '15px', height: '180px', background: '#f9f9f9', borderRadius: '15px', overflow: 'hidden', border: '2px dashed #e8e0d5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              {blogForm.image ? (<><img src={blogForm.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /><button onClick={() => setBlogForm({...blogForm, image: ''})} style={{ position: 'absolute', top: '10px', right: '10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', padding: '5px' }}><X size={14} /></button></>) : (<label style={{ cursor: 'pointer', textAlign: 'center', color: '#888' }}><Upload size={32} style={{ margin: '0 auto 10px auto' }} /> <div>Upload Image</div><input type="file" hidden onChange={e => { const f = e.target.files[0]; if(f){ const r = new FileReader(); r.onloadend = () => setBlogForm({...blogForm, image: r.result}); r.readAsDataURL(f); } }} /></label>)}
+                              {blogForm.image ? (<><img src={blogForm.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /><button onClick={() => setBlogForm({...blogForm, image: ''})} style={{ position: 'absolute', top: '10px', right: '10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', padding: '5px' }}><X size={14} /></button></>) : (<label style={{ cursor: 'pointer', textAlign: 'center', color: '#888' }}><Upload size={32} style={{ margin: '0 auto 10px auto' }} /> <div>Upload Image</div><input type="file" hidden accept="image/*" onChange={async e => { const f = e.target.files[0]; if(f){ const c = await compressImageFile(f, 1200, 0.8); if(c) setBlogForm(prev => ({...prev, image: c})); } }} /></label>)}
                             </div>
                           </div>
                           <div className="white-card" style={{ padding: '20px' }}>
@@ -2615,7 +2659,7 @@ const AdminPage = () => {
                           <div className="login-input-group"><label>Technologies (comma separated)</label><input type="text" value={projectForm.technologies} onChange={e => setProjectForm({...projectForm, technologies: e.target.value})} placeholder="React, Node.js, etc." /></div>
                           <div className="card-title" style={{ fontSize: '0.85rem' }}>Project Image</div>
                           <div style={{ position: 'relative', height: '120px', background: '#f9f9f9', borderRadius: '15px', border: '2px dashed #e8e0d5', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                            {projectForm.image ? (<><img src={projectForm.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /><button onClick={() => setProjectForm({...projectForm, image: ''})} style={{ position: 'absolute', top: '5px', right: '5px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '5px', padding: '3px' }}><X size={12} /></button></>) : (<label style={{ cursor: 'pointer', textAlign: 'center', color: '#888' }}><Upload size={24} /> <div>Upload</div><input type="file" hidden onChange={e => { const f = e.target.files[0]; if(f){ const r = new FileReader(); r.onloadend = () => setProjectForm({...projectForm, image: r.result}); r.readAsDataURL(f); } }} /></label>)}
+                            {projectForm.image ? (<><img src={projectForm.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /><button onClick={() => setProjectForm({...projectForm, image: ''})} style={{ position: 'absolute', top: '5px', right: '5px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '5px', padding: '3px' }}><X size={12} /></button></>) : (<label style={{ cursor: 'pointer', textAlign: 'center', color: '#888' }}><Upload size={24} /> <div>Upload</div><input type="file" hidden accept="image/*" onChange={async e => { const f = e.target.files[0]; if(f){ const c = await compressImageFile(f, 1200, 0.8); if(c) setProjectForm(prev => ({...projectForm, image: c})); } }} /></label>)}
                           </div>
                         </div>
                       </div>

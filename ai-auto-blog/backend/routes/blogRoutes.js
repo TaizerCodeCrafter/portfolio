@@ -5,15 +5,25 @@ const BlogPost = require('../models/BlogPost');
 // Create new blog
 router.post('/', async (req, res) => {
   try {
-    const { title, slug, content, category, tags, status, image, seoTitle, seoDescription, focusKeyword } = req.body;
+    let { title, slug, content, category, tags, status, image, seoTitle, seoDescription, focusKeyword } = req.body;
     
+    if (!slug) {
+      slug = (title || 'post').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+
+    // Auto-resolve duplicate slug to prevent MongoDB E11000 duplicate key error
+    const existing = await BlogPost.findOne({ slug });
+    if (existing) {
+      slug = `${slug}-${Date.now().toString().slice(-4)}`;
+    }
+
     const blogPost = new BlogPost({
       title,
       slug,
       content,
       category,
       tags,
-      status,
+      status: status || 'published',
       coverImage: image,
       seo: {
         metaTitle: seoTitle,
@@ -45,22 +55,24 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Get all published blogs
+// Get all published blogs (excludes heavy content field for fast loading & serverless safety)
 router.get('/', async (req, res) => {
   try {
-    const blogs = await BlogPost.find({ status: 'published' }).sort({ createdAt: -1 });
+    const blogs = await BlogPost.find({ status: 'published' })
+      .select('-content')
+      .sort({ createdAt: -1 });
     res.json(blogs);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-
-
 // Admin: Get all blogs (including drafts)
 router.get('/admin/all', async (req, res) => {
   try {
-    const blogs = await BlogPost.find().sort({ createdAt: -1 });
+    const blogs = await BlogPost.find()
+      .select('-content')
+      .sort({ createdAt: -1 });
     res.json(blogs);
   } catch (error) {
     res.status(500).json({ message: error.message });
