@@ -299,3 +299,38 @@
 .use-template-btn:hover {
   background: #000;
 }
+
+.project-comment-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.project-comment-btn:hover {
+  background: rgba(179, 90, 0, 0.15);
+  border-color: rgba(179, 90, 0, 0.4);
+  color: #ff9800;
+  transform: scale(1.08);
+}
+
+.project-comments-modal {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(15, 23, 42, 0.96);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+}
+
+:root:not(.dark) .project-comments-modal {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+:root:not(.dark) .project-comments-modal h2 {
+  color: #0f172a !important;
+}

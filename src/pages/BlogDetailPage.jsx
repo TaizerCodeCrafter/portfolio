@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, User, Eye, ArrowLeft, Share2, MessageCircle } from 'lucide-react';
 import axios from 'axios';
+import LikeButton from '../components/LikeButton';
+import CommentSection from '../components/CommentSection';
 import './BlogDetailPage.css';
 
 const BlogDetailPage = () => {
@@ -58,6 +60,7 @@ const BlogDetailPage = () => {
             <span><Calendar size={16} /> {new Date(blog.createdAt).toLocaleDateString()}</span>
             <span><User size={16} /> {blog.author || 'Admin Writer'}</span>
             <span><Eye size={16} /> {blog.views} views</span>
+            <LikeButton targetType="blog" targetId={blog._id} initialLikes={blog.likes} size={16} />
           </div>
         </div>
       </div>
@@ -72,13 +75,31 @@ const BlogDetailPage = () => {
         <div className="blog-detail-body glass" dangerouslySetInnerHTML={{ __html: blog.content }}></div>
         
         <div className="blog-detail-footer glass">
-          <div className="share-section">
-            <h3>Share this article</h3>
+          <div className="share-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Enjoyed this article?</span>
+              <LikeButton targetType="blog" targetId={blog._id} initialLikes={blog.likes} size={18} />
+            </div>
+            
             <div className="share-btns">
-              <button className="share-btn"><Share2 size={18} /> Share</button>
-              <button className="share-btn"><MessageCircle size={18} /> Comment</button>
+              <button 
+                type="button"
+                className="share-btn" 
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert('Article link copied to clipboard!');
+                }}
+              >
+                <Share2 size={18} /> Share
+              </button>
             </div>
           </div>
+
+          <CommentSection 
+            targetType="blog" 
+            targetId={blog._id} 
+            targetTitle={blog.title} 
+          />
         </div>
       </div>
     </motion.div>

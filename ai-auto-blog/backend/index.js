@@ -53,6 +53,7 @@ app.use('/api/services', require('./routes/serviceRoutes'));
 app.use('/api/companies', require('./routes/companyRoutes'));
 app.use('/api/packages', require('./routes/packageRoutes'));
 app.use('/api/cv', require('./routes/cvRoutes'));
+app.use('/api/comments', require('./routes/commentRoutes'));
 
 app.get('/', (req, res) => res.send('API is running...'));
 

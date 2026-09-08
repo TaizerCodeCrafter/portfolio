@@ -10,7 +10,8 @@ const projectSchema = new mongoose.Schema({
   technologies: [{ type: String }],
   isFeatured: { type: Boolean, default: false },
   isForSale: { type: Boolean, default: false },
-  price: { type: Number, default: 0 }
+  price: { type: Number, default: 0 },
+  likes: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Project', projectSchema);

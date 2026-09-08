@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, User, ArrowRight, X, Clock, ExternalLink, Eye, Tag as TagIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import LikeButton from './LikeButton';
+import CommentSection from './CommentSection';
 import './Blog.css';
 
 const Blog = ({ isHomePage = false }) => {
@@ -110,6 +112,7 @@ const Blog = ({ isHomePage = false }) => {
                   <span className="blog-meta-item">
                     <Eye size={14} /> {post.views || 0}
                   </span>
+                  <LikeButton targetType="blog" targetId={post._id} initialLikes={post.likes} size={14} />
                 </div>
                 
                 <h3 className="blog-title line-clamp-2">{post.title}</h3>
@@ -191,6 +194,7 @@ const Blog = ({ isHomePage = false }) => {
                     <span><Calendar size={14} /> {new Date(selectedBlog.createdAt).toLocaleDateString()}</span>
                     <span><Clock size={14} /> 5 min read</span>
                     <span><Eye size={14} /> {selectedBlog.views || 0} views</span>
+                    <LikeButton targetType="blog" targetId={selectedBlog._id} initialLikes={selectedBlog.likes} size={15} />
                   </div>
                   <h1>{selectedBlog.title}</h1>
                 </div>
@@ -208,6 +212,12 @@ const Blog = ({ isHomePage = false }) => {
                     ))}
                   </div>
                 )}
+
+                <CommentSection 
+                  targetType="blog" 
+                  targetId={selectedBlog._id} 
+                  targetTitle={selectedBlog.title} 
+                />
               </div>
             </motion.div>
           </motion.div>

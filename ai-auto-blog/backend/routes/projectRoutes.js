@@ -43,4 +43,25 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// Like project
+router.post('/:id/like', async (req, res) => {
+  try {
+    const { action } = req.body;
+    const incValue = action === 'unlike' ? -1 : 1;
+    const project = await Project.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { likes: incValue } },
+      { new: true }
+    );
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+    if (project.likes < 0) {
+      project.likes = 0;
+      await project.save();
+    }
+    res.json({ likes: project.likes, projectId: project._id });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;

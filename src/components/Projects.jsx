@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, Eye, Monitor, Smartphone, X } from 'lucide-react';
+import { ExternalLink, Eye, Monitor, Smartphone, X, MessageSquare } from 'lucide-react';
 import { GithubIcon } from './BrandIcons';
+import LikeButton from './LikeButton';
+import CommentSection from './CommentSection';
 import './Projects.css';
 
 const defaultProjects = [
@@ -31,6 +33,7 @@ const defaultProjects = [
 const Projects = () => {
   const [projects, setProjects] = useState([]);
   const [previewProject, setPreviewProject] = useState(null);
+  const [commentProject, setCommentProject] = useState(null);
   const [previewMode, setPreviewMode] = useState('desktop');
   const [categories, setCategories] = useState(['All']);
   const [activeCategory, setActiveCategory] = useState('All');
@@ -123,7 +126,20 @@ const Projects = () => {
                     <span key={tag} className="project-tag">{tag}</span>
                   ))}
                 </div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  {project._id && (
+                    <LikeButton targetType="project" targetId={project._id} initialLikes={project.likes} size={14} />
+                  )}
+                  {project._id && (
+                    <button 
+                      type="button" 
+                      onClick={() => setCommentProject(project)} 
+                      className="project-comment-btn"
+                      title="Discussion & Feedback"
+                    >
+                      <MessageSquare size={14} />
+                    </button>
+                  )}
                   {project.isForSale && (
                     <button 
                       className="buy-now-btn" 
@@ -206,6 +222,69 @@ const Projects = () => {
               <span className="created-with">Created with <span style={{ fontWeight: 800 }}>TaizerCodeCrafter</span></span>
               <a href={previewProject.links.live} target="_blank" rel="noreferrer" className="use-template-btn">Use template</a>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Project Comments & Discussion Modal */}
+      {commentProject && (
+        <div className="preview-modal-overlay" onClick={() => setCommentProject(null)}>
+          <div 
+            className="project-comments-modal glass" 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '750px',
+              width: '92%',
+              maxHeight: '88vh',
+              overflowY: 'auto',
+              padding: '30px',
+              borderRadius: '24px',
+              margin: 'auto',
+              position: 'relative'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+              <div>
+                <span className="project-tag" style={{ marginBottom: '8px', display: 'inline-block' }}>{commentProject.category}</span>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '4px 0 8px 0', color: '#fff' }}>{commentProject.title}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <LikeButton targetType="project" targetId={commentProject._id} initialLikes={commentProject.likes} size={16} />
+                  {commentProject.links?.live && (
+                    <a 
+                      href={commentProject.links.live} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      style={{ fontSize: '0.82rem', color: '#b35a00', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', fontWeight: 700 }}
+                    >
+                      <ExternalLink size={14} /> Live Demo
+                    </a>
+                  )}
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setCommentProject(null)} 
+                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {commentProject.image && (
+              <div style={{ width: '100%', height: '220px', borderRadius: '16px', overflow: 'hidden', marginBottom: '20px' }}>
+                <img src={commentProject.image} alt={commentProject.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            )}
+
+            <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '20px' }}>
+              {commentProject.description}
+            </p>
+
+            <CommentSection 
+              targetType="project" 
+              targetId={commentProject._id} 
+              targetTitle={commentProject.title} 
+            />
           </div>
         </div>
       )}

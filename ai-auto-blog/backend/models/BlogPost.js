@@ -16,7 +16,8 @@ const blogPostSchema = new mongoose.Schema({
     seoScore: Number
   },
   author: { type: String, default: 'AI Writer' },
-  views: { type: Number, default: 0 }
+  views: { type: Number, default: 0 },
+  likes: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('BlogPost', blogPostSchema);

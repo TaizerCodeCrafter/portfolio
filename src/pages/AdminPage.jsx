@@ -19,6 +19,11 @@ import './AdminPage.css';
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('admin_active_tab') || 'Dashboard');
   const [blogs, setBlogs] = useState([]);
+  const [subscribers, setSubscribers] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [subscriberSearch, setSubscriberSearch] = useState('');
+  const [commentSearch, setCommentSearch] = useState('');
+  const [commentTargetFilter, setCommentTargetFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
@@ -217,7 +222,7 @@ const AdminPage = () => {
     setLoading(true);
     try {
       const [
-        blogRes, projectRes, testimonialRes, statRes, skillRes, serviceRes, catRes, tagRes, seoRes, seoAnRes, companyRes, packageRes
+        blogRes, projectRes, testimonialRes, statRes, skillRes, serviceRes, catRes, tagRes, seoRes, seoAnRes, companyRes, packageRes, subRes, commentRes
       ] = await Promise.allSettled([
         axios.get('/api/blogs/admin/all'),
         axios.get('/api/projects'),
@@ -230,7 +235,9 @@ const AdminPage = () => {
         axios.get('/api/seo/settings'),
         axios.get('/api/seo/analysis'),
         axios.get('/api/companies/admin/all'),
-        axios.get('/api/packages/admin/all')
+        axios.get('/api/packages/admin/all'),
+        axios.get('/api/subscribe'),
+        axios.get('/api/comments/admin/all')
       ]);
 
       if (blogRes.status === 'fulfilled' && Array.isArray(blogRes.value?.data)) setBlogs(blogRes.value.data);
@@ -245,11 +252,58 @@ const AdminPage = () => {
       if (seoAnRes.status === 'fulfilled' && Array.isArray(seoAnRes.value?.data)) setSeoAnalysis(seoAnRes.value.data);
       if (companyRes.status === 'fulfilled' && Array.isArray(companyRes.value?.data)) setCompanies(companyRes.value.data);
       if (packageRes.status === 'fulfilled' && Array.isArray(packageRes.value?.data)) setPackages(packageRes.value.data);
+      if (subRes.status === 'fulfilled' && Array.isArray(subRes.value?.data)) setSubscribers(subRes.value.data);
+      if (commentRes.status === 'fulfilled' && Array.isArray(commentRes.value?.data)) setComments(commentRes.value.data);
     } catch (err) {
       console.error('Fetch error:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteSubscriber = async (id) => {
+    showConfirm('Are you sure you want to remove this subscriber?', async () => {
+      try {
+        await axios.delete(`/api/subscribe/${id}`);
+        showAlert('Subscriber removed');
+        fetchData();
+      } catch (err) {
+        showAlert('Failed to remove subscriber', 'error');
+      }
+    });
+  };
+
+  const handleCopyAllSubscriberEmails = () => {
+    if (!subscribers || subscribers.length === 0) return showAlert('No subscribers yet!', 'error');
+    const emailList = subscribers.map(s => s.email).filter(Boolean).join(', ');
+    navigator.clipboard.writeText(emailList);
+    showAlert(`Copied ${subscribers.length} subscriber emails!`);
+  };
+
+  const handleExportSubscribersCSV = () => {
+    if (!subscribers || subscribers.length === 0) return showAlert('No subscribers to export!', 'error');
+    const header = 'Email,Subscribed Date\n';
+    const rows = subscribers.map(s => `"${s.email}","${new Date(s.subscribedAt).toISOString()}"`).join('\n');
+    const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `subscribers_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showAlert('Subscribers exported to CSV!');
+  };
+
+  const handleDeleteComment = async (id) => {
+    showConfirm('Are you sure you want to delete this comment?', async () => {
+      try {
+        await axios.delete(`/api/comments/${id}`);
+        showAlert('Comment deleted successfully');
+        fetchData();
+      } catch (err) {
+        showAlert('Failed to delete comment', 'error');
+      }
+    });
   };
 
   const showAlert = (message, type = 'success') => {
@@ -1037,6 +1091,25 @@ const AdminPage = () => {
     (statusFilter === 'All' || (b.status || '').toLowerCase() === (statusFilter || '').toLowerCase())
   );
 
+  const filteredSubscribers = (Array.isArray(subscribers) ? subscribers : []).filter(s =>
+    (s.email || '').toLowerCase().includes((subscriberSearch || '').toLowerCase())
+  );
+
+  const filteredComments = (Array.isArray(comments) ? comments : []).filter(c => {
+    const term = (commentSearch || '').toLowerCase();
+    const matchesSearch = 
+      (c.userName || '').toLowerCase().includes(term) ||
+      (c.userEmail || '').toLowerCase().includes(term) ||
+      (c.content || '').toLowerCase().includes(term) ||
+      (c.targetTitle || '').toLowerCase().includes(term);
+    
+    const matchesTarget = 
+      commentTargetFilter === 'All' || 
+      c.targetType === commentTargetFilter;
+
+    return matchesSearch && matchesTarget;
+  });
+
   const avgSeoScore = (Array.isArray(blogs) && blogs.length > 0) ? Math.round(blogs.reduce((acc, b) => {
     let score = 0;
     const title = b.seoTitle || b.seo?.metaTitle || b.title || '';
@@ -1074,6 +1147,8 @@ const AdminPage = () => {
     { name: 'Dashboard', icon: LayoutDashboard }, 
     { name: 'Blogs', icon: FileText }, 
     { name: 'Projects', icon: Zap },
+    { name: 'Comments', icon: MessageSquare },
+    { name: 'Subscribers', icon: Users },
     { name: 'Web Content', icon: Globe },
     { name: 'Categories', icon: FolderTree }, 
     { name: 'Tags', icon: Tag },
@@ -1358,11 +1433,13 @@ const AdminPage = () => {
           {activeTab === 'Dashboard' && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
               {/* Main Stats Grid */}
-              <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+              <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px' }}>
                 <StatCard label="Total Blogs" value={blogs.length} icon={FileText} color="#b35a00" bg="#fcf8f4" />
                 <StatCard label="Projects" value={projects.length} icon={Zap} color="#3b82f6" bg="#eff6ff" />
-                <StatCard label="Categories" value={categories.length} icon={FolderTree} color="#16a34a" bg="#f0fdf4" />
-                <StatCard label="Tags" value={tags.length} icon={Tag} color="#8b5cf6" bg="#f5f3ff" />
+                <StatCard label="Comments" value={comments.length} icon={MessageSquare} color="#10b981" bg="#ecfdf5" />
+                <StatCard label="Subscribers" value={subscribers.length} icon={Users} color="#8b5cf6" bg="#f5f3ff" />
+                <StatCard label="Categories" value={categories.length} icon={FolderTree} color="#f59e0b" bg="#fffbeb" />
+                <StatCard label="Tags" value={tags.length} icon={Tag} color="#ec4899" bg="#fdf2f8" />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '30px' }}>
@@ -1744,6 +1821,245 @@ const AdminPage = () => {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* --- COMMENTS TAB --- */}
+          {activeTab === 'Comments' && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                <div>
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 5px 0' }}>Comments & Discussions</h2>
+                  <p style={{ color: '#888', margin: 0, fontSize: '0.9rem' }}>Review visitor comments and feedback across your Blogs and Projects.</p>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <span style={{ background: '#fcf8f4', border: '1px solid #e8e0d5', padding: '6px 14px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 700, color: '#b35a00' }}>
+                    {filteredComments.length} Comments
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', flexGrow: 1 }}>
+                  <Search style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} size={18} />
+                  <input 
+                    type="text" 
+                    placeholder="Search by name, email, item title, or comment text..." 
+                    className="admin-input" 
+                    style={{ paddingLeft: '45px', marginBottom: 0 }} 
+                    value={commentSearch} 
+                    onChange={e => setCommentSearch(e.target.value)} 
+                  />
+                </div>
+                <select 
+                  className="admin-input" 
+                  style={{ width: '180px', marginBottom: 0 }} 
+                  value={commentTargetFilter} 
+                  onChange={e => setCommentTargetFilter(e.target.value)}
+                >
+                  <option value="All">All Items</option>
+                  <option value="blog">Blogs Only</option>
+                  <option value="project">Projects Only</option>
+                </select>
+              </div>
+
+              <div className="white-card" style={{ padding: '0', overflow: 'hidden' }}>
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '25%' }}>Author & Email</th>
+                      <th style={{ width: '25%' }}>Item / Target</th>
+                      <th style={{ width: '35%' }}>Comment Message</th>
+                      <th style={{ width: '15%' }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredComments.length > 0 ? (
+                      filteredComments.map(c => (
+                        <tr key={c._id}>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <img 
+                                src={c.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(c.userEmail || c.userName)}`} 
+                                alt={c.userName} 
+                                style={{ width: '38px', height: '38px', borderRadius: '50%', border: '2px solid #b35a00', objectFit: 'cover' }} 
+                              />
+                              <div>
+                                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{c.userName}</div>
+                                <div style={{ fontSize: '0.78rem', color: '#b35a00', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                                  <Mail size={12} /> {c.userEmail}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <span style={{ 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '6px', 
+                              padding: '4px 10px', 
+                              borderRadius: '8px', 
+                              fontSize: '0.8rem', 
+                              fontWeight: 700,
+                              background: c.targetType === 'blog' ? '#eff6ff' : '#fdf2f8',
+                              color: c.targetType === 'blog' ? '#2563eb' : '#db2777',
+                              border: `1px solid ${c.targetType === 'blog' ? '#bfdbfe' : '#fbcfe8'}`
+                            }}>
+                              {c.targetType === 'blog' ? '📝 Blog' : '💻 Project'}
+                            </span>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 600, marginTop: '4px', color: '#334155' }}>
+                              {c.targetTitle || 'Untitled Item'}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>
+                              {new Date(c.createdAt).toLocaleDateString()} at {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </td>
+                          <td>
+                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+                              {c.content}
+                            </p>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              <a 
+                                href={`mailto:${c.userEmail}?subject=Re: Comment on ${c.targetTitle || 'Portfolio'}`}
+                                className="action-menu-btn" 
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', color: '#555' }}
+                                title="Reply via Email"
+                              >
+                                <Mail size={15} />
+                              </a>
+                              <button 
+                                onClick={() => handleDeleteComment(c._id)} 
+                                className="action-menu-btn" 
+                                style={{ color: '#ef4444' }}
+                                title="Delete Comment"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" style={{ textAlign: 'center', padding: '50px', color: '#888' }}>
+                          <MessageSquare size={36} style={{ opacity: 0.3, margin: '0 auto 10px auto', display: 'block' }} />
+                          No comments found. When visitors leave comments on your blogs or projects, they will appear here.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          )}
+
+          {/* --- SUBSCRIBERS TAB --- */}
+          {activeTab === 'Subscribers' && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                <div>
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 5px 0' }}>Newsletter Subscribers</h2>
+                  <p style={{ color: '#888', margin: 0, fontSize: '0.9rem' }}>All visitors who subscribed through your website footer newsletter box.</p>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', padding: '8px 16px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 800, color: '#7c3aed' }}>
+                    {subscribers.length} Subscribers
+                  </span>
+                  <button 
+                    onClick={handleCopyAllSubscriberEmails} 
+                    className="btn-primary" 
+                    style={{ background: '#8b5cf6', color: 'white', padding: '8px 18px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
+                  >
+                    <Copy size={16} /> Copy All Emails
+                  </button>
+                  <button 
+                    onClick={handleExportSubscribersCSV} 
+                    className="btn-secondary" 
+                    style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 18px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
+                  >
+                    <Download size={16} /> Export CSV
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ position: 'relative' }}>
+                <Search style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} size={18} />
+                <input 
+                  type="text" 
+                  placeholder="Search subscribers by email..." 
+                  className="admin-input" 
+                  style={{ paddingLeft: '45px', marginBottom: 0 }} 
+                  value={subscriberSearch} 
+                  onChange={e => setSubscriberSearch(e.target.value)} 
+                />
+              </div>
+
+              <div className="white-card" style={{ padding: '0', overflow: 'hidden' }}>
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '10%' }}>#</th>
+                      <th style={{ width: '45%' }}>Subscriber Email</th>
+                      <th style={{ width: '25%' }}>Subscribed Date</th>
+                      <th style={{ width: '20%' }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredSubscribers.length > 0 ? (
+                      filteredSubscribers.map((s, index) => (
+                        <tr key={s._id}>
+                          <td style={{ fontWeight: 700, color: '#94a3b8' }}>{index + 1}</td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#f5f3ff', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Mail size={16} />
+                              </div>
+                              <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0f172a' }}>{s.email}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#475569' }}>
+                              {new Date(s.subscribedAt).toLocaleDateString()}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                              {new Date(s.subscribedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              <a 
+                                href={`mailto:${s.email}`} 
+                                className="action-menu-btn" 
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', color: '#555' }}
+                                title="Compose Email"
+                              >
+                                <Mail size={15} />
+                              </a>
+                              <button 
+                                onClick={() => handleDeleteSubscriber(s._id)} 
+                                className="action-menu-btn" 
+                                style={{ color: '#ef4444' }}
+                                title="Remove Subscriber"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" style={{ textAlign: 'center', padding: '50px', color: '#888' }}>
+                          <Users size={36} style={{ opacity: 0.3, margin: '0 auto 10px auto', display: 'block' }} />
+                          No subscribers found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </motion.div>
           )}
