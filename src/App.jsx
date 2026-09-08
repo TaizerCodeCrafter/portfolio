@@ -8,6 +8,7 @@ import BlogPage from './pages/BlogPage';
 import AdminPage from './pages/AdminPage';
 
 import BlogDetailPage from './pages/BlogDetailPage';
+import PackagesPage from './pages/PackagesPage';
 
 function AppContent() {
   const location = useLocation();
@@ -21,6 +22,7 @@ function AppContent() {
       {!isAdmin && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/packages" element={<PackagesPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogDetailPage />} />

@@ -1,4 +1,12 @@
+const path = require('path');
 require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+const dns = require('dns');
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch (e) {
+  console.warn('DNS server setup warning:', e.message);
+}
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -42,6 +50,8 @@ app.use('/api/templates', require('./routes/templateRoutes'));
 app.use('/api/subscribe', require('./routes/subscriberRoutes'));
 app.use('/api/skills', require('./routes/skillRoutes'));
 app.use('/api/services', require('./routes/serviceRoutes'));
+app.use('/api/companies', require('./routes/companyRoutes'));
+app.use('/api/packages', require('./routes/packageRoutes'));
 
 app.get('/', (req, res) => res.send('API is running...'));
 
@@ -57,12 +67,28 @@ app.get('/api/cron/run', async (req, res) => {
   }
 });
 
-const MONGO_URI = process.env.MONGODB_URI;
-if (MONGO_URI) {
-  mongoose.connect(MONGO_URI)
-    .then(() => console.log('✅ Connected to MongoDB'))
-    .catch(err => console.error('❌ MongoDB Error:', err.message));
-}
+const FALLBACK_URI = 'mongodb://supundilshan358_db_user:ZaAoLY6pOTlsPg5D@ac-h1v7wnr-shard-00-00.ouxm37c.mongodb.net:27017,ac-h1v7wnr-shard-00-01.ouxm37c.mongodb.net:27017,ac-h1v7wnr-shard-00-02.ouxm37c.mongodb.net:27017/my-portfolio-blog?ssl=true&replicaSet=atlas-xaj0ke-shard-0&authSource=admin&appName=Cluster0';
+const MONGO_URI = process.env.MONGODB_URI || FALLBACK_URI;
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect(MONGO_URI);
+    console.log('✅ Connected to MongoDB Atlas');
+  } catch (err) {
+    console.error('❌ MongoDB Connection Error with primary URI:', err.message);
+    if (MONGO_URI !== FALLBACK_URI) {
+      console.log('🔄 Attempting fallback direct replica-set connection...');
+      try {
+        await mongoose.connect(FALLBACK_URI);
+        console.log('✅ Connected to MongoDB Atlas via Fallback Replica Set');
+      } catch (fallbackErr) {
+        console.error('❌ MongoDB Fallback Error:', fallbackErr.message);
+      }
+    }
+  }
+};
+
+connectDB();
 
 if (require.main === module) {
   app.listen(PORT, () => {

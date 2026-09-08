@@ -109,21 +109,21 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Delete blog
-router.delete('/:id', async (req, res) => {
+// Delete all blogs (Admin)
+router.delete('/admin/delete-all', async (req, res) => {
   try {
-    await BlogPost.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Blog deleted' });
+    await BlogPost.deleteMany({});
+    res.json({ message: 'All blogs deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Delete all blogs
-router.delete('/admin/delete-all', async (req, res) => {
+// Delete blog
+router.delete('/:id', async (req, res) => {
   try {
-    await BlogPost.deleteMany({});
-    res.json({ message: 'All blogs deleted' });
+    await BlogPost.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Blog deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

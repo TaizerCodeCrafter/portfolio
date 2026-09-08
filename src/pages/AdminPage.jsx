@@ -7,7 +7,8 @@ import {
   TrendingUp, Activity, MessageSquare, ShieldCheck, Zap, User, Key, Filter, Briefcase, Plus, Send, MapPin, Phone,
   Bold, Italic, Underline, List, Link as LinkIcon, Video, RotateCcw, RotateCw, Type, AlignLeft, Quote, Strikethrough, Code, ListOrdered, Minus, File,
   Award, Coffee, Star, Heart, Cpu, Rocket,
-  AlertCircle, CheckCircle2, Info, Maximize, Minimize, AlignCenter, AlignRight, Edit2, PenTool, Layout, Server, Database, Smartphone, LayoutGrid
+  AlertCircle, CheckCircle2, Info, Maximize, Minimize, AlignCenter, AlignRight, Edit2, PenTool, Layout, Server, Database, Smartphone, LayoutGrid,
+  Building2, ExternalLink, CreditCard, Package as PackageIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -113,6 +114,19 @@ const AdminPage = () => {
   const [showAddService, setShowAddService] = useState(false);
   const [serviceForm, setServiceForm] = useState({ title: '', description: '', details: '', learning: '', color: '#8b5cf6', icon: 'Layout', order: 0 });
 
+  // Companies / Partners State
+  const [companies, setCompanies] = useState([]);
+  const [showAddCompany, setShowAddCompany] = useState(false);
+  const [companyForm, setCompanyForm] = useState({ name: '', logo: '', website: '', order: 0, isActive: true });
+
+  // Packages State
+  const [packages, setPackages] = useState([]);
+  const [showAddPackage, setShowAddPackage] = useState(false);
+  const [packageForm, setPackageForm] = useState({
+    title: '', subtitle: '', price: 150, currency: '$', billingPeriod: 'One-time',
+    deliveryTime: '3-5 Days', features: '', isPopular: false, badge: '', color: '#b35a00', order: 0, isActive: true
+  });
+
   const [webContentTab, setWebContentTab] = useState('Stats');
   const [settings, setSettings] = useState({ cvUrl: '' });
   const [isUploading, setIsUploading] = useState(false);
@@ -138,14 +152,14 @@ const AdminPage = () => {
   const fetchTemplates = async () => {
     try {
       const res = await axios.get('/api/templates');
-      setAvailableTemplates(res.data);
+      if (Array.isArray(res.data)) setAvailableTemplates(res.data);
     } catch (err) { console.error('Failed to fetch templates'); }
   };
 
   const fetchMessages = async () => {
     try {
       const res = await axios.get('/api/messages');
-      setMessages(res.data);
+      if (Array.isArray(res.data)) setMessages(res.data);
     } catch (err) { console.error('Failed to fetch messages'); }
   };
 
@@ -162,14 +176,14 @@ const AdminPage = () => {
   const fetchMedia = async () => {
     try {
       const res = await axios.get('/api/media');
-      setMedia(res.data);
+      if (Array.isArray(res.data)) setMedia(res.data);
     } catch (err) { console.error('Failed to fetch media'); }
   };
 
   const fetchSettings = async () => {
     try {
       const res = await axios.get('/api/settings');
-      setSettings(res.data);
+      if (res.data && typeof res.data === 'object') setSettings(res.data);
     } catch (err) { console.error('Failed to fetch settings'); }
   };
 
@@ -197,30 +211,40 @@ const AdminPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const blogRes = await axios.get('/api/blogs/admin/all');
-      setBlogs(blogRes.data);
-      const projectRes = await axios.get('/api/projects');
-      setProjects(projectRes.data);
-      const testimonialRes = await axios.get('/api/testimonials');
-      setTestimonials(testimonialRes.data);
-      const statRes = await axios.get('/api/stats');
-      setStats(statRes.data);
-      const skillRes = await axios.get('/api/skills');
-      setSkills(skillRes.data);
-      const serviceRes = await axios.get('/api/services');
-      setServices(serviceRes.data);
-      
-      // Fetch Categories, Tags, and SEO
-      const catRes = await axios.get('/api/categories');
-      setCategories(catRes.data);
-      const tagRes = await axios.get('/api/tags');
-      setTags(tagRes.data);
-      const seoRes = await axios.get('/api/seo/settings');
-      setSeoSettings(seoRes.data);
-      const seoAnRes = await axios.get('/api/seo/analysis');
-      setSeoAnalysis(seoAnRes.data);
-    } catch (err) { console.error(err); }
-    setLoading(false);
+      const [
+        blogRes, projectRes, testimonialRes, statRes, skillRes, serviceRes, catRes, tagRes, seoRes, seoAnRes, companyRes, packageRes
+      ] = await Promise.allSettled([
+        axios.get('/api/blogs/admin/all'),
+        axios.get('/api/projects'),
+        axios.get('/api/testimonials'),
+        axios.get('/api/stats'),
+        axios.get('/api/skills'),
+        axios.get('/api/services'),
+        axios.get('/api/categories'),
+        axios.get('/api/tags'),
+        axios.get('/api/seo/settings'),
+        axios.get('/api/seo/analysis'),
+        axios.get('/api/companies/admin/all'),
+        axios.get('/api/packages/admin/all')
+      ]);
+
+      if (blogRes.status === 'fulfilled' && Array.isArray(blogRes.value?.data)) setBlogs(blogRes.value.data);
+      if (projectRes.status === 'fulfilled' && Array.isArray(projectRes.value?.data)) setProjects(projectRes.value.data);
+      if (testimonialRes.status === 'fulfilled' && Array.isArray(testimonialRes.value?.data)) setTestimonials(testimonialRes.value.data);
+      if (statRes.status === 'fulfilled' && Array.isArray(statRes.value?.data)) setStats(statRes.value.data);
+      if (skillRes.status === 'fulfilled' && Array.isArray(skillRes.value?.data)) setSkills(skillRes.value.data);
+      if (serviceRes.status === 'fulfilled' && Array.isArray(serviceRes.value?.data)) setServices(serviceRes.value.data);
+      if (catRes.status === 'fulfilled' && Array.isArray(catRes.value?.data)) setCategories(catRes.value.data);
+      if (tagRes.status === 'fulfilled' && Array.isArray(tagRes.value?.data)) setTags(tagRes.value.data);
+      if (seoRes.status === 'fulfilled' && seoRes.value?.data && typeof seoRes.value.data === 'object') setSeoSettings(seoRes.value.data);
+      if (seoAnRes.status === 'fulfilled' && Array.isArray(seoAnRes.value?.data)) setSeoAnalysis(seoAnRes.value.data);
+      if (companyRes.status === 'fulfilled' && Array.isArray(companyRes.value?.data)) setCompanies(companyRes.value.data);
+      if (packageRes.status === 'fulfilled' && Array.isArray(packageRes.value?.data)) setPackages(packageRes.value.data);
+    } catch (err) {
+      console.error('Fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const showAlert = (message, type = 'success') => {
@@ -248,6 +272,18 @@ const AdminPage = () => {
   };
 
   const handleTabChange = (tabName) => {
+    if (tabName === 'Packages') {
+      setActiveTab('Web Content');
+      setWebContentTab('Packages');
+      localStorage.setItem('admin_active_tab', 'Web Content');
+      return;
+    }
+    if (tabName === 'Companies') {
+      setActiveTab('Web Content');
+      setWebContentTab('Companies');
+      localStorage.setItem('admin_active_tab', 'Web Content');
+      return;
+    }
     setActiveTab(tabName);
     localStorage.setItem('admin_active_tab', tabName);
   };
@@ -530,7 +566,10 @@ const AdminPage = () => {
   };
 
   const handleEditProject = (p) => {
-    setProjectForm({ ...p, technologies: p.technologies.join(', ') });
+    setProjectForm({ 
+      ...p, 
+      technologies: Array.isArray(p.technologies) ? p.technologies.filter(Boolean).join(', ') : (p.technologies || '') 
+    });
     setShowAddProject(true);
   };
 
@@ -656,6 +695,118 @@ const AdminPage = () => {
     });
   };
 
+  // Companies Handlers
+  const fetchCompanies = async () => {
+    try {
+      const res = await axios.get('/api/companies/admin/all');
+      if (Array.isArray(res.data)) setCompanies(res.data);
+    } catch (err) { console.error('Failed to fetch companies'); }
+  };
+
+  const handleSaveCompany = async () => {
+    if (!companyForm.name) return showAlert('Company name is required!', 'error');
+    if (!companyForm.logo) return showAlert('Company logo is required!', 'error');
+
+    try {
+      if (companyForm._id) {
+        await axios.put(`/api/companies/${companyForm._id}`, companyForm);
+        showAlert('Company Updated!');
+      } else {
+        await axios.post('/api/companies', companyForm);
+        showAlert('Company Added!');
+      }
+      setShowAddCompany(false);
+      setCompanyForm({ name: '', logo: '', website: '', order: 0, isActive: true });
+      fetchCompanies();
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to save company!', 'error');
+    }
+  };
+
+  const handleEditCompany = (c) => {
+    setCompanyForm({ ...c });
+    setShowAddCompany(true);
+  };
+
+  const handleDeleteCompany = async (id) => {
+    showConfirm('Delete this company/partner?', async () => {
+      try {
+        await axios.delete(`/api/companies/${id}`);
+        showAlert('Company Deleted!');
+        fetchCompanies();
+      } catch (err) { showAlert('Delete failed!', 'error'); }
+    });
+  };
+
+  const handleCompanyLogoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      return showAlert('Image file must be under 2MB', 'error');
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCompanyForm(prev => ({ ...prev, logo: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Packages Handlers
+  const fetchPackages = async () => {
+    try {
+      const res = await axios.get('/api/packages/admin/all');
+      if (Array.isArray(res.data)) setPackages(res.data);
+    } catch (err) { console.error('Failed to fetch packages'); }
+  };
+
+  const handleSavePackage = async () => {
+    if (!packageForm.title) return showAlert('Package title is required!', 'error');
+    if (packageForm.price === undefined || packageForm.price === '') return showAlert('Price is required!', 'error');
+
+    const payload = {
+      ...packageForm,
+      features: typeof packageForm.features === 'string'
+        ? packageForm.features.split('\n').map(f => f.trim()).filter(Boolean)
+        : packageForm.features
+    };
+
+    try {
+      if (packageForm._id) {
+        await axios.put(`/api/packages/${packageForm._id}`, payload);
+        showAlert('Package Updated!');
+      } else {
+        await axios.post('/api/packages', payload);
+        showAlert('Package Created!');
+      }
+      setShowAddPackage(false);
+      setPackageForm({
+        title: '', subtitle: '', price: 150, currency: '$', billingPeriod: 'One-time',
+        deliveryTime: '3-5 Days', features: '', isPopular: false, badge: '', color: '#b35a00', order: packages.length, isActive: true
+      });
+      fetchPackages();
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to save package!', 'error');
+    }
+  };
+
+  const handleEditPackage = (pkg) => {
+    setPackageForm({
+      ...pkg,
+      features: Array.isArray(pkg.features) ? pkg.features.join('\n') : (pkg.features || '')
+    });
+    setShowAddPackage(true);
+  };
+
+  const handleDeletePackage = async (id) => {
+    showConfirm('Delete this package?', async () => {
+      try {
+        await axios.delete(`/api/packages/${id}`);
+        showAlert('Package Deleted!');
+        fetchPackages();
+      } catch (err) { showAlert('Delete failed!', 'error'); }
+    });
+  };
+
   const handleUpdateSetting = async (key, value) => {
     try {
       await axios.post('/api/settings', { key, value });
@@ -710,12 +861,12 @@ const AdminPage = () => {
     } catch (err) { showAlert('Update failed!', 'error'); }
   };
 
-  const filteredBlogs = blogs.filter(b => 
-    b.title.toLowerCase().includes(blogSearch.toLowerCase()) && 
-    (statusFilter === 'All' || b.status.toLowerCase() === statusFilter.toLowerCase())
+  const filteredBlogs = (Array.isArray(blogs) ? blogs : []).filter(b => 
+    (b.title || '').toLowerCase().includes((blogSearch || '').toLowerCase()) && 
+    (statusFilter === 'All' || (b.status || '').toLowerCase() === (statusFilter || '').toLowerCase())
   );
 
-  const avgSeoScore = blogs.length > 0 ? Math.round(blogs.reduce((acc, b) => {
+  const avgSeoScore = (Array.isArray(blogs) && blogs.length > 0) ? Math.round(blogs.reduce((acc, b) => {
     let score = 0;
     const title = b.seoTitle || b.seo?.metaTitle || b.title || '';
     const desc = b.seoDescription || b.seo?.metaDescription || '';
@@ -750,6 +901,8 @@ const AdminPage = () => {
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard }, { name: 'Blogs', icon: FileText }, { name: 'Projects', icon: Zap },
+    { name: 'Packages', icon: CreditCard },
+    { name: 'Companies', icon: Building2 },
     { name: 'Web Content', icon: Globe },
     { name: 'Categories', icon: FolderTree }, { name: 'Tags', icon: Tag },
     { name: 'SEO', icon: Globe }, { name: 'Analytics', icon: BarChart2 }, { name: 'AI Assistant', icon: Sparkles },
@@ -1907,7 +2060,7 @@ const AdminPage = () => {
                     </div>
                     
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
-                      {projects.map(p => (
+                      {(Array.isArray(projects) ? projects : []).map(p => (
                         <div key={p._id} className="white-card" style={{ padding: '0', overflow: 'hidden' }}>
                           <img src={p.image || 'https://via.placeholder.com/400x200'} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
                           <div style={{ padding: '20px' }}>
@@ -1915,7 +2068,7 @@ const AdminPage = () => {
                             <h3 style={{ fontWeight: '800', marginBottom: '10px' }}>{p.title}</h3>
                             <p style={{ fontSize: '0.85rem', color: '#666', lineHeight: '1.5', marginBottom: '15px', height: '40px', overflow: 'hidden' }}>{p.description}</p>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '20px' }}>
-                              {p.technologies.map((t, i) => <span key={i} style={{ padding: '4px 10px', background: '#f5f5f5', borderRadius: '6px', fontSize: '0.7rem', fontWeight: '700' }}>{t}</span>)}
+                              {(Array.isArray(p.technologies) ? p.technologies : (typeof p.technologies === 'string' ? p.technologies.split(',') : [])).filter(t => t && String(t).trim()).map((t, i) => <span key={i} style={{ padding: '4px 10px', background: '#f5f5f5', borderRadius: '6px', fontSize: '0.7rem', fontWeight: '700' }}>{String(t).trim()}</span>)}
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
                               <button onClick={() => handleEditProject(p)} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #ddd', background: 'white', cursor: 'pointer' }}><Edit2 size={16} /></button>
@@ -2092,7 +2245,7 @@ const AdminPage = () => {
           {activeTab === 'Web Content' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className="ai-tabs" style={{ marginBottom: '10px' }}>
-                {['Stats', 'Testimonials', 'Skills', 'Services', 'General', 'Media'].map(tab => (
+                {['Stats', 'Testimonials', 'Skills', 'Services', 'Packages', 'Companies', 'General', 'Media'].map(tab => (
                   <button 
                     key={tab} 
                     className={`ai-tab-btn ${webContentTab === tab ? 'active' : ''}`}
@@ -2102,6 +2255,8 @@ const AdminPage = () => {
                     {tab === 'Testimonials' && <MessageSquare size={16} />}
                     {tab === 'Skills' && <Code size={16} />}
                     {tab === 'Services' && <LayoutGrid size={16} />}
+                    {tab === 'Packages' && <CreditCard size={16} />}
+                    {tab === 'Companies' && <Building2 size={16} />}
                     {tab === 'General' && <Settings size={16} />}
                     {tab === 'Media' && <Image size={16} />}
                     {tab}
@@ -2478,6 +2633,508 @@ const AdminPage = () => {
                           {services.length === 0 && (
                             <div style={{ padding: '40px', textAlign: 'center', background: 'white', borderRadius: '20px', border: '1px dashed #ccc', gridColumn: '1 / -1' }}>
                               <p style={{ color: '#888' }}>No services added yet.</p>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+
+                {webContentTab === 'Companies' && (
+                  <motion.div key="companies" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                    {showAddCompany ? (
+                      <div className="white-card" style={{ padding: '30px' }}>
+                        <div className="card-header-ai" style={{ marginBottom: '20px' }}>
+                          <Building2 size={20} color="#b35a00" />
+                          <div>
+                            <h3>{companyForm._id ? 'Edit Company / Partner' : 'Add New Company / Partner'}</h3>
+                            <p>Add companies and clients you have worked with to showcase on your homepage</p>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div className="login-input-group">
+                              <label>Company / Client Name *</label>
+                              <input 
+                                type="text" 
+                                placeholder="e.g. Google, Meta, Microsoft"
+                                value={companyForm.name} 
+                                onChange={e => setCompanyForm({...companyForm, name: e.target.value})} 
+                              />
+                            </div>
+
+                            <div className="login-input-group">
+                              <label>Website URL (Optional)</label>
+                              <input 
+                                type="text" 
+                                placeholder="https://example.com"
+                                value={companyForm.website} 
+                                onChange={e => setCompanyForm({...companyForm, website: e.target.value})} 
+                              />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                              <div className="login-input-group">
+                                <label>Display Order</label>
+                                <input 
+                                  type="number" 
+                                  value={companyForm.order} 
+                                  onChange={e => setCompanyForm({...companyForm, order: Number(e.target.value)})} 
+                                />
+                              </div>
+
+                              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                <label style={{ fontSize: '0.85rem', fontWeight: '700', marginBottom: '8px', color: '#555' }}>Active Status</label>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                                  <input 
+                                    type="checkbox" 
+                                    checked={companyForm.isActive !== false} 
+                                    onChange={e => setCompanyForm({...companyForm, isActive: e.target.checked})} 
+                                    style={{ width: '18px', height: '18px', accentColor: '#b35a00' }}
+                                  />
+                                  <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>Show on Website</span>
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#555' }}>Company Logo *</label>
+                            
+                            {/* Direct Upload Box */}
+                            <div style={{ 
+                              position: 'relative', 
+                              height: '140px', 
+                              background: '#fcf8f4', 
+                              borderRadius: '15px', 
+                              border: '2px dashed #e8e0d5', 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center', 
+                              overflow: 'hidden' 
+                            }}>
+                              {companyForm.logo ? (
+                                <>
+                                  <img 
+                                    src={companyForm.logo} 
+                                    alt="Logo preview" 
+                                    style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }} 
+                                  />
+                                  <button 
+                                    type="button"
+                                    onClick={() => setCompanyForm({...companyForm, logo: ''})} 
+                                    style={{ position: 'absolute', top: '8px', right: '8px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer' }}
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </>
+                              ) : (
+                                <label style={{ cursor: 'pointer', textAlign: 'center', color: '#888', padding: '15px' }}>
+                                  <Upload size={28} style={{ margin: '0 auto 8px auto', display: 'block', color: '#b35a00' }} />
+                                  <div style={{ fontWeight: '700', color: '#b35a00', fontSize: '0.9rem' }}>Upload Logo from Device</div>
+                                  <div style={{ fontSize: '0.75rem', color: '#999', marginTop: '4px' }}>PNG, SVG, JPG, WebP</div>
+                                  <input type="file" hidden accept="image/*" onChange={handleCompanyLogoUpload} />
+                                </label>
+                              )}
+                            </div>
+
+                            <div className="login-input-group" style={{ marginBottom: 0 }}>
+                              <label style={{ fontSize: '0.8rem' }}>Or Paste Logo Image URL</label>
+                              <input 
+                                type="text" 
+                                placeholder="https://.../logo.png"
+                                value={companyForm.logo} 
+                                onChange={e => setCompanyForm({...companyForm, logo: e.target.value})} 
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '25px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                          <button onClick={handleSaveCompany} className="btn-primary" style={{ background: '#b35a00', color: 'white', padding: '12px 30px', borderRadius: '15px' }}>
+                            {companyForm._id ? 'Update Company' : 'Save Company'}
+                          </button>
+                          <button onClick={() => setShowAddCompany(false)} className="btn-secondary" style={{ background: '#f5f5f5', color: '#555', padding: '12px 25px', borderRadius: '15px' }}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                          <div>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#333', margin: '0 0 4px 0' }}>Companies & Associated Brands</h3>
+                            <p style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>These logos scroll smoothly in the infinite marquee slider on your homepage.</p>
+                          </div>
+                          <button 
+                            onClick={() => { 
+                              setCompanyForm({ name: '', logo: '', website: '', order: companies.length, isActive: true }); 
+                              setShowAddCompany(true); 
+                            }} 
+                            className="btn-primary" 
+                            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '15px', fontSize: '0.9rem', background: '#b35a00', color: 'white' }}
+                          >
+                            <Plus size={16} /> Add Company
+                          </button>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                          {(Array.isArray(companies) ? companies : []).map(company => (
+                            <div key={company._id} className="white-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                <div style={{ width: '55px', height: '55px', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', flexShrink: 0 }}>
+                                  <img 
+                                    src={company.logo} 
+                                    alt={company.name} 
+                                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
+                                    onError={(e) => {
+                                      e.target.onerror = null;
+                                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=b35a00&color=fff`;
+                                    }}
+                                  />
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <h4 style={{ margin: 0, fontWeight: '800', color: '#1e293b', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {company.name}
+                                  </h4>
+                                  {company.website ? (
+                                    <a href={company.website} target="_blank" rel="noreferrer" style={{ fontSize: '0.78rem', color: '#b35a00', display: 'inline-flex', alignItems: 'center', gap: '3px', textDecoration: 'none', marginTop: '2px' }}>
+                                      Visit website <ExternalLink size={10} />
+                                    </a>
+                                  ) : (
+                                    <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>No link</span>
+                                  )}
+                                  <div style={{ marginTop: '4px' }}>
+                                    <span style={{ 
+                                      display: 'inline-block', 
+                                      padding: '2px 8px', 
+                                      borderRadius: '6px', 
+                                      fontSize: '0.7rem', 
+                                      fontWeight: '700',
+                                      background: company.isActive ? '#ecfdf5' : '#f1f5f9',
+                                      color: company.isActive ? '#059669' : '#64748b'
+                                    }}>
+                                      {company.isActive ? '● Active' : 'Hidden'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+                                <button 
+                                  onClick={() => handleEditCompany(company)} 
+                                  style={{ flex: 1, padding: '8px', borderRadius: '10px', background: '#f1f5f9', color: '#334155', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' }}
+                                >
+                                  Edit
+                                </button>
+                                <button 
+                                  onClick={() => handleDeleteCompany(company._id)} 
+                                  style={{ flex: 1, padding: '8px', borderRadius: '10px', background: '#fee2e2', color: '#dc2626', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          {(!companies || companies.length === 0) && (
+                            <div style={{ padding: '40px', textAlign: 'center', background: 'white', borderRadius: '20px', border: '1px dashed #ccc', gridColumn: '1 / -1' }}>
+                              <Building2 size={36} color="#94a3b8" style={{ margin: '0 auto 10px auto' }} />
+                              <p style={{ color: '#475569', fontWeight: '700', margin: '0 0 5px 0' }}>No companies added yet</p>
+                              <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>The public website is currently showing standard tech company logos. Click "Add Company" above to show your own!</p>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+
+                {webContentTab === 'Packages' && (
+                  <motion.div key="packages" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                    {showAddPackage ? (
+                      <div className="white-card" style={{ padding: '30px' }}>
+                        <div className="card-header-ai" style={{ marginBottom: '20px' }}>
+                          <CreditCard size={22} color="#b35a00" />
+                          <div>
+                            <h3>{packageForm._id ? 'Edit Package' : 'Create New Package'}</h3>
+                            <p>Configure pricing, features, and delivery timeline for your website services</p>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px' }}>
+                          {/* Left Column: Details */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                            <div className="login-input-group">
+                              <label>Package Title *</label>
+                              <input 
+                                type="text" 
+                                placeholder="e.g. Starter Website, Business Pro, Custom Web App"
+                                value={packageForm.title} 
+                                onChange={e => setPackageForm({...packageForm, title: e.target.value})} 
+                              />
+                            </div>
+
+                            <div className="login-input-group">
+                              <label>Subtitle / Description</label>
+                              <input 
+                                type="text" 
+                                placeholder="e.g. Perfect for personal branding or small business portfolios"
+                                value={packageForm.subtitle} 
+                                onChange={e => setPackageForm({...packageForm, subtitle: e.target.value})} 
+                              />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr', gap: '12px' }}>
+                              <div className="login-input-group">
+                                <label>Currency</label>
+                                <input 
+                                  type="text" 
+                                  value={packageForm.currency} 
+                                  onChange={e => setPackageForm({...packageForm, currency: e.target.value})} 
+                                />
+                              </div>
+                              <div className="login-input-group">
+                                <label>Price *</label>
+                                <input 
+                                  type="number" 
+                                  value={packageForm.price} 
+                                  onChange={e => setPackageForm({...packageForm, price: Number(e.target.value)})} 
+                                />
+                              </div>
+                              <div className="login-input-group">
+                                <label>Billing Period</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="One-time or /month"
+                                  value={packageForm.billingPeriod} 
+                                  onChange={e => setPackageForm({...packageForm, billingPeriod: e.target.value})} 
+                                />
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                              <div className="login-input-group">
+                                <label>Delivery Time</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="e.g. 3-5 Days, 1-2 Weeks"
+                                  value={packageForm.deliveryTime} 
+                                  onChange={e => setPackageForm({...packageForm, deliveryTime: e.target.value})} 
+                                />
+                              </div>
+                              <div className="login-input-group">
+                                <label>Accent Color</label>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                  <input 
+                                    type="color" 
+                                    value={packageForm.color || '#b35a00'} 
+                                    onChange={e => setPackageForm({...packageForm, color: e.target.value})} 
+                                    style={{ width: '42px', height: '42px', padding: '2px', border: '1px solid #ddd', borderRadius: '10px', cursor: 'pointer' }}
+                                  />
+                                  <input 
+                                    type="text" 
+                                    value={packageForm.color || '#b35a00'} 
+                                    onChange={e => setPackageForm({...packageForm, color: e.target.value})} 
+                                    style={{ flex: 1 }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                              <div className="login-input-group">
+                                <label>Badge Text (Optional)</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="e.g. Most Popular, Best Value"
+                                  value={packageForm.badge} 
+                                  onChange={e => setPackageForm({...packageForm, badge: e.target.value})} 
+                                />
+                              </div>
+                              <div className="login-input-group">
+                                <label>Display Order</label>
+                                <input 
+                                  type="number" 
+                                  value={packageForm.order} 
+                                  onChange={e => setPackageForm({...packageForm, order: Number(e.target.value)})} 
+                                />
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '20px', padding: '12px 15px', background: '#fcf8f4', borderRadius: '12px', border: '1px solid #faeade' }}>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600' }}>
+                                <input 
+                                  type="checkbox" 
+                                  checked={packageForm.isPopular} 
+                                  onChange={e => setPackageForm({...packageForm, isPopular: e.target.checked})} 
+                                  style={{ width: '18px', height: '18px', accentColor: '#b35a00' }}
+                                />
+                                Highlight as Popular
+                              </label>
+
+                              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600' }}>
+                                <input 
+                                  type="checkbox" 
+                                  checked={packageForm.isActive !== false} 
+                                  onChange={e => setPackageForm({...packageForm, isActive: e.target.checked})} 
+                                  style={{ width: '18px', height: '18px', accentColor: '#b35a00' }}
+                                />
+                                Show on Website
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Right Column: Features List */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div className="login-input-group" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                              <label>Package Features & Deliverables * (One per line)</label>
+                              <textarea 
+                                placeholder={"3-5 Custom Designed Pages\nResponsive Mobile-first Design\nContact Form & WhatsApp Integration\nSpeed & SEO Optimization\n1 Month Free Support"}
+                                value={packageForm.features} 
+                                onChange={e => setPackageForm({...packageForm, features: e.target.value})} 
+                                style={{ 
+                                  flex: 1, 
+                                  minHeight: '260px', 
+                                  padding: '15px', 
+                                  borderRadius: '12px', 
+                                  border: '1px solid #ddd', 
+                                  fontFamily: 'monospace', 
+                                  fontSize: '0.88rem', 
+                                  lineHeight: '1.6', 
+                                  resize: 'vertical' 
+                                }}
+                              />
+                              <span style={{ fontSize: '0.78rem', color: '#888', marginTop: '6px' }}>
+                                💡 Tip: Type each included feature on a new line. They will show with checkmarks on the client website.
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '25px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                          <button onClick={handleSavePackage} className="btn-primary" style={{ background: '#b35a00', color: 'white', padding: '12px 30px', borderRadius: '15px' }}>
+                            {packageForm._id ? 'Update Package' : 'Save Package'}
+                          </button>
+                          <button onClick={() => setShowAddPackage(false)} className="btn-secondary" style={{ background: '#f5f5f5', color: '#555', padding: '12px 25px', borderRadius: '15px' }}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                          <div>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#333', margin: '0 0 4px 0' }}>Website Packages & Pricing Plans</h3>
+                            <p style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>Packages are displayed on the public /packages page and the homepage pricing section.</p>
+                          </div>
+                          <button 
+                            onClick={() => { 
+                              setPackageForm({ 
+                                title: '', subtitle: '', price: 150, currency: '$', billingPeriod: 'One-time',
+                                deliveryTime: '3-5 Days', features: '', isPopular: false, badge: '', color: '#b35a00', order: packages.length, isActive: true 
+                              }); 
+                              setShowAddPackage(true); 
+                            }} 
+                            className="btn-primary" 
+                            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '15px', fontSize: '0.9rem', background: '#b35a00', color: 'white' }}
+                          >
+                            <Plus size={16} /> Add Package
+                          </button>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '22px' }}>
+                          {(Array.isArray(packages) ? packages : []).map(pkg => (
+                            <div 
+                              key={pkg._id} 
+                              className="white-card" 
+                              style={{ 
+                                padding: '22px', 
+                                display: 'flex', 
+                                flexDirection: 'column', 
+                                gap: '16px',
+                                borderTop: `4px solid ${pkg.color || '#b35a00'}`,
+                                position: 'relative'
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <h4 style={{ margin: 0, fontWeight: '800', color: '#1e293b', fontSize: '1.15rem' }}>{pkg.title}</h4>
+                                    {pkg.isPopular && (
+                                      <span style={{ background: 'linear-gradient(135deg, #b35a00, #ff8c00)', color: 'white', fontSize: '0.68rem', fontWeight: '800', padding: '2px 7px', borderRadius: '20px', textTransform: 'uppercase' }}>
+                                        {pkg.badge || 'Popular'}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {pkg.subtitle && (
+                                    <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>{pkg.subtitle}</p>
+                                  )}
+                                </div>
+                                <span style={{ 
+                                  padding: '3px 8px', 
+                                  borderRadius: '6px', 
+                                  fontSize: '0.72rem', 
+                                  fontWeight: '700',
+                                  background: pkg.isActive !== false ? '#ecfdf5' : '#f1f5f9',
+                                  color: pkg.isActive !== false ? '#059669' : '#64748b'
+                                }}>
+                                  {pkg.isActive !== false ? '● Active' : 'Hidden'}
+                                </span>
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                                <span style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a' }}>
+                                  {pkg.currency || '$'}{pkg.price}
+                                </span>
+                                <span style={{ fontSize: '0.82rem', color: '#64748b' }}>{pkg.billingPeriod || 'One-time'}</span>
+                                {pkg.deliveryTime && (
+                                  <span style={{ marginLeft: 'auto', fontSize: '0.75rem', background: '#f8fafc', border: '1px solid #e2e8f0', padding: '3px 8px', borderRadius: '10px', color: '#475569', fontWeight: '600' }}>
+                                    ⚡ {pkg.deliveryTime}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+                                <div style={{ fontSize: '0.78rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px' }}>
+                                  Features ({(pkg.features || []).length})
+                                </div>
+                                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.82rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  {(pkg.features || []).slice(0, 4).map((f, i) => (
+                                    <li key={i}>{f}</li>
+                                  ))}
+                                  {(pkg.features || []).length > 4 && (
+                                    <li style={{ color: '#b35a00', fontStyle: 'italic' }}>+ {pkg.features.length - 4} more features</li>
+                                  )}
+                                </ul>
+                              </div>
+
+                              <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+                                <button 
+                                  onClick={() => handleEditPackage(pkg)} 
+                                  style={{ flex: 1, padding: '8px', borderRadius: '10px', background: '#f1f5f9', color: '#334155', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' }}
+                                >
+                                  Edit
+                                </button>
+                                <button 
+                                  onClick={() => handleDeletePackage(pkg._id)} 
+                                  style={{ flex: 1, padding: '8px', borderRadius: '10px', background: '#fee2e2', color: '#dc2626', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          {(!packages || packages.length === 0) && (
+                            <div style={{ padding: '40px', textAlign: 'center', background: 'white', borderRadius: '20px', border: '1px dashed #ccc', gridColumn: '1 / -1' }}>
+                              <CreditCard size={36} color="#94a3b8" style={{ margin: '0 auto 10px auto' }} />
+                              <p style={{ color: '#475569', fontWeight: '700', margin: '0 0 5px 0' }}>No packages added yet</p>
+                              <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>
+                                The public website will show default packages until you create custom packages here. Click "Add Package" above!
+                              </p>
                             </div>
                           )}
                         </div>

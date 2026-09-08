@@ -54,7 +54,7 @@ const Skills = () => {
     const fetchSkills = async () => {
       try {
         const res = await axios.get('/api/skills');
-        if (res.data && res.data.length > 0) {
+        if (Array.isArray(res.data) && res.data.length > 0) {
           const grouped = res.data.reduce((acc, skill) => {
             if (!acc[skill.category]) {
               acc[skill.category] = {

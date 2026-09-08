@@ -20,8 +20,8 @@ const Blog = ({ isHomePage = false }) => {
           axios.get('/api/blogs'),
           axios.get('/api/tags')
         ]);
-        setBlogs(blogRes.data);
-        setTags(tagRes.data);
+        if (Array.isArray(blogRes.data)) setBlogs(blogRes.data);
+        if (Array.isArray(tagRes.data)) setTags(tagRes.data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);

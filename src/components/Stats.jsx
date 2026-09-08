@@ -26,7 +26,7 @@ const Stats = () => {
     const fetchStats = async () => {
       try {
         const res = await axios.get('/api/stats');
-        setStats(res.data);
+        if (Array.isArray(res.data)) setStats(res.data);
       } catch (err) {
         console.error('Failed to fetch stats:', err);
       }

@@ -41,18 +41,22 @@ const Projects = () => {
         const response = await fetch('/api/projects');
         const data = await response.json();
         
-        // Map backend data to frontend structure
-        const mappedData = data.map(p => ({
-          ...p,
-          tags: p.technologies || [],
-          links: { live: p.liveLink, github: p.githubLink }
-        }));
-        
-        setProjects(mappedData.length > 0 ? mappedData : defaultProjects);
-        
-        // Extract unique categories
-        const cats = ['All', ...new Set(mappedData.map(p => p.category).filter(Boolean))];
-        setCategories(cats);
+        if (Array.isArray(data)) {
+          // Map backend data to frontend structure
+          const mappedData = data.map(p => ({
+            ...p,
+            tags: (Array.isArray(p.technologies) ? p.technologies : []).filter(Boolean),
+            links: { live: p.liveLink, github: p.githubLink }
+          }));
+          
+          setProjects(mappedData.length > 0 ? mappedData : defaultProjects);
+          
+          // Extract unique categories
+          const cats = ['All', ...new Set(mappedData.map(p => p.category).filter(Boolean))];
+          setCategories(cats);
+        } else {
+          setProjects(defaultProjects);
+        }
       } catch (err) {
         console.error('Failed to fetch projects:', err);
         setProjects(defaultProjects);

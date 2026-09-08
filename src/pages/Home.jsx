@@ -7,6 +7,8 @@ import Testimonials from '../components/Testimonials';
 import Skills from '../components/Skills';
 import AIChatbot from '../components/AIChatbot';
 import Contact from '../components/Contact';
+import Companies from '../components/Companies';
+import Packages from '../components/Packages';
 
 const Home = () => {
   return (
@@ -15,9 +17,11 @@ const Home = () => {
       <Stats />
       <Skills />
       <Services />
+      <Packages />
       <Testimonials />
       <Blog isHomePage={true} />
       <Contact />
+      <Companies />
       <AIChatbot />
     </main>
   );

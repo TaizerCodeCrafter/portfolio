@@ -76,7 +76,7 @@ const Services = () => {
     const fetchServices = async () => {
       try {
         const res = await axios.get('/api/services');
-        if (res.data && res.data.length > 0) {
+        if (Array.isArray(res.data) && res.data.length > 0) {
           setServices(res.data);
         }
       } catch (error) {
