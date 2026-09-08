@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const BlogPost = require('../models/BlogPost');
 
 // Create new blog
@@ -186,11 +187,16 @@ router.get('/trending-topics', async (req, res) => {
   }
 });
 
-// Get blog by slug
+// Get blog by slug or ID
 router.get('/:slug', async (req, res) => {
   try {
+    const isObjectId = mongoose.Types.ObjectId.isValid(req.params.slug);
+    const query = isObjectId 
+      ? { $or: [{ slug: req.params.slug }, { _id: req.params.slug }] }
+      : { slug: req.params.slug };
+
     const blog = await BlogPost.findOneAndUpdate(
-      { slug: req.params.slug },
+      query,
       { $inc: { views: 1 } },
       { new: true }
     );

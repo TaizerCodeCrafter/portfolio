@@ -1,11 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, User, Eye, ArrowLeft, Share2, MessageCircle } from 'lucide-react';
+import { Calendar, User, Eye, ArrowLeft, Share2 } from 'lucide-react';
 import axios from 'axios';
 import LikeButton from '../components/LikeButton';
-import CommentSection from '../components/CommentSection';
 import './BlogDetailPage.css';
+
+const cleanBlogContent = (content, title) => {
+  if (!content) return '';
+  if (!title) return content;
+  
+  const trimmed = content.trim();
+  const h1Match = trimmed.match(/^<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  if (h1Match) {
+    const h1Text = h1Match[1].replace(/<[^>]*>/g, '').trim().toLowerCase();
+    const titleText = title.trim().toLowerCase();
+    if (h1Text === titleText || titleText.includes(h1Text) || h1Text.includes(titleText)) {
+      return trimmed.replace(/^<h1[^>]*>[\s\S]*?<\/h1>/i, '').trim();
+    }
+  }
+  return content;
+};
 
 const BlogDetailPage = () => {
   const { slug } = useParams();
@@ -15,7 +30,7 @@ const BlogDetailPage = () => {
   useEffect(() => {
     const fetchBlog = async () => {
       try {
-        const res = await axios.get(`/api/blogs/${slug}`);
+        const res = await axios.get(`/api/blogs/${encodeURIComponent(slug)}`);
         setBlog(res.data);
       } catch (err) {
         console.error('Failed to fetch blog post');
@@ -72,7 +87,7 @@ const BlogDetailPage = () => {
           </div>
         )}
 
-        <div className="blog-detail-body glass" dangerouslySetInnerHTML={{ __html: blog.content }}></div>
+        <div className="blog-detail-body glass" dangerouslySetInnerHTML={{ __html: cleanBlogContent(blog.content, blog.title) }}></div>
         
         <div className="blog-detail-footer glass">
           <div className="share-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
@@ -94,12 +109,6 @@ const BlogDetailPage = () => {
               </button>
             </div>
           </div>
-
-          <CommentSection 
-            targetType="blog" 
-            targetId={blog._id} 
-            targetTitle={blog.title} 
-          />
         </div>
       </div>
     </motion.div>

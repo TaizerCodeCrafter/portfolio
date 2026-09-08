@@ -252,20 +252,132 @@
     gap: 6px;
 }
 
-.modal-text {
-    margin-top: 40px;
-    line-height: 1.8;
-    color: var(--text-secondary);
-    font-size: 1.1rem;
+.blog-modal-cover {
+    width: 100%;
+    max-height: 420px;
+    border-radius: 18px;
+    overflow: hidden;
+    margin: 20px 0 25px 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.modal-text h2, .modal-text h3 {
-    margin: 30px 0 15px 0;
-    color: var(--text-primary);
+.blog-modal-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.blog-modal-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: rgba(255, 255, 255, 0.75);
+    gap: 16px;
+}
+
+.blog-modal-loading .loader {
+    width: 42px;
+    height: 42px;
+    border: 3px solid rgba(139, 92, 246, 0.15);
+    border-top-color: #a855f7;
+    border-radius: 50%;
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.modal-text {
+    margin-top: 30px;
+    line-height: 1.85;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 1.1rem;
+    word-break: break-word;
+}
+
+.modal-text h1, 
+.modal-text h2, 
+.modal-text h3, 
+.modal-text h4 {
+    margin: 32px 0 16px 0;
+    color: #ffffff;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.modal-text h1 {
+    font-size: 1.85rem;
+}
+
+.modal-text h2 {
+    font-size: 1.5rem;
+    color: #c084fc;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+    padding-bottom: 8px;
+}
+
+.modal-text h3 {
+    font-size: 1.25rem;
+    color: #e9d5ff;
 }
 
 .modal-text p {
-    margin-bottom: 20px;
+    margin-bottom: 22px;
+    line-height: 1.85;
+}
+
+.modal-text ul, 
+.modal-text ol {
+    margin: 15px 0 25px 25px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.modal-text li {
+    margin-bottom: 10px;
+    line-height: 1.7;
+}
+
+.modal-text strong, 
+.modal-text b {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.modal-text a {
+    color: #a855f7;
+    text-decoration: underline;
+}
+
+.modal-text blockquote {
+    border-left: 4px solid #a855f7;
+    padding: 12px 20px;
+    margin: 25px 0;
+    font-style: italic;
+    background: rgba(168, 85, 247, 0.08);
+    border-radius: 0 12px 12px 0;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.modal-text code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    color: #e9d5ff;
+    font-size: 0.95em;
+}
+
+.modal-text pre {
+    background: rgba(0, 0, 0, 0.55);
+    padding: 18px;
+    border-radius: 12px;
+    overflow-x: auto;
+    margin: 22px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .modal-tags {
