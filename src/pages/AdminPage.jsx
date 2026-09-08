@@ -804,7 +804,7 @@ const AdminPage = () => {
   };
 
   const handleCvUpload = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
       if (file.size > 15 * 1024 * 1024) return showAlert('File too large! Max 15MB (MongoDB Limit)', 'error');
       
@@ -813,15 +813,20 @@ const AdminPage = () => {
       reader.onloadend = async () => {
         try {
           await axios.post('/api/settings', { key: 'cvUrl', value: reader.result });
+          await axios.post('/api/settings', { key: 'cvName', value: file.name });
+          await axios.post('/api/settings', { key: 'isCvActive', value: true });
           // Also save to media library
-          await axios.post('/api/media', { name: file.name, url: reader.result, type: 'document', size: file.size });
-          showAlert('CV Uploaded successfully!');
+          try {
+            await axios.post('/api/media', { name: file.name, url: reader.result, type: 'document', size: file.size });
+          } catch (mErr) { console.warn(mErr); }
+          showAlert('CV Uploaded and activated successfully!');
           fetchSettings();
           fetchMedia();
         } catch (err) {
-          showAlert('Upload failed! The file might be too large for the database.', 'error');
+          showAlert('Upload failed! ' + (err.response?.data?.message || 'File might be too large for database.'), 'error');
         } finally {
           setIsUploading(false);
+          if (e.target) e.target.value = '';
         }
       };
       reader.onerror = () => {
@@ -2288,16 +2293,40 @@ const AdminPage = () => {
                       </div>
                       
                       <div style={{ padding: '25px', background: '#fcf8f4', borderRadius: '20px', border: '1px solid #e8e0d5', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
                           <div>
-                            <h4 style={{ fontWeight: '800', marginBottom: '5px' }}>Professional CV / Resume</h4>
-                            <p style={{ fontSize: '0.85rem', color: '#666' }}>Upload your latest CV for the "Download CV" button on the home page.</p>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <h4 style={{ fontWeight: '800', margin: 0 }}>Professional CV / Resume</h4>
+                              {settings.cvUrl ? (
+                                <span style={{ background: '#ecfdf5', color: '#059669', fontSize: '0.75rem', fontWeight: '800', padding: '3px 10px', borderRadius: '20px' }}>
+                                  ✓ Uploaded: {settings.cvName || 'Resume.pdf'}
+                                </span>
+                              ) : (
+                                <span style={{ background: '#f1f5f9', color: '#64748b', fontSize: '0.75rem', fontWeight: '700', padding: '3px 10px', borderRadius: '20px' }}>
+                                  No CV Uploaded
+                                </span>
+                              )}
+                            </div>
+                            <p style={{ fontSize: '0.85rem', color: '#666', margin: '6px 0 0 0' }}>Upload your latest PDF CV for the "Download CV" button on the portfolio.</p>
                           </div>
-                          <div style={{ display: 'flex', gap: '10px' }}>
+                          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                             {settings.cvUrl && (
                               <>
-                                <a href={settings.cvUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '10px 20px', background: 'white', border: '1px solid #ddd', borderRadius: '12px', color: '#555', fontSize: '0.85rem', fontWeight: '700', textDecoration: 'none' }}>View</a>
-                                <button onClick={() => showConfirm('Delete current CV?', () => handleUpdateSetting('cvUrl', ''))} style={{ padding: '10px', background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '12px', color: '#ef4444' }}><Trash2 size={16} /></button>
+                                <a 
+                                  href="/api/cv/view" 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  style={{ padding: '10px 18px', background: 'white', border: '1px solid #ddd', borderRadius: '12px', color: '#334155', fontSize: '0.85rem', fontWeight: '700', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                  <Eye size={15} /> View
+                                </a>
+                                <a 
+                                  href="/api/cv/download" 
+                                  style={{ padding: '10px 18px', background: 'white', border: '1px solid #ddd', borderRadius: '12px', color: '#334155', fontSize: '0.85rem', fontWeight: '700', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                  Download
+                                </a>
+                                <button onClick={() => showConfirm('Delete current CV?', () => { handleUpdateSetting('cvUrl', ''); handleUpdateSetting('cvName', ''); })} style={{ padding: '10px', background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '12px', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
                               </>
                             )}
                             <button 
@@ -2316,7 +2345,7 @@ const AdminPage = () => {
                         <div style={{ borderTop: '1px solid #eee', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
                             <h4 style={{ fontWeight: '800', marginBottom: '2px' }}>CV Visibility</h4>
-                            <p style={{ fontSize: '0.85rem', color: '#888' }}>Show or hide the Download CV button on the public portfolio.</p>
+                            <p style={{ fontSize: '0.85rem', color: '#888', margin: 0 }}>Show or hide the Download CV button on the public portfolio.</p>
                           </div>
                           <label className="switch">
                             <input 

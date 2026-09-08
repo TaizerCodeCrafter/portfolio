@@ -52,6 +52,7 @@ app.use('/api/skills', require('./routes/skillRoutes'));
 app.use('/api/services', require('./routes/serviceRoutes'));
 app.use('/api/companies', require('./routes/companyRoutes'));
 app.use('/api/packages', require('./routes/packageRoutes'));
+app.use('/api/cv', require('./routes/cvRoutes'));
 
 app.get('/', (req, res) => res.send('API is running...'));
 

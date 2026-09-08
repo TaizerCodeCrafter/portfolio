@@ -8,7 +8,7 @@ import { GithubIcon, LinkedinIcon, TwitterIcon, FacebookIcon, TiktokIcon, Whatsa
 import './Hero.css';
 
 const Hero = () => {
-  const [settings, setSettings] = useState({ cvUrl: '/resume.pdf' });
+  const [settings, setSettings] = useState({ cvUrl: '', isCvActive: true });
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -19,6 +19,35 @@ const Hero = () => {
     };
     fetchSettings();
   }, []);
+
+  const handleDownloadCv = (e) => {
+    e.preventDefault();
+    if (!settings.cvUrl) return;
+
+    if (settings.cvUrl.startsWith('data:')) {
+      try {
+        const arr = settings.cvUrl.split(',');
+        const mime = arr[0].match(/:(.*?);/)?.[1] || 'application/pdf';
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) u8arr[n] = bstr.charCodeAt(n);
+        const blob = new Blob([u8arr], { type: mime });
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = settings.cvName || 'Supun_Dilshan_CV.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+        return;
+      } catch (err) {
+        console.warn('Blob download error:', err);
+      }
+    }
+    window.location.href = '/api/cv/download';
+  };
   return (
     <section id="home" className="hero-section">
       <div className="hero-content">
@@ -77,11 +106,17 @@ const Hero = () => {
           <Link to="/projects" className="btn-primary">
             View My Work <ArrowRight size={18} />
           </Link>
-          <a href="/#contact-form" className="btn-outline">
+          <Link to="/contact" className="btn-outline">
             Contact Me
-          </a>
+          </Link>
           {(settings.isCvActive !== false && settings.cvUrl) && (
-            <a href={settings.cvUrl} download className="btn-outline" style={{ borderColor: 'var(--primary)', color: 'var(--primary)' }}>
+            <a 
+              href="/api/cv/download" 
+              onClick={handleDownloadCv}
+              download={settings.cvName || 'Supun_Dilshan_CV.pdf'} 
+              className="btn-outline" 
+              style={{ borderColor: 'var(--primary)', color: 'var(--primary)' }}
+            >
               Download CV
             </a>
           )}
