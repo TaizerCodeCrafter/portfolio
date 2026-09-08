@@ -272,18 +272,6 @@ const AdminPage = () => {
   };
 
   const handleTabChange = (tabName) => {
-    if (tabName === 'Packages') {
-      setActiveTab('Web Content');
-      setWebContentTab('Packages');
-      localStorage.setItem('admin_active_tab', 'Web Content');
-      return;
-    }
-    if (tabName === 'Companies') {
-      setActiveTab('Web Content');
-      setWebContentTab('Companies');
-      localStorage.setItem('admin_active_tab', 'Web Content');
-      return;
-    }
     setActiveTab(tabName);
     localStorage.setItem('admin_active_tab', tabName);
   };
@@ -900,12 +888,15 @@ const AdminPage = () => {
   }
 
   const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard }, { name: 'Blogs', icon: FileText }, { name: 'Projects', icon: Zap },
-    { name: 'Packages', icon: CreditCard },
-    { name: 'Companies', icon: Building2 },
+    { name: 'Dashboard', icon: LayoutDashboard }, 
+    { name: 'Blogs', icon: FileText }, 
+    { name: 'Projects', icon: Zap },
     { name: 'Web Content', icon: Globe },
-    { name: 'Categories', icon: FolderTree }, { name: 'Tags', icon: Tag },
-    { name: 'SEO', icon: Globe }, { name: 'Analytics', icon: BarChart2 }, { name: 'AI Assistant', icon: Sparkles },
+    { name: 'Categories', icon: FolderTree }, 
+    { name: 'Tags', icon: Tag },
+    { name: 'SEO', icon: Globe }, 
+    { name: 'Analytics', icon: BarChart2 }, 
+    { name: 'AI Assistant', icon: Sparkles },
     { name: 'Inbox', icon: Mail },
   ];
 
