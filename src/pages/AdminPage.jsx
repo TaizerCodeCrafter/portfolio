@@ -1157,7 +1157,7 @@ const AdminPage = () => {
                               <AnimatePresence>{selectedImg && (<motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} style={{ position: 'absolute', top: imgToolbarPos.top, left: imgToolbarPos.left, zIndex: 100, display: 'flex', gap: '5px', padding: '8px', background: '#222', borderRadius: '12px', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' }}><ImgToolBtn icon={Minimize} onClick={() => resizeImg('small')} /><ImgToolBtn icon={Maximize} onClick={() => resizeImg('medium')} /><ImgToolBtn icon={Maximize} label="Full" onClick={() => resizeImg('full')} /><div style={{ width: '1px', background: '#444', margin: '0 5px' }} /><ImgToolBtn icon={AlignLeft} onClick={() => alignImg('left')} /><ImgToolBtn icon={AlignCenter} onClick={() => alignImg('center')} /><div style={{ width: '1px', background: '#444', margin: '0 5px' }} /><ImgToolBtn icon={Trash2} color="#ef4444" onClick={() => { selectedImg.remove(); setSelectedImg(null); syncContent(); }} /></motion.div>)}</AnimatePresence>
                               <div className="card-title">Content</div>
                               <div style={{ display: 'flex', gap: '8px', padding: '10px', background: '#fcf8f4', borderRadius: '12px 12px 0 0', border: '1px solid #e8e0d5', borderBottom: 'none', flexWrap: 'wrap' }}><ToolbarBtn icon={Bold} onClick={() => execCommand('bold')} /><ToolbarBtn icon={Italic} onClick={() => execCommand('italic')} /><ToolbarBtn icon={Underline} onClick={() => execCommand('underline')} /><div style={{ width: '1px', background: '#e8e0d5', margin: '0 5px' }} /><ToolbarBtn icon={Type} label="H1" onClick={() => execCommand('formatBlock', 'H1')} /><ToolbarBtn icon={Type} label="H2" onClick={() => execCommand('formatBlock', 'H2')} /><div style={{ width: '1px', background: '#e8e0d5', margin: '0 5px' }} /><ToolbarBtn icon={LinkIcon} onClick={() => showPrompt('Link URL', 'https://...', (v) => execCommand('createLink', v))} /><ToolbarBtn icon={Image} onClick={() => fileInputRef.current.click()} /><input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handleEditorImageUpload} /><ToolbarBtn icon={File} onClick={() => docInputRef.current.click()} /><input type="file" ref={docInputRef} hidden accept=".pdf,.doc,.docx" onChange={handleEditorFileUpload} /></div>
-                              <div ref={editorRef} contentEditable="true" onClick={handleEditorClick} onInput={syncContent} onBlur={syncContent} style={{ width: '100%', minHeight: '500px', padding: '25px', borderRadius: '0 0 12px 12px', border: '1px solid #e8e0d5', fontSize: '1.1rem', lineHeight: '1.7', outline: 'none', background: 'white' }}></div>
+                              <div ref={editorRef} contentEditable="true" onClick={handleEditorClick} onInput={syncContent} onBlur={syncContent} style={{ width: '100%', minHeight: '500px', padding: '25px', borderRadius: '0 0 12px 12px', border: '1px solid #e8e0d5', fontSize: '1.1rem', lineHeight: '1.7', outline: 'none', background: 'white', color: '#0f172a' }}></div>
                             </div>
                           </div>
 
@@ -1250,7 +1250,7 @@ const AdminPage = () => {
                                 <input 
                                   type="text" 
                                   placeholder="Add tag..." 
-                                  style={{ border: 'none', outline: 'none', background: 'transparent', flexGrow: 1, minWidth: '80px', fontSize: '0.9rem' }} 
+                                  style={{ border: 'none', outline: 'none', background: 'transparent', flexGrow: 1, minWidth: '80px', fontSize: '0.9rem', color: '#0f172a' }} 
                                   onKeyDown={e => {
                                     if (e.key === 'Enter' || e.key === ',') {
                                       e.preventDefault();
@@ -4518,7 +4518,7 @@ const CustomPrompt = ({ visible, title, placeholder, onConfirm, onCancel }) => {
               autoFocus 
               value={val} 
               onChange={e => setVal(e.target.value)}
-              style={{ minHeight: '150px', maxHeight: '400px', width: '100%', padding: '15px', borderRadius: '15px', border: '1px solid #e8e0d5', outline: 'none', fontSize: '1rem', lineHeight: '1.6', resize: 'vertical' }}
+              style={{ minHeight: '150px', maxHeight: '400px', width: '100%', padding: '15px', borderRadius: '15px', border: '1px solid #e8e0d5', outline: 'none', fontSize: '1rem', lineHeight: '1.6', resize: 'vertical', color: '#0f172a', backgroundColor: '#ffffff' }}
             ></textarea>
             <div style={{ display: 'flex', gap: '15px', marginTop: '25px' }}>
               <button onClick={onCancel} style={{ flexGrow: 1, padding: '14px', borderRadius: '15px', border: 'none', background: '#f5f5f5', color: '#555', fontWeight: '700', cursor: 'pointer' }}>Cancel</button>

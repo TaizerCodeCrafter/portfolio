@@ -60,11 +60,11 @@
   gap: 20px;
 }
 
-.form-group {
+.contact-section .form-group {
   margin-bottom: 20px;
 }
 
-.form-group label {
+.contact-section .form-group label {
   display: block;
   font-size: 0.9rem;
   font-weight: 600;
@@ -72,25 +72,60 @@
   margin-bottom: 8px;
 }
 
-.form-group input,
-.form-group textarea {
+.contact-section .form-group input,
+.contact-section .form-group textarea {
   width: 100%;
   padding: 14px 20px;
-  background: var(--bg-primary);
-  border: 1px solid var(--card-border);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
-  color: var(--text-primary);
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
   font-family: inherit;
   font-size: 0.95rem;
   outline: none;
   transition: all 0.3s ease;
 }
 
-.form-group input:focus,
-.form-group textarea:focus {
+.contact-section .form-group input::placeholder,
+.contact-section .form-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.45) !important;
+  opacity: 1;
+}
+
+.contact-section .form-group input:focus,
+.contact-section .form-group textarea:focus {
   border-color: #b35a00;
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 0 15px rgba(179, 90, 0, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 15px rgba(179, 90, 0, 0.15);
+}
+
+/* Light Theme Support for Contact Section */
+[data-theme='light'] .contact-section .form-group label {
+  color: #0f172a;
+}
+
+[data-theme='light'] .contact-section .form-group input,
+[data-theme='light'] .contact-section .form-group textarea {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+[data-theme='light'] .contact-section .form-group input::placeholder,
+[data-theme='light'] .contact-section .form-group textarea::placeholder {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+  opacity: 1;
+}
+
+[data-theme='light'] .contact-section .form-group input:focus,
+[data-theme='light'] .contact-section .form-group textarea:focus {
+  border-color: #b35a00 !important;
+  box-shadow: 0 0 0 3px rgba(179, 90, 0, 0.15) !important;
+  background: #ffffff !important;
 }
 
 .submit-btn {

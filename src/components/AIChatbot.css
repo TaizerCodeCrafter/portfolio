@@ -173,15 +173,31 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 10px 15px;
-  color: white;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
   font-size: 0.9rem;
   outline: none;
+  caret-color: #ff9d42;
+}
+
+.chatbot-input-area input::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.45) !important;
+  opacity: 1;
 }
 
 [data-theme='light'] .chatbot-input-area input {
-  background: white;
-  border-color: #cbd5e1;
-  color: #0f172a;
+  background: white !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #b35a00;
+}
+
+[data-theme='light'] .chatbot-input-area input::placeholder {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+  opacity: 1;
 }
 
 .send-btn {

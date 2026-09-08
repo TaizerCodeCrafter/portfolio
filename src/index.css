@@ -67,6 +67,42 @@ button {
   font-family: inherit;
 }
 
+/* Base Form Controls & Contrast Safety */
+input, textarea, select {
+  font-family: inherit;
+  color: var(--text-primary);
+}
+
+[data-theme='light'] input,
+[data-theme='light'] textarea,
+[data-theme='light'] select {
+  color: #0f172a;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+[data-theme='light'] input::placeholder,
+[data-theme='light'] textarea::placeholder {
+  color: #94a3b8;
+}
+
+/* Chrome/Edge/Safari Autofill color override to avoid invisible text */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: inherit;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 /* Utilities */
 .glass {
   background: var(--glass-bg);

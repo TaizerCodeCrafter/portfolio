@@ -386,10 +386,18 @@
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  color: var(--text-primary);
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
   font-size: 0.88rem;
   outline: none;
   transition: all 0.25s ease;
+  caret-color: #ff9d42;
+}
+
+.newsletter-input::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.45) !important;
+  opacity: 1;
 }
 
 .newsletter-input:focus {
@@ -398,9 +406,17 @@
 }
 
 [data-theme='light'] .newsletter-input {
-  background: white;
-  border-color: #cbd5e1;
-  color: #0f172a;
+  background: white !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #b35a00;
+}
+
+[data-theme='light'] .newsletter-input::placeholder {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+  opacity: 1;
 }
 
 .newsletter-submit-btn {

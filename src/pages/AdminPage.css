@@ -137,9 +137,25 @@
     width: 100%;
     padding: 10px 15px 10px 40px;
     background: #f5f0e9;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 30px;
     font-size: 0.85rem;
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.admin-search-input:focus {
+    border-color: #b35a00;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(179, 90, 0, 0.15);
+}
+
+.admin-search-input::placeholder {
+    color: #888888 !important;
+    -webkit-text-fill-color: #888888 !important;
+    opacity: 1;
 }
 
 .admin-profile {
@@ -356,20 +372,39 @@
     margin-bottom: 8px;
 }
 
-.login-input-group input {
+.login-input-group input,
+.login-input-group textarea,
+.login-input-group select {
     width: 100%;
     padding: 12px 16px;
     border-radius: 12px;
     border: 1px solid #e8e0d5;
-    background: #fcf8f4;
+    background: #ffffff;
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
     font-size: 0.95rem;
+    font-family: inherit;
+    caret-color: #b35a00;
     transition: all 0.3s ease;
+    box-sizing: border-box;
 }
 
-.login-input-group input:focus {
+.login-input-group input::placeholder,
+.login-input-group textarea::placeholder {
+    color: #94a3b8 !important;
+    -webkit-text-fill-color: #94a3b8 !important;
+    opacity: 1;
+}
+
+.login-input-group input:focus,
+.login-input-group textarea:focus,
+.login-input-group select:focus {
     outline: none;
     border-color: #b35a00;
-    background: white;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    box-shadow: 0 0 0 3px rgba(179, 90, 0, 0.18);
 }
 
 .login-submit-btn {
@@ -392,13 +427,42 @@
     box-shadow: 0 5px 15px rgba(179, 90, 0, 0.3);
 }
 
-.admin-input {
+.admin-input,
+input.admin-input,
+textarea.admin-input,
+select.admin-input {
     width: 100%;
     padding: 14px 20px;
     border-radius: 12px;
-    border: 1px solid #e8e0d5;
+    border: 1px solid #cbd5e1;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
     margin-bottom: 15px;
     font-family: inherit;
+    font-size: 0.95rem;
+    caret-color: #b35a00;
+    box-sizing: border-box;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.admin-input::placeholder,
+textarea.admin-input::placeholder {
+    color: #94a3b8 !important;
+    -webkit-text-fill-color: #94a3b8 !important;
+    opacity: 1;
+}
+
+.admin-input:focus,
+input.admin-input:focus,
+textarea.admin-input:focus,
+select.admin-input:focus {
+    border-color: #b35a00 !important;
+    box-shadow: 0 0 0 3px rgba(179, 90, 0, 0.18) !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
 }
 
 /* Cube Styles for Admin */
@@ -954,4 +1018,112 @@
 
 .switch input:checked + .slider:before {
   transform: translateX(22px);
+}
+
+/* ==========================================================================
+   ADMIN PANEL UNIVERSAL CONTRAST & TYPING VISIBILITY
+   Guarantees 100% visible, dark text (#0f172a) across all inputs, textareas,
+   selects, search bars, modals, and contentEditable rich text editors.
+   ========================================================================== */
+
+.admin-page-container {
+  color: #1e293b !important;
+}
+
+/* Force dark, crisp text on every input, textarea, and select */
+.admin-page-container input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.admin-page-container textarea,
+.admin-page-container select,
+.admin-login-container input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.admin-login-container textarea,
+.admin-login-container select,
+.admin-page-container .form-group input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.admin-page-container .form-group textarea,
+.admin-page-container .form-group select,
+.white-card input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.white-card textarea,
+.white-card select {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #b35a00 !important;
+  font-family: inherit;
+}
+
+/* Ensure background is white or clean for text visibility */
+.admin-page-container input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([style*="background: transparent"]),
+.admin-page-container textarea,
+.admin-login-container input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.admin-login-container textarea,
+.admin-page-container .form-group input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.admin-page-container .form-group textarea,
+.white-card textarea {
+  background-color: #ffffff;
+}
+
+/* Placeholder contrast across admin forms */
+.admin-page-container input:not([type="checkbox"]):not([type="radio"]):not([type="file"])::placeholder,
+.admin-page-container textarea::placeholder,
+.admin-login-container input::placeholder,
+.admin-page-container .form-group input::placeholder,
+.admin-page-container .form-group textarea::placeholder,
+.white-card textarea::placeholder,
+.white-card input::placeholder {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+/* Active focus states */
+.admin-page-container input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+.admin-page-container textarea:focus,
+.admin-page-container select:focus,
+.admin-login-container input:focus,
+.admin-page-container .form-group input:focus,
+.admin-page-container .form-group textarea:focus,
+.white-card textarea:focus,
+.white-card input:focus {
+  border-color: #b35a00 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(179, 90, 0, 0.18) !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+/* Dropdown select options styling */
+.admin-page-container select option,
+.admin-page-container .form-group select option,
+.admin-input option,
+.login-input-group select option,
+.white-card select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  padding: 8px 12px;
+}
+
+/* Rich text editor content readability */
+.admin-page-container [contenteditable="true"],
+.admin-page-container [contenteditable="true"] p,
+.admin-page-container [contenteditable="true"] h1,
+.admin-page-container [contenteditable="true"] h2,
+.admin-page-container [contenteditable="true"] h3,
+.admin-page-container [contenteditable="true"] h4,
+.admin-page-container [contenteditable="true"] li,
+.admin-page-container [contenteditable="true"] span,
+.admin-page-container [contenteditable="true"] div,
+.admin-page-container [contenteditable="true"] strong,
+.admin-page-container [contenteditable="true"] em,
+.admin-page-container [contenteditable="true"] blockquote {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a !important;
+}
+
+/* Keep transparent tag input transparent with dark text */
+.admin-page-container input[placeholder="Add tag..."] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
 }
