@@ -82,7 +82,7 @@ const Blog = ({ isHomePage = false }) => {
           [1, 2, 3].map((i) => (
             <div key={i} className="blog-card glass animate-pulse h-80"></div>
           ))
-        ) : (
+        ) : displayBlogs.length > 0 ? (
           displayBlogs.map((post, index) => (
             <motion.div
               key={post._id}
@@ -135,6 +135,11 @@ const Blog = ({ isHomePage = false }) => {
               </div>
             </motion.div>
           ))
+        ) : (
+          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.7)' }}>
+            <p style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '8px' }}>No blog posts found at the moment.</p>
+            <p style={{ fontSize: '0.88rem', opacity: 0.75 }}>Please ensure the server is running with <code>npm run dev</code>.</p>
+          </div>
         )}
       </div>
 

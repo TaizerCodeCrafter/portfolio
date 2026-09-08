@@ -25,6 +25,7 @@ const AdminPage = () => {
   const [commentSearch, setCommentSearch] = useState('');
   const [commentTargetFilter, setCommentTargetFilter] = useState('All');
   const [loading, setLoading] = useState(true);
+  const [backendError, setBackendError] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
@@ -254,8 +255,12 @@ const AdminPage = () => {
       if (packageRes.status === 'fulfilled' && Array.isArray(packageRes.value?.data)) setPackages(packageRes.value.data);
       if (subRes.status === 'fulfilled' && Array.isArray(subRes.value?.data)) setSubscribers(subRes.value.data);
       if (commentRes.status === 'fulfilled' && Array.isArray(commentRes.value?.data)) setComments(commentRes.value.data);
+
+      const isBackendDown = [blogRes, projectRes, catRes, tagRes].every(r => r.status === 'rejected');
+      setBackendError(isBackendDown);
     } catch (err) {
       console.error('Fetch error:', err);
+      setBackendError(true);
     } finally {
       setLoading(false);
     }
@@ -1205,6 +1210,65 @@ const AdminPage = () => {
         </header>
 
         <div className="dashboard-body">
+          {backendError && (
+            <div style={{
+              background: 'linear-gradient(135deg, #fff5f5 0%, #fee2e2 100%)',
+              border: '1px solid #fca5a5',
+              borderRadius: '16px',
+              padding: '16px 22px',
+              marginBottom: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '16px',
+              boxShadow: '0 4px 14px rgba(239, 68, 68, 0.08)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  background: '#fee2e2',
+                  border: '1px solid #f87171',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#dc2626',
+                  flexShrink: 0
+                }}>
+                  <AlertCircle size={24} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: '800', color: '#991b1b', fontSize: '0.98rem', marginBottom: '3px' }}>
+                    Backend Server Disconnected (නොබැඳී ඇත)
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#7f1d1d', lineHeight: '1.4' }}>
+                    Backend server (Port 5000) එක offline බැවින් blogs, projects සහ statistics පෙන්විය නොහැක. Terminal එකේ <strong>npm run dev</strong> run කරන්න. (MongoDB දත්ත ආරක්ෂිතව ඇත).
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={fetchData} 
+                style={{
+                  padding: '10px 18px',
+                  background: '#dc2626',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 2px 8px rgba(220, 38, 38, 0.25)',
+                  transition: '0.2s',
+                  flexShrink: 0
+                }}
+              >
+                🔄 Retry Connection
+              </button>
+            </div>
+          )}
+
           {activeTab === 'Blogs' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <AnimatePresence>
@@ -1433,7 +1497,7 @@ const AdminPage = () => {
           {activeTab === 'Dashboard' && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
               {/* Main Stats Grid */}
-              <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px' }}>
+              <div className="admin-stats-grid">
                 <StatCard label="Total Blogs" value={blogs.length} icon={FileText} color="#b35a00" bg="#fcf8f4" />
                 <StatCard label="Projects" value={projects.length} icon={Zap} color="#3b82f6" bg="#eff6ff" />
                 <StatCard label="Comments" value={comments.length} icon={MessageSquare} color="#10b981" bg="#ecfdf5" />
@@ -4872,7 +4936,15 @@ const ToolbarBtn = ({ icon: Icon, label, onClick }) => (
 );
 
 const StatCard = ({ label, value, icon: Icon, color, bg }) => (
-  <div className="stat-card"><div className="stat-card-header"><div className="stat-icon-box" style={{ background: bg, color }}><Icon size={20} /></div></div><div className="stat-label">{label}</div><div className="stat-value">{value}</div></div>
+  <div className="admin-stat-card">
+    <div className="admin-stat-card-header">
+      <div className="admin-stat-icon-box" style={{ background: bg, color }}>
+        <Icon size={20} />
+      </div>
+    </div>
+    <div className="admin-stat-label">{label}</div>
+    <div className="admin-stat-value">{value}</div>
+  </div>
 );
 
 export default AdminPage;
