@@ -92,8 +92,8 @@ const Skills = () => {
           {skillCategories.map((category, idx) => (
             <motion.div
               key={idx}
-              initial={{ opacity: 0, x: idx % 2 === 0 ? -30 : 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
               className="skill-category-card glass"

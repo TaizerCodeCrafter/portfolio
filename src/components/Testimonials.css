@@ -68,7 +68,14 @@
 }
 
 @media (max-width: 768px) {
+  .testimonials-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-top: 30px;
+  }
+
   .testimonial-card {
-    padding: 30px;
+    padding: 24px 18px;
+    border-radius: 20px;
   }
 }

@@ -412,6 +412,10 @@
 }
 
 @media (max-width: 768px) {
+    .blog-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
     .modal-body {
         padding: 40px 20px;
     }
