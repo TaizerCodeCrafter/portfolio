@@ -9,7 +9,7 @@ import {
   Award, Coffee, Star, Heart, Cpu, Rocket,
   AlertCircle, CheckCircle2, Info, Maximize, Minimize, AlignCenter, AlignRight, Edit2, PenTool, Layout, Server, Database, Smartphone, LayoutGrid,
   Building2, ExternalLink, CreditCard, Package as PackageIcon, QrCode,
-  Flame, ArrowUp, ArrowDown, Copy, Download
+  Flame, ArrowUp, ArrowDown, Copy, Download, Paperclip, FileArchive, FileCode
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -157,7 +157,37 @@ const AdminPage = () => {
   const [seoTab, setSeoTab] = useState('Global Settings');
   
   const [messages, setMessages] = useState([]);
+  const [viewingMessage, setViewingMessage] = useState(null);
+  const [previewAttachment, setPreviewAttachment] = useState(null);
   const [availableTemplates, setAvailableTemplates] = useState([]);
+
+  const formatAdminFileSize = (bytes) => {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const getAdminFileMeta = (fileName = '') => {
+    const ext = fileName.split('.').pop().toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp', 'ico'].includes(ext)) {
+      return { icon: Image, color: '#10b981', label: 'Image', isImage: true };
+    }
+    if (['pdf'].includes(ext)) {
+      return { icon: FileText, color: '#ef4444', label: 'PDF', isPdf: true };
+    }
+    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) {
+      return { icon: FileArchive, color: '#f59e0b', label: 'Archive', isArchive: true };
+    }
+    if (['exe', 'msi', 'dmg', 'pkg', 'deb', 'apk', 'iso'].includes(ext)) {
+      return { icon: FileCode, color: '#8b5cf6', label: 'Setup / App', isApp: true };
+    }
+    if (['doc', 'docx', 'txt', 'rtf', 'odt', 'csv', 'xlsx', 'xls', 'pptx'].includes(ext)) {
+      return { icon: FileText, color: '#3b82f6', label: 'Document', isDoc: true };
+    }
+    return { icon: File, color: '#94a3b8', label: 'File' };
+  };
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
 
   const fetchTemplates = async () => {
@@ -1866,7 +1896,7 @@ const AdminPage = () => {
               <div className="admin-header-flex">
                 <div>
                   <h1>Inbox</h1>
-                  <p>Messages received from your portfolio contact form</p>
+                  <p>Messages and file attachments received from your portfolio contact form</p>
                 </div>
                 <button onClick={fetchMessages} className="admin-btn-secondary">
                   <RotateCcw size={18} /> Refresh
@@ -1882,46 +1912,81 @@ const AdminPage = () => {
                         <th>Sender</th>
                         <th>Subject</th>
                         <th>Message</th>
+                        <th>Attachments</th>
                         <th style={{ textAlign: 'right' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {messages.length > 0 ? messages.map((msg) => (
-                        <tr key={msg._id}>
-                          <td style={{ fontSize: '0.8rem', opacity: 0.7 }}>
-                            {new Date(msg.createdAt).toLocaleDateString()}
-                          </td>
-                          <td>
-                            <div style={{ fontWeight: '600' }}>{msg.name}</div>
-                            <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{msg.email}</div>
-                          </td>
-                          <td style={{ fontWeight: '600' }}>{msg.subject}</td>
-                          <td style={{ maxWidth: '300px' }}>
-                            <div style={{ fontSize: '0.85rem', lineHeight: '1.4', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                              {msg.message}
-                            </div>
-                          </td>
-                          <td style={{ textAlign: 'right' }}>
-                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                              <button 
-                                onClick={() => showPrompt(`Message from ${msg.name}`, msg.message, () => {})} 
-                                className="action-btn view" 
-                                title="Read Full Message"
-                              >
-                                <Eye size={16} />
-                              </button>
-                              <a href={`mailto:${msg.email}`} className="action-btn edit" title="Reply">
-                                <Send size={16} />
-                              </a>
-                              <button onClick={() => handleDeleteMessage(msg._id)} className="action-btn delete" title="Delete">
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      )) : (
+                      {messages.length > 0 ? messages.map((msg) => {
+                        const totalAttSize = (msg.attachments || []).reduce((acc, c) => acc + (c.size || 0), 0);
+
+                        return (
+                          <tr key={msg._id}>
+                            <td style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+                              {new Date(msg.createdAt).toLocaleDateString()}
+                            </td>
+                            <td>
+                              <div style={{ fontWeight: '600' }}>{msg.name}</div>
+                              <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{msg.email}</div>
+                            </td>
+                            <td style={{ fontWeight: '600' }}>{msg.subject}</td>
+                            <td style={{ maxWidth: '280px' }}>
+                              <div style={{ fontSize: '0.85rem', lineHeight: '1.4', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                                {msg.message}
+                              </div>
+                            </td>
+                            <td>
+                              {msg.attachments && msg.attachments.length > 0 ? (
+                                <button 
+                                  type="button"
+                                  onClick={() => setViewingMessage(msg)}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '5px 10px',
+                                    background: 'rgba(179, 90, 0, 0.08)',
+                                    border: '1px solid rgba(179, 90, 0, 0.25)',
+                                    borderRadius: '8px',
+                                    color: '#b35a00',
+                                    fontSize: '0.78rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer'
+                                  }}
+                                  title="View & Download Attachments"
+                                >
+                                  <Paperclip size={13} />
+                                  {msg.attachments.length} {msg.attachments.length === 1 ? 'file' : 'files'}
+                                  <span style={{ opacity: 0.75, fontWeight: 500 }}>
+                                    ({formatAdminFileSize(totalAttSize)})
+                                  </span>
+                                </button>
+                              ) : (
+                                <span style={{ fontSize: '0.78rem', opacity: 0.4 }}>No files</span>
+                              )}
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                <button 
+                                  onClick={() => setViewingMessage(msg)} 
+                                  className="action-btn view" 
+                                  title="View Full Message & Files"
+                                >
+                                  <Eye size={16} />
+                                </button>
+                                <a href={`mailto:${msg.email}?subject=Re: ${encodeURIComponent(msg.subject)}`} className="action-btn edit" title="Reply via Email">
+                                  <Send size={16} />
+                                </a>
+                                <button onClick={() => handleDeleteMessage(msg._id)} className="action-btn delete" title="Delete Message">
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      }) : (
                         <tr>
-                          <td colSpan="5" style={{ textAlign: 'center', padding: '50px', opacity: 0.5 }}>
+                          <td colSpan="6" style={{ textAlign: 'center', padding: '50px', opacity: 0.5 }}>
                             No messages in your inbox yet.
                           </td>
                         </tr>
@@ -1930,6 +1995,250 @@ const AdminPage = () => {
                   </table>
                 </div>
               </div>
+
+              {/* Message Details & Attachments Modal */}
+              {viewingMessage && (
+                <div 
+                  className="preview-modal-overlay" 
+                  onClick={() => setViewingMessage(null)}
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(0, 0, 0, 0.75)',
+                    backdropFilter: 'blur(6px)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px'
+                  }}
+                >
+                  <div 
+                    className="view-message-modal-content"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      background: '#ffffff',
+                      color: '#1a1a1a',
+                      borderRadius: '20px',
+                      maxWidth: '750px',
+                      width: '100%',
+                      maxHeight: '90vh',
+                      overflowY: 'auto',
+                      padding: '32px',
+                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '20px'
+                    }}
+                  >
+                    {/* Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #eee', paddingBottom: '16px' }}>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b35a00', background: 'rgba(179, 90, 0, 0.1)', padding: '3px 8px', borderRadius: '6px' }}>
+                          INBOX MESSAGE
+                        </span>
+                        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '8px 0 4px 0', color: '#111' }}>
+                          {viewingMessage.subject}
+                        </h2>
+                        <div style={{ fontSize: '0.85rem', color: '#666', display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                          <span>From: <strong style={{ color: '#111' }}>{viewingMessage.name}</strong> ({viewingMessage.email})</span>
+                          <span>• Date: {new Date(viewingMessage.createdAt).toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => setViewingMessage(null)}
+                        style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#475569' }}
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    {/* Message Body */}
+                    <div>
+                      <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>
+                        Message Content:
+                      </h4>
+                      <div style={{
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '12px',
+                        padding: '16px 20px',
+                        fontSize: '0.95rem',
+                        lineHeight: '1.6',
+                        color: '#334155',
+                        whiteSpace: 'pre-wrap',
+                        maxHeight: '260px',
+                        overflowY: 'auto'
+                      }}>
+                        {viewingMessage.message}
+                      </div>
+                    </div>
+
+                    {/* Attachments Section */}
+                    {viewingMessage.attachments && viewingMessage.attachments.length > 0 && (
+                      <div style={{ borderTop: '1px solid #eee', paddingTop: '18px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                            <Paperclip size={16} style={{ color: '#b35a00' }} />
+                            Attachments ({viewingMessage.attachments.length})
+                          </h4>
+                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                            Total: {formatAdminFileSize(viewingMessage.attachments.reduce((a, c) => a + (c.size || 0), 0))}
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+                          {viewingMessage.attachments.map((att, attIdx) => {
+                            const meta = getAdminFileMeta(att.name);
+                            const IconC = meta.icon;
+                            const isImageFile = meta.isImage;
+                            const isPdfFile = meta.isPdf;
+
+                            return (
+                              <div 
+                                key={attIdx} 
+                                style={{
+                                  background: '#ffffff',
+                                  border: '1px solid #e2e8f0',
+                                  borderRadius: '12px',
+                                  padding: '12px',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '10px',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                                }}
+                              >
+                                {isImageFile && (
+                                  <div 
+                                    style={{
+                                      width: '100%',
+                                      height: '110px',
+                                      borderRadius: '8px',
+                                      overflow: 'hidden',
+                                      background: '#f1f5f9',
+                                      cursor: 'pointer'
+                                    }}
+                                    onClick={() => window.open(`/api/messages/file/${att.fileId}`, '_blank')}
+                                    title="Click to view full image"
+                                  >
+                                    <img 
+                                      src={`/api/messages/file/${att.fileId}`} 
+                                      alt={att.name} 
+                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                    />
+                                  </div>
+                                )}
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: `${meta.color}15`, color: meta.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <IconC size={18} />
+                                  </div>
+                                  <div style={{ minWidth: 0, flex: 1 }}>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={att.relativePath || att.name}>
+                                      {att.relativePath || att.name}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', gap: '8px', marginTop: '2px' }}>
+                                      <span style={{ color: meta.color, fontWeight: 700 }}>{meta.label}</span>
+                                      <span>•</span>
+                                      <span>{formatAdminFileSize(att.size)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
+                                  {(isImageFile || isPdfFile) && (
+                                    <a 
+                                      href={`/api/messages/file/${att.fileId}`} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      style={{
+                                        flex: 1,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '5px',
+                                        padding: '6px 10px',
+                                        background: '#f1f5f9',
+                                        border: '1px solid #cbd5e1',
+                                        borderRadius: '8px',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 600,
+                                        color: '#334155',
+                                        textDecoration: 'none',
+                                        cursor: 'pointer'
+                                      }}
+                                    >
+                                      <Eye size={14} /> Preview
+                                    </a>
+                                  )}
+                                  <a 
+                                    href={`/api/messages/download/${att.fileId}`} 
+                                    download={att.name}
+                                    style={{
+                                      flex: 1,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      gap: '5px',
+                                      padding: '6px 10px',
+                                      background: 'linear-gradient(135deg, #b35a00, #f59e0b)',
+                                      border: 'none',
+                                      borderRadius: '8px',
+                                      fontSize: '0.8rem',
+                                      fontWeight: 700,
+                                      color: '#ffffff',
+                                      textDecoration: 'none',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    <Download size={14} /> Download
+                                  </a>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Modal Footer */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eee', paddingTop: '16px', marginTop: '4px' }}>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const id = viewingMessage._id;
+                          setViewingMessage(null);
+                          handleDeleteMessage(id);
+                        }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fee2e2', border: '1px solid #fecaca', color: '#dc2626', padding: '8px 14px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        <Trash2 size={15} /> Delete Message
+                      </button>
+
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <a 
+                          href={`mailto:${viewingMessage.email}?subject=Re: ${encodeURIComponent(viewingMessage.subject)}`}
+                          style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#0284c7', color: '#fff', padding: '8px 16px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700, textDecoration: 'none' }}
+                        >
+                          <Send size={15} /> Reply via Email
+                        </a>
+                        <button 
+                          type="button"
+                          onClick={() => setViewingMessage(null)}
+                          style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', padding: '8px 16px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 

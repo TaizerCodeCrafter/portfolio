@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Phone, Mail, MapPin, CheckCircle2 } from 'lucide-react';
+import { Send, Phone, Mail, MapPin, CheckCircle2, Paperclip } from 'lucide-react';
 import axios from 'axios';
+import FileDropzone from './FileDropzone';
 import './Contact.css';
 
 const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const [files, setFiles] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [settings, setSettings] = useState({
@@ -27,15 +31,49 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsSubmitting(true);
+    setUploadProgress(files.length > 0 ? 0 : null);
+
     try {
-      await axios.post('/api/messages', formData);
+      const payload = new FormData();
+      payload.append('name', formData.name);
+      payload.append('email', formData.email);
+      payload.append('subject', formData.subject);
+      payload.append('message', formData.message);
+
+      const relPathsMap = {};
+      files.forEach((file, idx) => {
+        payload.append('attachments', file);
+        if (file.customRelativePath || file.webkitRelativePath) {
+          const rPath = file.customRelativePath || file.webkitRelativePath;
+          relPathsMap[file.name] = rPath;
+          payload.append(`relativePath_${idx}`, rPath);
+        }
+      });
+      payload.append('relativePaths', JSON.stringify(relPathsMap));
+
+      await axios.post('/api/messages', payload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent);
+          }
+        }
+      });
+
       setSubmitted(true);
+      setFiles([]);
       setTimeout(() => {
         setSubmitted(false);
         setFormData({ name: '', email: '', subject: '', message: '' });
+        setUploadProgress(null);
       }, 5000);
     } catch (err) {
+      console.error('Submit message error:', err);
       setError('Failed to send message. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -142,9 +180,26 @@ const Contact = () => {
                     onChange={(e) => setFormData({...formData, message: e.target.value})}
                   ></textarea>
                 </div>
+
+                <div className="form-group">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Paperclip size={16} style={{ color: '#b35a00' }} /> Attachments (PDF, Photos, Zip, Folder, Setup .exe)
+                  </label>
+                  <FileDropzone 
+                    files={files} 
+                    setFiles={setFiles} 
+                    uploadProgress={uploadProgress} 
+                    isSubmitting={isSubmitting} 
+                  />
+                </div>
+
                 {error && <p style={{ color: '#ef4444', fontSize: '0.85rem', marginBottom: '15px', fontWeight: '600' }}>{error}</p>}
-                <button type="submit" className="btn-primary submit-btn">
-                  Send Message <Send size={18} />
+                <button type="submit" className="btn-primary submit-btn" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>Sending Message... <span className="loader" style={{ width: '16px', height: '16px', borderWidth: '2px', borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff', display: 'inline-block' }}></span></>
+                  ) : (
+                    <>Send Message <Send size={18} /></>
+                  )}
                 </button>
               </form>
             )}

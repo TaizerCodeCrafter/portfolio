@@ -3,9 +3,10 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Mail, Phone, Send, MapPin, MessageSquare, CheckCircle2, 
-  Copy, Check, Clock, Sparkles, ExternalLink, ShieldCheck, ArrowRight
+  Copy, Check, Clock, Sparkles, ExternalLink, ShieldCheck, ArrowRight, Paperclip
 } from 'lucide-react';
 import axios from 'axios';
+import FileDropzone from '../components/FileDropzone';
 import './ContactPage.css';
 
 const ContactPage = () => {
@@ -30,6 +31,8 @@ const ContactPage = () => {
     message: packageParam ? `Hi Supun, I am interested in the "${packageParam}" package. Please let me know how we can get started.` : ''
   });
 
+  const [files, setFiles] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -83,17 +86,38 @@ const ContactPage = () => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
+    setUploadProgress(files.length > 0 ? 0 : null);
 
     try {
-      await axios.post('/api/messages', {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        subject: formData.subject || `Inquiry for ${formData.service}`,
-        message: `Service: ${formData.service} | Budget: ${formData.budget} | Phone: ${formData.phone || 'N/A'}\n\nMessage:\n${formData.message}`
+      const payload = new FormData();
+      payload.append('name', formData.name);
+      payload.append('email', formData.email);
+      payload.append('subject', formData.subject || `Inquiry for ${formData.service}`);
+      payload.append('message', `Service: ${formData.service} | Budget: ${formData.budget} | Phone: ${formData.phone || 'N/A'}\n\nMessage:\n${formData.message}`);
+
+      const relPathsMap = {};
+      files.forEach((file, idx) => {
+        payload.append('attachments', file);
+        if (file.customRelativePath || file.webkitRelativePath) {
+          const rPath = file.customRelativePath || file.webkitRelativePath;
+          relPathsMap[file.name] = rPath;
+          payload.append(`relativePath_${idx}`, rPath);
+        }
+      });
+      payload.append('relativePaths', JSON.stringify(relPathsMap));
+
+      await axios.post('/api/messages', payload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent);
+          }
+        }
       });
 
       setSubmitted(true);
+      setFiles([]);
       setFormData({
         name: '',
         email: '',
@@ -103,6 +127,7 @@ const ContactPage = () => {
         subject: '',
         message: ''
       });
+      setTimeout(() => setUploadProgress(null), 3000);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send message. Please try again or reach out directly on WhatsApp.');
     } finally {
@@ -362,6 +387,18 @@ const ContactPage = () => {
                   ></textarea>
                 </div>
 
+                <div className="contact-form-group">
+                  <label className="contact-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Paperclip size={16} style={{ color: '#b35a00' }} /> Attachments (PDF, Photos, Zip, Folder, Setup .exe)
+                  </label>
+                  <FileDropzone 
+                    files={files} 
+                    setFiles={setFiles} 
+                    uploadProgress={uploadProgress} 
+                    isSubmitting={isSubmitting} 
+                  />
+                </div>
+
                 {error && (
                   <div style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: '600' }}>
                     {error}
@@ -377,8 +414,11 @@ const ContactPage = () => {
                     cursor: isSubmitting ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  {isSubmitting ? 'Sending Message...' : 'Send Message Directly'}
-                  <Send size={18} />
+                  {isSubmitting ? (
+                    <>Sending Message... <span className="loader" style={{ width: '16px', height: '16px', borderWidth: '2px', borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff', display: 'inline-block', marginLeft: '6px' }}></span></>
+                  ) : (
+                    <>Send Message Directly <Send size={18} /></>
+                  )}
                 </button>
               </form>
             )}
