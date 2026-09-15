@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -14,7 +14,7 @@ import FloatingSideTag from './components/FloatingSideTag';
 
 function AppContent() {
   const location = useLocation();
-  const isAdmin = location.pathname === '/admin';
+  const isAdmin = location.pathname === '/ceo' || location.pathname === '/admin';
 
   return (
     <>
@@ -30,7 +30,8 @@ function AppContent() {
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogDetailPage />} />
-        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/ceo" element={<AdminPage />} />
+        <Route path="/admin" element={<Navigate to="/ceo" replace />} />
       </Routes>
       {!isAdmin && <Footer />}
     </>

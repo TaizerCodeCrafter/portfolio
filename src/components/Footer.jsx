@@ -278,7 +278,7 @@ const Footer = () => {
               <button type="button" onClick={() => setActiveModal('terms')}>Terms</button>
               <span>•</span>
               <button type="button" onClick={() => setActiveModal('qr')}>QR Code</button>
-              <Link to="/admin" title="Admin Portal" className="admin-lock-link">
+              <Link to="/ceo" title="CEO Portal" className="admin-lock-link">
                 <Lock size={12} />
               </Link>
             </div>
