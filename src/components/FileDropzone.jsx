@@ -9,9 +9,9 @@ import './FileDropzone.css';
 export const formatFileSize = (bytes) => {
   if (!bytes || bytes === 0) return '0 B';
   const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
 // Helper to get file icon and color
@@ -21,6 +21,9 @@ export const getFileMeta = (file) => {
   
   if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp', 'ico'].includes(ext)) {
     return { icon: ImageIcon, color: '#10b981', label: 'Image', isImage: true };
+  }
+  if (['mp4', 'mkv', 'avi', 'mov', 'webm', 'wmv', 'flv'].includes(ext)) {
+    return { icon: FileCode, color: '#0ea5e9', label: 'Video / Media' };
   }
   if (['pdf'].includes(ext)) {
     return { icon: FileText, color: '#ef4444', label: 'PDF' };
@@ -196,7 +199,7 @@ const FileDropzone = ({ files, setFiles, uploadProgress = null, isSubmitting = f
             <span>Drag & drop</span> PDF, Photos, Zip, Folder, or Setup (.exe) here
           </p>
           <p className="dropzone-sub-text">
-            Supports all file types (up to 150MB each)
+            Supports all file types — PDF, Photos, Zip, Folders, Setup (.exe), Videos (up to 5GB each)
           </p>
         </div>
         <div className="dropzone-actions" onClick={(e) => e.stopPropagation()}>
@@ -223,7 +226,7 @@ const FileDropzone = ({ files, setFiles, uploadProgress = null, isSubmitting = f
       {uploadProgress !== null && uploadProgress >= 0 && (
         <div className="upload-progress-wrapper">
           <div className="upload-progress-header">
-            <span>Uploading attachments...</span>
+            <span>{uploadProgress >= 100 ? 'Saving & processing attachments...' : 'Uploading attachments...'}</span>
             <span>{uploadProgress}%</span>
           </div>
           <div className="upload-progress-track">

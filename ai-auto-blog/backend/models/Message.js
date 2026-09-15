@@ -12,7 +12,9 @@ const messageSchema = new mongoose.Schema({
     size: { type: Number, default: 0 },
     contentType: { type: String, default: 'application/octet-stream' },
     extension: { type: String, default: '' },
-    relativePath: { type: String, default: '' }
+    relativePath: { type: String, default: '' },
+    storageType: { type: String, enum: ['gridfs', 'local'], default: 'local' },
+    localFilename: { type: String, default: '' }
   }]
 }, { timestamps: true });
 

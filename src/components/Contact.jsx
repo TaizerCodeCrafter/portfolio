@@ -54,6 +54,7 @@ const Contact = () => {
 
       await axios.post('/api/messages', payload, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 0,
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -71,7 +72,7 @@ const Contact = () => {
       }, 5000);
     } catch (err) {
       console.error('Submit message error:', err);
-      setError('Failed to send message. Please try again later.');
+      setError(err.response?.data?.message || 'Failed to send message. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }

@@ -97,9 +97,14 @@ const connectDB = async () => {
 connectDB();
 
 if (require.main === module) {
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
   });
+  // Disable server timeout for multi-gigabyte uploads
+  server.timeout = 0;
+  server.headersTimeout = 0;
+  server.requestTimeout = 0;
+  server.keepAliveTimeout = 65000;
 }
 
 module.exports = app;
