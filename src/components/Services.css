@@ -197,3 +197,29 @@
     font-size: 1.4rem;
   }
 }
+
+/* Light Mode Overrides */
+[data-theme='light'] .service-modal {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme='light'] .close-modal {
+  color: #64748b;
+}
+
+[data-theme='light'] .close-modal:hover {
+  color: #0f172a;
+}
+
+[data-theme='light'] .learn-tag {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+[data-theme='light'] .learn-tag:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}

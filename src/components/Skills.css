@@ -121,3 +121,9 @@
     font-size: 0.88rem;
   }
 }
+
+/* Light Mode Overrides */
+[data-theme='light'] .skill-bar-bg {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}

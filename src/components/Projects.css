@@ -327,10 +327,67 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
 }
 
-:root:not(.dark) .project-comments-modal {
+:root:not(.dark) .project-comments-modal,
+[data-theme='light'] .project-comments-modal {
   background: #ffffff;
   border-color: #e2e8f0;
 }
-:root:not(.dark) .project-comments-modal h2 {
+:root:not(.dark) .project-comments-modal h2,
+[data-theme='light'] .project-comments-modal h2 {
   color: #0f172a !important;
+}
+
+/* Light Mode Overrides */
+[data-theme='light'] .filter-btn {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+[data-theme='light'] .filter-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+[data-theme='light'] .filter-btn.active {
+  background: var(--gradient-primary);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+[data-theme='light'] .project-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .project-card:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .project-tag {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #334155;
+}
+
+[data-theme='light'] .github-link-btn {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme='light'] .github-link-btn:hover {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+[data-theme='light'] .project-comment-btn {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+
+[data-theme='light'] .project-comment-btn:hover {
+  background: rgba(179, 90, 0, 0.15);
+  border-color: #b35a00;
+  color: #b35a00;
 }

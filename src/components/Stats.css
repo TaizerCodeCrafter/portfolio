@@ -41,7 +41,7 @@
   font-size: 1.8rem;
   font-weight: 800;
   margin-bottom: 4px;
-  color: #fff;
+  color: var(--text-primary);
   font-family: 'Outfit', sans-serif;
 }
 
@@ -49,6 +49,26 @@
   font-size: 0.9rem;
   color: var(--text-secondary);
   font-weight: 500;
+}
+
+/* Light Theme Overrides for Stats */
+[data-theme='light'] .stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .stat-value {
+  color: #0f172a;
+}
+
+[data-theme='light'] .stat-label {
+  color: #475569;
+}
+
+[data-theme='light'] .stat-icon-wrapper {
+  background: #f1f5f9;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 @media (max-width: 768px) {

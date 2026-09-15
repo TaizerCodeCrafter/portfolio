@@ -294,7 +294,7 @@
 .modal-text {
     margin-top: 30px;
     line-height: 1.85;
-    color: rgba(255, 255, 255, 0.88);
+    color: var(--text-primary);
     font-size: 1.1rem;
     word-break: break-word;
 }
@@ -304,7 +304,7 @@
 .modal-text h3, 
 .modal-text h4 {
     margin: 32px 0 16px 0;
-    color: #ffffff;
+    color: var(--text-primary);
     font-weight: 700;
     line-height: 1.35;
 }
@@ -322,18 +322,19 @@
 
 .modal-text h3 {
     font-size: 1.25rem;
-    color: #e9d5ff;
+    color: #d8b4fe;
 }
 
 .modal-text p {
     margin-bottom: 22px;
     line-height: 1.85;
+    color: var(--text-primary);
 }
 
 .modal-text ul, 
 .modal-text ol {
     margin: 15px 0 25px 25px;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--text-primary);
 }
 
 .modal-text li {
@@ -343,7 +344,7 @@
 
 .modal-text strong, 
 .modal-text b {
-    color: #ffffff;
+    color: var(--text-primary);
     font-weight: 700;
 }
 
@@ -359,7 +360,7 @@
     font-style: italic;
     background: rgba(168, 85, 247, 0.08);
     border-radius: 0 12px 12px 0;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text-primary);
 }
 
 .modal-text code {
@@ -409,6 +410,109 @@
 .modal-tags svg {
     color: var(--primary);
     margin-right: 5px;
+}
+
+/* Light Theme Overrides for Blog & Modal */
+[data-theme='light'] .tag-btn {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+[data-theme='light'] .tag-btn:hover {
+    background: rgba(139, 92, 246, 0.12);
+    color: var(--primary);
+}
+
+[data-theme='light'] .blog-modal-content {
+    background: #ffffff !important;
+    border-color: #e2e8f0;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18);
+}
+
+[data-theme='light'] .modal-close {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+}
+
+[data-theme='light'] .modal-close:hover {
+    background: #e2e8f0;
+    color: #000000;
+}
+
+[data-theme='light'] .modal-text {
+    color: #1e293b;
+}
+
+[data-theme='light'] .modal-text h1,
+[data-theme='light'] .modal-text h2,
+[data-theme='light'] .modal-text h3,
+[data-theme='light'] .modal-text h4 {
+    color: #0f172a;
+}
+
+[data-theme='light'] .modal-text h2 {
+    color: #6d28d9;
+    border-bottom-color: rgba(109, 40, 217, 0.2);
+}
+
+[data-theme='light'] .modal-text h3 {
+    color: #7c3aed;
+}
+
+[data-theme='light'] .modal-text p {
+    color: #334155;
+}
+
+[data-theme='light'] .modal-text ul,
+[data-theme='light'] .modal-text ol {
+    color: #334155;
+}
+
+[data-theme='light'] .modal-text strong,
+[data-theme='light'] .modal-text b {
+    color: #0f172a;
+}
+
+[data-theme='light'] .modal-text a {
+    color: #7c3aed;
+}
+
+[data-theme='light'] .modal-text blockquote {
+    background: #f5f3ff;
+    border-left-color: #7c3aed;
+    color: #1e293b;
+}
+
+[data-theme='light'] .modal-text code {
+    background: #f1f5f9;
+    color: #7c3aed;
+    border: 1px solid #e2e8f0;
+}
+
+[data-theme='light'] .modal-text pre {
+    background: #0f172a;
+    color: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+[data-theme='light'] .modal-tags {
+    border-top-color: #e2e8f0;
+}
+
+[data-theme='light'] .tag {
+    background: #f5f3ff;
+    color: #7c3aed;
+    border-color: #ddd6fe;
+}
+
+[data-theme='light'] .modal-article-footer {
+    border-top-color: #e2e8f0 !important;
+}
+
+[data-theme='light'] .modal-article-footer span {
+    color: #0f172a !important;
 }
 
 @media (max-width: 768px) {
