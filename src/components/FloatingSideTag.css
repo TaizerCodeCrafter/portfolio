@@ -62,6 +62,8 @@
   user-select: none;
   font-family: inherit;
   white-space: nowrap;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .position-left .side-tag-pill {
@@ -152,7 +154,7 @@
   transform: scale(1.15) rotate(5deg);
 }
 
-/* Expanded Preview Card */
+/* Expanded Preview Card (Desktop) */
 .side-tag-preview-card {
   width: 320px;
   max-width: calc(100vw - 40px);
@@ -207,12 +209,13 @@
   border: none;
   color: var(--text-secondary, #94a3b8);
   cursor: pointer;
-  padding: 4px;
+  padding: 5px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  touch-action: manipulation;
 }
 
 .preview-close-btn:hover {
@@ -353,6 +356,7 @@
   cursor: pointer;
   transition: all 0.25s ease;
   box-shadow: 0 4px 14px color-mix(in srgb, var(--tag-accent, #ff9d42) 35%, transparent);
+  touch-action: manipulation;
 }
 
 .btn-preview-action:hover {
@@ -371,6 +375,7 @@
   padding: 6px 8px;
   border-radius: 8px;
   transition: all 0.2s ease;
+  touch-action: manipulation;
 }
 
 .btn-preview-dismiss:hover {
@@ -378,7 +383,73 @@
   background: rgba(239, 68, 68, 0.1);
 }
 
-/* Mobile Responsiveness */
+/* Mobile Modal Backdrop & Centered Overlay */
+.side-tag-mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  touch-action: manipulation;
+}
+
+.side-tag-preview-card.mobile-modal {
+  width: 86vw;
+  max-width: 320px;
+  max-height: 85vh;
+  margin: 0 !important;
+  border-radius: 18px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 30px color-mix(in srgb, var(--tag-accent, #ff9d42) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tag-accent, #ff9d42) 45%, rgba(255, 255, 255, 0.15));
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.side-tag-preview-card.mobile-modal .preview-image-wrap {
+  height: 115px;
+}
+
+.side-tag-preview-card.mobile-modal .preview-card-header {
+  padding: 10px 14px 6px 14px;
+}
+
+.side-tag-preview-card.mobile-modal .preview-card-body {
+  padding: 10px 14px 14px 14px;
+  gap: 6px;
+}
+
+.side-tag-preview-card.mobile-modal .preview-title {
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+.side-tag-preview-card.mobile-modal .preview-excerpt {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  -webkit-line-clamp: 2;
+}
+
+.side-tag-preview-card.mobile-modal .preview-card-footer {
+  margin-top: 4px;
+  padding-top: 8px;
+}
+
+.side-tag-preview-card.mobile-modal .btn-preview-action {
+  padding: 7px 14px;
+  font-size: 0.78rem;
+}
+
+.side-tag-preview-card.mobile-modal .btn-preview-dismiss {
+  font-size: 0.72rem;
+  padding: 5px 6px;
+}
+
+/* Mobile Responsiveness for Side Pills */
 @media (max-width: 768px) {
   .floating-side-tags-stack.position-left {
     top: 42%;
@@ -403,17 +474,5 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .side-tag-preview-card {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) !important;
-    margin: 0 !important;
-    width: 90vw;
-    max-width: 320px;
-    z-index: 9000;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
   }
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -6,7 +7,6 @@ import {
   Flame, Package, MessageSquare, Zap, Star, FileText, Globe, Rocket, Award, Briefcase 
 } from 'lucide-react';
 import axios from 'axios';
-import { SIDE_TAG_PRESETS } from '../data/sideTagPresets';
 import './FloatingSideTag.css';
 
 const ICON_COMPONENTS = {
@@ -31,7 +31,18 @@ const FloatingSideTag = () => {
   const [activeTagId, setActiveTagId] = useState(null);
   const [dismissedTags, setDismissedTags] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(() => {
+    return typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
+  });
   const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -61,7 +72,7 @@ const FloatingSideTag = () => {
     return () => { isMounted = false; };
   }, []);
 
-  // Close card when clicking outside
+  // Close desktop card when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -69,10 +80,8 @@ const FloatingSideTag = () => {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, []);
 
@@ -163,135 +172,198 @@ const FloatingSideTag = () => {
     }
   };
 
+  const handlePillClick = (e, tagId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveTagId(prev => (prev === tagId ? null : tagId));
+  };
+
+  const handlePillMouseEnter = (tagId) => {
+    // Only open on hover for desktop mouse users
+    if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      setActiveTagId(tagId);
+    }
+  };
+
   const activeTag = activeTags.find(t => t.id === activeTagId);
   const activeResolved = activeTag ? getTagResolvedData(activeTag) : null;
 
-  return (
-    <aside 
-      ref={containerRef}
-      className={`floating-side-tags-stack position-${position}`}
-      aria-label="Featured Side Tags & Ribbons"
-    >
-      {/* Pills Stack */}
-      <div className="side-pills-list">
-        {activeTags.map((tag) => {
-          const IconComp = ICON_COMPONENTS[tag.icon] || Sparkles;
-          const isCurrentActive = activeTagId === tag.id;
-          const tagColor = tag.color || '#ff9d42';
-
-          return (
-            <button
-              key={tag.id}
-              type="button"
-              className={`side-tag-pill ${isCurrentActive ? 'pill-active' : ''}`}
-              style={{ '--tag-accent': tagColor }}
-              onClick={() => setActiveTagId(prev => prev === tag.id ? null : tag.id)}
-              onMouseEnter={() => setActiveTagId(tag.id)}
-              title={tag.badgeText}
-            >
-              <span className="pulse-indicator">
-                <span className="pulse-ping" style={{ background: tagColor }}></span>
-                <span className="pulse-dot" style={{ background: tagColor, boxShadow: `0 0 10px ${tagColor}` }}></span>
-              </span>
-              <span className="side-tag-label">{tag.badgeText}</span>
-              <IconComp size={14} className="side-tag-icon" style={{ color: tagColor }} />
-            </button>
-          );
-        })}
+  // Render Preview Card Inner Content
+  const renderCardContent = (tag, resolved) => (
+    <>
+      {/* Header / Dismiss */}
+      <div className="preview-card-header">
+        <span 
+          className="preview-category-badge" 
+          style={{ 
+            color: tag.color || '#ff9d42', 
+            borderColor: `${tag.color || '#ff9d42'}40`, 
+            background: `${tag.color || '#ff9d42'}15` 
+          }}
+        >
+          <BookOpen size={12} /> {resolved.category}
+        </span>
+        <button 
+          type="button" 
+          className="preview-close-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            setActiveTagId(null);
+          }}
+          title="Close"
+          aria-label="Close"
+        >
+          <X size={16} />
+        </button>
       </div>
 
-      {/* Expanded Preview Card for Currently Active Tag */}
-      <AnimatePresence>
-        {activeTag && activeResolved && (
-          <motion.div
-            key={activeTag.id}
-            initial={{ opacity: 0, x: position === 'left' ? -25 : 25, scale: 0.96 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: position === 'left' ? -25 : 25, scale: 0.96 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
-            className={`side-tag-preview-card glass position-${position}`}
-            style={{ '--tag-accent': activeTag.color || '#ff9d42' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header / Dismiss */}
-            <div className="preview-card-header">
-              <span className="preview-category-badge" style={{ color: activeTag.color || '#ff9d42', borderColor: `${activeTag.color || '#ff9d42'}40`, background: `${activeTag.color || '#ff9d42'}15` }}>
-                <BookOpen size={12} /> {activeResolved.category}
-              </span>
-              <button 
-                type="button" 
-                className="preview-close-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveTagId(null);
-                }}
-                title="Collapse"
-              >
-                <X size={15} />
-              </button>
-            </div>
+      {/* Thumbnail */}
+      {resolved.image && (
+        <div className="preview-image-wrap" onClick={(e) => handleNavigate(resolved, e)}>
+          <img 
+            src={resolved.image} 
+            alt={resolved.title}
+            className="preview-image"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+          <div className="preview-image-overlay">
+            <span>Explore Now</span>
+          </div>
+        </div>
+      )}
 
-            {/* Thumbnail */}
-            {activeResolved.image && (
-              <div className="preview-image-wrap" onClick={(e) => handleNavigate(activeResolved, e)}>
-                <img 
-                  src={activeResolved.image} 
-                  alt={activeResolved.title}
-                  className="preview-image"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
-                <div className="preview-image-overlay">
-                  <span>Explore Now</span>
-                </div>
-              </div>
-            )}
-
-            {/* Content Details */}
-            <div className="preview-card-body">
-              {activeResolved.date && (
-                <span className="preview-date">
-                  <Calendar size={12} /> {activeResolved.date}
-                </span>
-              )}
-              <h4 className="preview-title" onClick={(e) => handleNavigate(activeResolved, e)}>
-                {activeResolved.title}
-              </h4>
-              <p className="preview-excerpt">
-                {activeResolved.excerpt}
-              </p>
-
-              {/* Action Link Button */}
-              <div className="preview-card-footer">
-                <button 
-                  type="button"
-                  onClick={(e) => handleNavigate(activeResolved, e)}
-                  className="btn-preview-action"
-                  style={{ background: `linear-gradient(135deg, ${activeTag.color || '#ff9d42'}, #b35a00)` }}
-                >
-                  <span>{activeResolved.buttonText}</span>
-                  {activeResolved.isInternal ? <ArrowRight size={15} /> : <ExternalLink size={14} />}
-                </button>
-
-                <button 
-                  type="button"
-                  className="btn-preview-dismiss"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDismissedTags(prev => [...prev, activeTag.id]);
-                    setActiveTagId(null);
-                  }}
-                  title="Hide this tag for this session"
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          </motion.div>
+      {/* Content Details */}
+      <div className="preview-card-body">
+        {resolved.date && (
+          <span className="preview-date">
+            <Calendar size={12} /> {resolved.date}
+          </span>
         )}
-      </AnimatePresence>
-    </aside>
+        <h4 className="preview-title" onClick={(e) => handleNavigate(resolved, e)}>
+          {resolved.title}
+        </h4>
+        <p className="preview-excerpt">
+          {resolved.excerpt}
+        </p>
+
+        {/* Action Link Button */}
+        <div className="preview-card-footer">
+          <button 
+            type="button"
+            onClick={(e) => handleNavigate(resolved, e)}
+            className="btn-preview-action"
+            style={{ background: `linear-gradient(135deg, ${tag.color || '#ff9d42'}, #b35a00)` }}
+          >
+            <span>{resolved.buttonText}</span>
+            {resolved.isInternal ? <ArrowRight size={15} /> : <ExternalLink size={14} />}
+          </button>
+
+          <button 
+            type="button"
+            className="btn-preview-dismiss"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDismissedTags(prev => [...prev, tag.id]);
+              setActiveTagId(null);
+            }}
+            title="Hide this tag for this session"
+          >
+            Dismiss
+          </button>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      <aside 
+        ref={containerRef}
+        className={`floating-side-tags-stack position-${position}`}
+        aria-label="Featured Side Tags & Ribbons"
+      >
+        {/* Pills Stack */}
+        <div className="side-pills-list">
+          {activeTags.map((tag) => {
+            const IconComp = ICON_COMPONENTS[tag.icon] || Sparkles;
+            const isCurrentActive = activeTagId === tag.id;
+            const tagColor = tag.color || '#ff9d42';
+
+            return (
+              <button
+                key={tag.id}
+                type="button"
+                className={`side-tag-pill ${isCurrentActive ? 'pill-active' : ''}`}
+                style={{ '--tag-accent': tagColor }}
+                onClick={(e) => handlePillClick(e, tag.id)}
+                onMouseEnter={() => handlePillMouseEnter(tag.id)}
+                title={tag.badgeText}
+              >
+                <span className="pulse-indicator">
+                  <span className="pulse-ping" style={{ background: tagColor }}></span>
+                  <span className="pulse-dot" style={{ background: tagColor, boxShadow: `0 0 10px ${tagColor}` }}></span>
+                </span>
+                <span className="side-tag-label">{tag.badgeText}</span>
+                <IconComp size={14} className="side-tag-icon" style={{ color: tagColor }} />
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Desktop Expanded Preview Card */}
+        {!isMobile && (
+          <AnimatePresence>
+            {activeTag && activeResolved && (
+              <motion.div
+                key={activeTag.id}
+                initial={{ opacity: 0, x: position === 'left' ? -25 : 25, scale: 0.96 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: position === 'left' ? -25 : 25, scale: 0.96 }}
+                transition={{ duration: 0.22, ease: 'easeOut' }}
+                className={`side-tag-preview-card glass position-${position}`}
+                style={{ '--tag-accent': activeTag.color || '#ff9d42' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {renderCardContent(activeTag, activeResolved)}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
+      </aside>
+
+      {/* Mobile Modal Preview Card via React Portal */}
+      {isMobile && typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {activeTag && activeResolved && (
+            <motion.div
+              key="side-tag-mobile-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="side-tag-mobile-backdrop"
+              onClick={() => setActiveTagId(null)}
+            >
+              <motion.div
+                key={activeTag.id}
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                transition={{ duration: 0.22, ease: 'easeOut' }}
+                className="side-tag-preview-card mobile-modal glass"
+                style={{ '--tag-accent': activeTag.color || '#ff9d42' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {renderCardContent(activeTag, activeResolved)}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+    </>
   );
 };
 
