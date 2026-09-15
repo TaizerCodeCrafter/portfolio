@@ -11,12 +11,57 @@ const AIChatbot = () => {
   ]);
   const [input, setInput] = useState('');
   const scrollRef = useRef(null);
+  const botWindowRef = useRef(null);
+  const toggleBtnRef = useRef(null);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Listen for external close requests (e.g. when mobile menu opens)
+  useEffect(() => {
+    const handleCloseChat = () => setIsOpen(false);
+    window.addEventListener('close-ai-chat', handleCloseChat);
+    return () => window.removeEventListener('close-ai-chat', handleCloseChat);
+  }, []);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
+  // Click outside to close
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        isOpen &&
+        botWindowRef.current &&
+        !botWindowRef.current.contains(e.target) &&
+        toggleBtnRef.current &&
+        !toggleBtnRef.current.contains(e.target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const handleOpen = () => {
+    setIsOpen(true);
+    // Close mobile menu if open to avoid clutter
+    window.dispatchEvent(new Event('close-mobile-menu'));
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -47,10 +92,13 @@ const AIChatbot = () => {
   return (
     <>
       <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setIsOpen(true)}
+        ref={toggleBtnRef}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.92 }}
+        onClick={handleOpen}
         className="chatbot-toggle-btn"
+        title="Chat with AI Assistant"
+        aria-label="Open AI Assistant"
       >
         <Sparkles size={24} />
       </motion.button>
@@ -58,10 +106,12 @@ const AIChatbot = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.8 }}
+            ref={botWindowRef}
+            initial={{ opacity: 0, y: 50, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 100, scale: 0.8 }}
-            className="chatbot-window glass"
+            exit={{ opacity: 0, y: 50, scale: 0.92 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="chatbot-window"
           >
             <div className="chatbot-header">
               <div className="bot-info">
@@ -71,7 +121,15 @@ const AIChatbot = () => {
                   <span className="online-status">Online</span>
                 </div>
               </div>
-              <button onClick={() => setIsOpen(false)} className="close-bot"><X size={20} /></button>
+              <button 
+                type="button"
+                onClick={() => setIsOpen(false)} 
+                className="close-bot"
+                title="Close Chat"
+                aria-label="Close Chat"
+              >
+                <X size={18} />
+              </button>
             </div>
 
             <div className="chatbot-messages" ref={scrollRef}>
@@ -92,7 +150,9 @@ const AIChatbot = () => {
                 onChange={e => setInput(e.target.value)}
                 onKeyPress={e => e.key === 'Enter' && handleSend()}
               />
-              <button onClick={handleSend} className="send-btn"><Send size={18} /></button>
+              <button onClick={handleSend} className="send-btn" title="Send message" aria-label="Send">
+                <Send size={18} />
+              </button>
             </div>
           </motion.div>
         )}
