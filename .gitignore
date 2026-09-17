@@ -25,3 +25,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Uploaded Files and Attachments
+uploads
+uploads/**
+ai-auto-blog/backend/uploads
+ai-auto-blog/backend/uploads/**

@@ -14,15 +14,15 @@ import FloatingSideTag from './components/FloatingSideTag';
 
 function AppContent() {
   const location = useLocation();
-  const isAdmin = location.pathname === '/ceo' || location.pathname === '/admin';
+  const isCeo = location.pathname === '/ceo';
 
   return (
     <>
       <div className="bg-glow"></div>
       <div className="bg-glow-2"></div>
       
-      {!isAdmin && <Navbar />}
-      {!isAdmin && <FloatingSideTag />}
+      {!isCeo && <Navbar />}
+      {!isCeo && <FloatingSideTag />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/packages" element={<PackagesPage />} />
@@ -31,9 +31,10 @@ function AppContent() {
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogDetailPage />} />
         <Route path="/ceo" element={<AdminPage />} />
-        <Route path="/admin" element={<Navigate to="/ceo" replace />} />
+        <Route path="/admin" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      {!isAdmin && <Footer />}
+      {!isCeo && <Footer />}
     </>
   );
 }
