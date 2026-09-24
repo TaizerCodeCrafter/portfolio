@@ -154,8 +154,17 @@ const Hero = () => {
 
       <div className="hero-visual">
         <div className="profile-container">
-          <div className="profile-glow"></div>
-          <img src={settings.heroImage || "/my.png"} alt="TaizerCodeCrafter - Full Stack Developer" className="profile-image floating" />
+          <picture>
+            <source srcSet={settings.heroImage ? undefined : "/my.webp"} type="image/webp" />
+            <img 
+              src={settings.heroImage || "/my.webp"} 
+              alt="TaizerCodeCrafter - Full Stack Developer" 
+              className="profile-image floating" 
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+            />
+          </picture>
           
           <div className="floating-badge badge-1 glass floating" style={{ animationDelay: '0s' }}>
             <span>{settings.heroBadge1 || '💻 Frontend'}</span>
