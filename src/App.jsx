@@ -55,6 +55,8 @@ function AppContent() {
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/blog" element={<Navigate to="/articles" replace />} />
           <Route path="/blog/:slug" element={<BlogDetailPage />} />
+          <Route path="/article/:slug" element={<BlogDetailPage />} />
+          <Route path="/articles/:slug" element={<BlogDetailPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/ceo" element={<AdminPage />} />
