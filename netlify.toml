@@ -9,6 +9,10 @@
   directory = "ai-auto-blog/backend/functions"
   node_bundler = "esbuild"
 
+[[edge_functions]]
+  path = "/blog/*"
+  function = "og-preview"
+
 [[headers]]
   for = "/robots.txt"
   [headers.values]

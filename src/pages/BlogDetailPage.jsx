@@ -30,6 +30,65 @@ const estimateReadTime = (content) => {
   return `${mins} min read`;
 };
 
+const updateMetaTags = (blog) => {
+  if (!blog) return () => {};
+
+  const defaultTitle = 'TaizerCodeCrafter | Full Stack Developer & AI Solutions';
+  const defaultDesc = 'Explore TaizerCodeCrafter by Supun Dilshan - Expert Full Stack Web Developer specializing in scalable React apps, Node.js backends, custom AI integrations, and technical tutorials.';
+  const defaultImage = 'https://taizercodecrafter.com/my.webp';
+  const defaultUrl = 'https://taizercodecrafter.com/';
+
+  const title = blog.title ? `${blog.title} | TaizerCodeCrafter` : defaultTitle;
+  const rawDesc = blog.seo?.metaDescription || blog.excerpt || (blog.content ? blog.content.replace(/<[^>]*>/g, ' ').slice(0, 160) : '');
+  const description = rawDesc.replace(/\s+/g, ' ').trim() || defaultDesc;
+
+  let imageUrl = blog.coverImage || defaultImage;
+  if (imageUrl.startsWith('/')) {
+    imageUrl = `https://taizercodecrafter.com${imageUrl}`;
+  } else if (imageUrl.startsWith('data:')) {
+    imageUrl = defaultImage;
+  }
+  const currentUrl = window.location.href;
+
+  document.title = title;
+
+  const setMeta = (selector, attrKey, attrVal, content) => {
+    let el = document.querySelector(selector);
+    if (!el) {
+      el = document.createElement('meta');
+      el.setAttribute(attrKey, attrVal);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', content);
+  };
+
+  setMeta('meta[name="description"]', 'name', 'description', description);
+  setMeta('meta[name="title"]', 'name', 'title', title);
+  setMeta('meta[property="og:title"]', 'property', 'og:title', title);
+  setMeta('meta[property="og:description"]', 'property', 'og:description', description);
+  setMeta('meta[property="og:image"]', 'property', 'og:image', imageUrl);
+  setMeta('meta[property="og:url"]', 'property', 'og:url', currentUrl);
+  setMeta('meta[property="og:type"]', 'property', 'og:type', 'article');
+  setMeta('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
+  setMeta('meta[name="twitter:title"]', 'name', 'twitter:title', title);
+  setMeta('meta[name="twitter:description"]', 'name', 'twitter:description', description);
+  setMeta('meta[name="twitter:image"]', 'name', 'twitter:image', imageUrl);
+
+  return () => {
+    document.title = defaultTitle;
+    setMeta('meta[name="description"]', 'name', 'description', defaultDesc);
+    setMeta('meta[name="title"]', 'name', 'title', defaultTitle);
+    setMeta('meta[property="og:title"]', 'property', 'og:title', defaultTitle);
+    setMeta('meta[property="og:description"]', 'property', 'og:description', defaultDesc);
+    setMeta('meta[property="og:image"]', 'property', 'og:image', defaultImage);
+    setMeta('meta[property="og:url"]', 'property', 'og:url', defaultUrl);
+    setMeta('meta[property="og:type"]', 'property', 'og:type', 'website');
+    setMeta('meta[name="twitter:title"]', 'name', 'twitter:title', defaultTitle);
+    setMeta('meta[name="twitter:description"]', 'name', 'twitter:description', defaultDesc);
+    setMeta('meta[name="twitter:image"]', 'name', 'twitter:image', defaultImage);
+  };
+};
+
 const BlogDetailPage = () => {
   const { slug } = useParams();
   const [blog, setBlog] = useState(null);
@@ -50,6 +109,13 @@ const BlogDetailPage = () => {
     fetchBlog();
     window.scrollTo(0, 0);
   }, [slug]);
+
+  useEffect(() => {
+    if (blog) {
+      const cleanup = updateMetaTags(blog);
+      return cleanup;
+    }
+  }, [blog]);
 
   const handleShare = async () => {
     const url = window.location.href;
