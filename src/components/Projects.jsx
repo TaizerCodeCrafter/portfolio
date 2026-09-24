@@ -53,6 +53,14 @@ export const normalizeProject = (p) => {
   };
 };
 
+export const cleanProjectDesc = (desc) => {
+  if (!desc) return '';
+  return desc
+    .replace(/[*_#`~]/g, '')
+    .replace(/<[^>]*>/g, '')
+    .trim();
+};
+
 const Projects = ({ isPage = false }) => {
   const cachedProjects = getCachedData('projects');
   const [projects, setProjects] = useState(() => {
@@ -133,11 +141,19 @@ const Projects = ({ isPage = false }) => {
             transition={{ duration: 0.5, delay: index * 0.1 }}
             className="project-card glass"
           >
-            <div className="project-image-container">
+            <div 
+              className="project-image-container"
+              onClick={() => setPreviewProject(project)}
+              style={{ cursor: 'pointer' }}
+              title="Click to preview project"
+            >
               <img src={project.image} alt={project.title} className="project-image" loading="lazy" decoding="async" />
               <div className="project-overlay">
                 <button 
-                  onClick={() => setPreviewProject(project)} 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewProject(project);
+                  }} 
                   className="big-preview-btn"
                 >
                   Preview
@@ -146,10 +162,24 @@ const Projects = ({ isPage = false }) => {
             </div>
             
             <div className="project-info">
-              <h3 className="project-title">{project.title}</h3>
-              <p className="project-desc">{project.description}</p>
+              <h3 
+                className="project-title"
+                onClick={() => setPreviewProject(project)}
+                style={{ cursor: 'pointer' }}
+                title="Click to preview project"
+              >
+                {project.title}
+              </h3>
+              <p className="project-desc">{cleanProjectDesc(project.description)}</p>
               
               <div className="project-footer">
+                <button
+                  type="button"
+                  className="mobile-preview-btn"
+                  onClick={() => setPreviewProject(project)}
+                >
+                  <Eye size={12} /> Preview
+                </button>
                 <div className="project-tags">
                   {(project.tags || []).map(tag => (
                     <span key={tag} className="project-tag">{tag}</span>

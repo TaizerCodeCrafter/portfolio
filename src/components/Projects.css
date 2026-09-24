@@ -118,16 +118,34 @@
 }
 
 .project-title {
-  font-size: 1.5rem;
-  margin-bottom: 12px;
+  font-size: 1.4rem;
+  margin-bottom: 10px;
   font-weight: 700;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color 0.25s ease;
+}
+
+.project-title:hover {
+  color: #ff9d42;
 }
 
 .project-desc {
   color: var(--text-secondary);
   line-height: 1.6;
-  margin-bottom: 24px;
-  font-size: 1rem;
+  margin-bottom: 18px;
+  font-size: 0.92rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limit to 2 clean lines - no more long book text */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-preview-btn {
+  display: none;
 }
 
 .project-tags {
@@ -185,8 +203,113 @@
 }
 
 @media (max-width: 768px) {
+  /* 2-column compact grid on phone */
   .projects-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .project-card {
+    border-radius: 14px;
+  }
+
+  .project-image-container {
+    height: 115px;
+  }
+
+  .project-info {
+    padding: 10px;
+  }
+
+  .project-title {
+    font-size: 0.82rem;
+    line-height: 1.35;
+    margin-bottom: 4px;
+    -webkit-line-clamp: 2;
+  }
+
+  /* Hide book-length description on phone 2-col tiles */
+  .project-desc {
+    display: none;
+  }
+
+  .project-tags {
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  .project-tag {
+    font-size: 0.62rem;
+    padding: 2px 6px;
+    border-radius: 8px;
+  }
+
+  /* Keep only first 2 tags on phone tiles */
+  .project-tag:nth-child(n+3) {
+    display: none;
+  }
+
+  .project-footer {
+    gap: 4px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-wrap: wrap;
+  }
+
+  .mobile-preview-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #ff9d42;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 2px 0;
+  }
+
+  .github-link-btn {
+    width: 26px;
+    height: 26px;
+  }
+
+  .github-link-btn svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .project-comment-btn {
+    width: 26px;
+    height: 26px;
+  }
+
+  .project-comment-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .buy-now-btn {
+    font-size: 0.68rem;
+    padding: 3px 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .projects-grid {
+    gap: 8px;
+  }
+
+  .project-image-container {
+    height: 95px;
+  }
+
+  .project-info {
+    padding: 8px;
+  }
+
+  .project-title {
+    font-size: 0.76rem;
   }
 }
 
