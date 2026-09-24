@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /ceo
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://taizercodecrafter.com/sitemap.xml

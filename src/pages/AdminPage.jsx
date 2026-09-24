@@ -1447,7 +1447,7 @@ const AdminPage = () => {
                           </div>
                           <div className="white-card" style={{ padding: '20px' }}>
                             <div className="card-title">Organization</div>
-                            <div className="login-input-group" style={{ marginTop: '15px' }}><label>Category</label><select className="admin-input" value={blogForm.category} onChange={e => setBlogForm({...blogForm, category: e.target.value})}><option>Technology</option><option>Design</option><option>Business</option><option>AI</option></select></div>
+                            <div className="login-input-group" style={{ marginTop: '15px' }}><label>Category</label><select className="admin-input" value={blogForm.category} onChange={e => setBlogForm({...blogForm, category: e.target.value})}><option>Learn & Articles</option><option>Tutorials</option><option>Technology</option><option>Design</option><option>Business</option><option>AI</option></select></div>
                             <div className="login-input-group" style={{ marginBottom: 0 }}>
                               <label>Tags</label>
                               <div style={{ padding: '8px', border: '1px solid #e8e0d5', borderRadius: '12px', background: 'white', minHeight: '45px', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
@@ -2814,6 +2814,8 @@ const AdminPage = () => {
                     <div className="login-input-group">
                       <label>Category</label>
                       <select value={aiForm.category} onChange={e => setAiForm({...aiForm, category: e.target.value})}>
+                        <option>Learn & Articles</option>
+                        <option>Tutorials</option>
                         <option>Technology</option>
                         <option>Design</option>
                         <option>Business</option>

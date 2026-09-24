@@ -190,6 +190,7 @@ const Footer = () => {
             <h4 className="footer-col-title">Navigation</h4>
             <ul className="footer-links-list">
               <li><a href="/#home">Home</a></li>
+              <li><Link to="/articles">Learn & Articles</Link></li>
               <li><a href="/#services">Services</a></li>
               <li><Link to="/projects">Featured Projects</Link></li>
               <li><Link to="/packages">Website Packages</Link></li>
@@ -251,12 +252,12 @@ const Footer = () => {
               <button type="button" onClick={() => setActiveModal('faq')} className="resource-btn">
                 <HelpCircle size={14} /> FAQs
               </button>
-              <button type="button" onClick={() => setActiveModal('privacy')} className="resource-btn">
+              <Link to="/privacy-policy" className="resource-btn">
                 <Shield size={14} /> Privacy Policy
-              </button>
-              <button type="button" onClick={() => setActiveModal('terms')} className="resource-btn">
+              </Link>
+              <Link to="/terms" className="resource-btn">
                 <FileText size={14} /> Terms of Service
-              </button>
+              </Link>
               <button type="button" onClick={() => setActiveModal('qr')} className="resource-btn">
                 <QrCode size={14} /> Scan QR
               </button>
@@ -273,9 +274,9 @@ const Footer = () => {
             <div className="footer-legal-inline">
               <button type="button" onClick={() => setActiveModal('faq')}>FAQ</button>
               <span>•</span>
-              <button type="button" onClick={() => setActiveModal('privacy')}>Privacy</button>
+              <Link to="/privacy-policy">Privacy</Link>
               <span>•</span>
-              <button type="button" onClick={() => setActiveModal('terms')}>Terms</button>
+              <Link to="/terms">Terms</Link>
               <span>•</span>
               <button type="button" onClick={() => setActiveModal('qr')}>QR Code</button>
               <Link to="/ceo" title="CEO Portal" className="admin-lock-link">
