@@ -28,6 +28,13 @@ function AppContent() {
   const location = useLocation();
   const isCeo = location.pathname === '/ceo';
 
+  React.useEffect(() => {
+    // Silent background API connection warm-up to eliminate cold starts
+    try {
+      fetch('/api/health', { method: 'GET', keepalive: true }).catch(() => {});
+    } catch (e) {}
+  }, []);
+
   return (
     <>
       <div className="bg-glow"></div>

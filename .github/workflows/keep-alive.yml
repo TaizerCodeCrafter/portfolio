@@ -1,0 +1,22 @@
+name: Backend Keep-Alive Ping
+
+on:
+  schedule:
+    # Runs every 10 minutes to prevent Render free-tier cold starts
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping TaizerCodeCrafter API Health Endpoint
+        run: |
+          echo "Pinging backend health endpoint..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 45 https://taizercodecrafter.com/api/health || echo "FAILED")
+          echo "Response HTTP Status: $STATUS"
+          if [ "$STATUS" = "200" ] || [ "$STATUS" = "301" ] || [ "$STATUS" = "302" ]; then
+            echo "✅ Server is online, warm, and responsive!"
+          else
+            echo "⚠️ Health check returned status: $STATUS"
+          fi

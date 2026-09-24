@@ -57,6 +57,18 @@ app.use('/api/comments', require('./routes/commentRoutes'));
 
 app.get('/', (req, res) => res.send('API is running...'));
 
+// Health & Keep-Alive Ping Endpoints
+app.get(['/api/health', '/api/ping'], (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'connecting';
+  res.status(200).json({
+    status: 'ok',
+    service: 'TaizerCodeCrafter API',
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+    database: dbStatus
+  });
+});
+
 // Vercel Cron Job Endpoint
 const { runDailyAutoBlogging } = require('./cron/cronService');
 app.get('/api/cron/run', async (req, res) => {
@@ -99,6 +111,19 @@ connectDB();
 if (require.main === module) {
   const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
+
+    // Automatic Keep-Alive Ping for Render Free-Tier (pings every 12 mins before 15 min sleep)
+    const targetUrl = process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL || `http://localhost:${PORT}`;
+    setInterval(async () => {
+      try {
+        const pingUrl = `${targetUrl.replace(/\/$/, '')}/api/health`;
+        const res = await fetch(pingUrl, { headers: { 'User-Agent': 'Internal-KeepAlive/1.0' } });
+        console.log(`⏱️ [Keep-Alive] Pinged ${pingUrl} - Status: ${res.status}`);
+      } catch (err) {
+        console.warn(`⚠️ [Keep-Alive] Ping failed:`, err.message);
+      }
+    }, 12 * 60 * 1000);
+    console.log(`⏱️ [Keep-Alive] Timer scheduled every 12 mins targeting ${targetUrl}`);
   });
   // Disable server timeout for multi-gigabyte uploads
   server.timeout = 0;
