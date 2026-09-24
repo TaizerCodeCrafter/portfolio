@@ -1,4 +1,5 @@
 /robots.txt  /robots.txt  200
+/ads.txt     /ads.txt     200
 /sitemap.xml /.netlify/functions/api/sitemap.xml 200
 /rss.xml     /.netlify/functions/api/rss.xml 200
 /llms.txt    /llms.txt    200

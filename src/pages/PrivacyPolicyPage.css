@@ -127,9 +127,25 @@
   margin-top: 15px;
 }
 
-[data-theme='light'] .legal-contact-box {
-  background: #f8fafc;
-  border-color: #e2e8f0;
+.legal-section a {
+  color: #ff9d42;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease, opacity 0.2s ease;
+  word-break: break-word;
+}
+
+.legal-section a:hover {
+  color: #f59e0b;
+  opacity: 0.9;
+}
+
+[data-theme='light'] .legal-section a {
+  color: #b35a00;
+}
+
+[data-theme='light'] .legal-section a:hover {
+  color: #d97706;
 }
 
 @media (max-width: 768px) {
