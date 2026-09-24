@@ -18,6 +18,20 @@ router.post('/', async (req, res) => {
       slug = `${slug}-${Date.now().toString().slice(-4)}`;
     }
 
+    const finalMetaTitle = seoTitle || req.body.seo?.metaTitle || title || '';
+    const finalMetaDesc = seoDescription || req.body.seo?.metaDescription || req.body.excerpt || '';
+    const rawKeywords = focusKeyword || req.body.seo?.keywords;
+    const finalKeywords = rawKeywords ? (typeof rawKeywords === 'string' ? rawKeywords.split(',').map(k => k.trim()) : rawKeywords) : (tags || []);
+
+    // Quick score calculation
+    let calcScore = 20;
+    if (finalMetaTitle.length >= 35 && finalMetaTitle.length <= 65) calcScore += 25;
+    else if (finalMetaTitle.length > 20) calcScore += 15;
+    if (finalMetaDesc.length >= 90 && finalMetaDesc.length <= 165) calcScore += 25;
+    else if (finalMetaDesc.length >= 40) calcScore += 15;
+    if (finalKeywords.length > 0) calcScore += 15;
+    if (content && content.length > 500) calcScore += 15;
+
     const blogPost = new BlogPost({
       title,
       slug,
@@ -25,11 +39,12 @@ router.post('/', async (req, res) => {
       category,
       tags,
       status: status || 'published',
-      coverImage: image,
+      coverImage: image || req.body.coverImage,
       seo: {
-        metaTitle: seoTitle,
-        metaDescription: seoDescription,
-        keywords: focusKeyword ? (typeof focusKeyword === 'string' ? focusKeyword.split(',').map(k => k.trim()) : focusKeyword) : []
+        metaTitle: finalMetaTitle,
+        metaDescription: finalMetaDesc,
+        keywords: finalKeywords,
+        seoScore: Math.min(100, calcScore)
       }
     });
 
@@ -85,6 +100,19 @@ router.put('/:id', async (req, res) => {
   try {
     const { title, slug, content, category, tags, status, image, seoTitle, seoDescription, focusKeyword } = req.body;
     
+    const finalMetaTitle = seoTitle || req.body.seo?.metaTitle || title || '';
+    const finalMetaDesc = seoDescription || req.body.seo?.metaDescription || req.body.excerpt || '';
+    const rawKeywords = focusKeyword || req.body.seo?.keywords;
+    const finalKeywords = rawKeywords ? (typeof rawKeywords === 'string' ? rawKeywords.split(',').map(k => k.trim()) : rawKeywords) : (tags || []);
+
+    let calcScore = 20;
+    if (finalMetaTitle.length >= 35 && finalMetaTitle.length <= 65) calcScore += 25;
+    else if (finalMetaTitle.length > 20) calcScore += 15;
+    if (finalMetaDesc.length >= 90 && finalMetaDesc.length <= 165) calcScore += 25;
+    else if (finalMetaDesc.length >= 40) calcScore += 15;
+    if (finalKeywords.length > 0) calcScore += 15;
+    if (content && content.length > 500) calcScore += 15;
+
     const updateData = {
       title,
       slug,
@@ -92,11 +120,12 @@ router.put('/:id', async (req, res) => {
       category,
       tags,
       status,
-      coverImage: image,
+      coverImage: image || req.body.coverImage,
       seo: {
-        metaTitle: seoTitle,
-        metaDescription: seoDescription,
-        keywords: focusKeyword ? (typeof focusKeyword === 'string' ? focusKeyword.split(',').map(k => k.trim()) : focusKeyword) : []
+        metaTitle: finalMetaTitle,
+        metaDescription: finalMetaDesc,
+        keywords: finalKeywords,
+        seoScore: Math.min(100, calcScore)
       }
     };
 

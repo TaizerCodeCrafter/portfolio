@@ -533,7 +533,7 @@ const AdminPage = () => {
     }
   }, [showAddBlog, blogForm._id]);
 
-  const handleEditBlog = async (blog) => {
+  const handleEditBlog = async (blog, initialTab = 'Content') => {
     let fullBlog = blog;
     if (!fullBlog.content && fullBlog.slug) {
       try {
@@ -543,30 +543,36 @@ const AdminPage = () => {
         console.error('Failed to load full blog content:', err);
       }
     }
+
+    // Auto-fallback for SEO fields if empty
+    const derivedSeoTitle = fullBlog.seoTitle || fullBlog.seo?.metaTitle || (fullBlog.title ? fullBlog.title.slice(0, 60) : '');
+    const derivedSeoDesc = fullBlog.seoDescription || fullBlog.seo?.metaDescription || (fullBlog.excerpt || (fullBlog.content ? fullBlog.content.replace(/<[^>]*>/g, '').trim().slice(0, 150) + '...' : ''));
+    const derivedKeywords = fullBlog.focusKeyword || (Array.isArray(fullBlog.seo?.keywords) && fullBlog.seo.keywords.length > 0 ? fullBlog.seo.keywords.join(', ') : (Array.isArray(fullBlog.tags) && fullBlog.tags.length > 0 ? fullBlog.tags.join(', ') : (fullBlog.title ? fullBlog.title.split(/\s+/).filter(w => w.length > 3).slice(0, 3).join(', ') : '')));
+
     setBlogForm({
       _id: fullBlog._id,
-      title: fullBlog.title,
-      slug: fullBlog.slug,
+      title: fullBlog.title || '',
+      slug: fullBlog.slug || '',
       category: fullBlog.category || 'Technology',
       content: fullBlog.content || '',
       image: fullBlog.image || fullBlog.coverImage || '',
       altText: fullBlog.altText || '',
       tags: fullBlog.tags ? (Array.isArray(fullBlog.tags) ? fullBlog.tags.join(', ') : fullBlog.tags) : '',
-      status: fullBlog.status,
+      status: fullBlog.status || 'published',
       isFeatured: fullBlog.isFeatured || false,
-      seoTitle: fullBlog.seoTitle || fullBlog.seo?.metaTitle || '',
-      seoDescription: fullBlog.seoDescription || fullBlog.seo?.metaDescription || '',
-      focusKeyword: fullBlog.focusKeyword || (fullBlog.seo?.keywords ? fullBlog.seo.keywords.join(', ') : ''),
-      ogTitle: fullBlog.ogTitle || '',
-      ogDescription: fullBlog.ogDescription || '',
-      ogImage: fullBlog.ogImage || '',
-      twitterTitle: fullBlog.twitterTitle || '',
-      twitterDescription: fullBlog.twitterDescription || '',
-      twitterImage: fullBlog.twitterImage || '',
-      canonicalUrl: fullBlog.canonicalUrl || '',
+      seoTitle: derivedSeoTitle,
+      seoDescription: derivedSeoDesc,
+      focusKeyword: derivedKeywords,
+      ogTitle: fullBlog.ogTitle || derivedSeoTitle,
+      ogDescription: fullBlog.ogDescription || derivedSeoDesc,
+      ogImage: fullBlog.ogImage || fullBlog.image || fullBlog.coverImage || '',
+      twitterTitle: fullBlog.twitterTitle || derivedSeoTitle,
+      twitterDescription: fullBlog.twitterDescription || derivedSeoDesc,
+      twitterImage: fullBlog.twitterImage || fullBlog.image || fullBlog.coverImage || '',
+      canonicalUrl: fullBlog.canonicalUrl || (fullBlog.slug ? `https://taizercodecrafter.com/blog/${fullBlog.slug}` : ''),
       noIndex: fullBlog.noIndex || false
     });
-    setEditorTab('Content');
+    setEditorTab(initialTab);
     setShowAddBlog(true);
     setMenuOpenId(null);
   };
@@ -585,6 +591,68 @@ const AdminPage = () => {
       showAlert(errorMessage, 'error');
     }
     setIsGenerating(false);
+  };
+
+  const calculateLiveSeoScore = (form) => {
+    let score = 20;
+    const title = form.seoTitle || form.title || '';
+    if (title.length >= 35 && title.length <= 65) score += 25;
+    else if (title.length > 20) score += 15;
+
+    const desc = form.seoDescription || '';
+    if (desc.length >= 90 && desc.length <= 165) score += 25;
+    else if (desc.length >= 40) score += 15;
+
+    const fk = (form.focusKeyword || '').toLowerCase().trim();
+    if (fk) {
+      if (title.toLowerCase().includes(fk)) score += 10;
+      if (desc.toLowerCase().includes(fk)) score += 8;
+      if ((form.slug || '').toLowerCase().includes(fk.replace(/\s+/g, '-'))) score += 7;
+    } else if (form.tags) {
+      score += 12;
+    }
+
+    const plain = (form.content || '').replace(/<[^>]*>/g, ' ');
+    const words = plain.split(/\s+/).filter(Boolean).length;
+    if (words >= 600) score += 15;
+    else if (words >= 300) score += 10;
+    else score += 5;
+
+    return Math.min(100, Math.max(20, score));
+  };
+
+  const handleAutoGenerateSeo = () => {
+    if (!blogForm.title) return showAlert('Please enter a post title first!', 'error');
+    const autoTitle = blogForm.title.length > 55 ? blogForm.title.slice(0, 55) : `${blogForm.title} | TaizerCodeCrafter`;
+    const cleanContent = (blogForm.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    const autoDesc = (cleanContent.slice(0, 150) || blogForm.title) + '...';
+    const titleWords = blogForm.title.split(/\s+/).filter(w => w.length > 3).slice(0, 3).join(', ');
+    const autoKeyword = blogForm.tags || titleWords || 'technology';
+
+    setBlogForm(prev => ({
+      ...prev,
+      seoTitle: autoTitle,
+      seoDescription: autoDesc,
+      focusKeyword: autoKeyword,
+      ogTitle: autoTitle,
+      ogDescription: autoDesc,
+      twitterTitle: autoTitle,
+      twitterDescription: autoDesc,
+      canonicalUrl: `https://taizercodecrafter.com/blog/${prev.slug || ''}`
+    }));
+    showAlert('SEO fields auto-generated successfully!');
+  };
+
+  const handleOptimizeAllSeo = async () => {
+    try {
+      showAlert('Optimizing all posts SEO...', 'info');
+      const res = await axios.post('/api/seo/optimize-all');
+      showAlert(res.data?.message || 'All posts optimized successfully!');
+      fetchData();
+    } catch (err) {
+      console.error('Failed to optimize all posts:', err);
+      showAlert('Failed to optimize all posts', 'error');
+    }
   };
 
   const handleFetchTrending = async () => {
@@ -1376,11 +1444,29 @@ const AdminPage = () => {
 
                           {editorTab === 'SEO' ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
-                              <h3 style={{ fontWeight: '800' }}>SEO Settings</h3>
-                              <div className="login-input-group"><label>Focus Keyword</label><input type="text" value={blogForm.focusKeyword} onChange={e => setBlogForm({...blogForm, focusKeyword: e.target.value})} /></div>
-                              <div className="login-input-group"><div style={{ display: 'flex', justifyContent: 'space-between' }}><label>Meta Title</label><span style={{ fontSize: '0.75rem', color: (blogForm.seoTitle || '').length > 60 ? '#ef4444' : '#16a34a', fontWeight: '700' }}>{(blogForm.seoTitle || '').length}/60</span></div><input type="text" value={blogForm.seoTitle || ''} onChange={e => setBlogForm({...blogForm, seoTitle: e.target.value})} /></div>
-                              <div className="login-input-group"><div style={{ display: 'flex', justifyContent: 'space-between' }}><label>Meta Description</label><span style={{ fontSize: '0.75rem', color: (blogForm.seoDescription || '').length > 160 ? '#ef4444' : '#16a34a', fontWeight: '700' }}>{(blogForm.seoDescription || '').length}/160</span></div><textarea rows="4" value={blogForm.seoDescription || ''} onChange={e => setBlogForm({...blogForm, seoDescription: e.target.value})} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '1px solid #e8e0d5' }}></textarea></div>
-                              <div style={{ padding: '20px', background: '#fcf8f4', borderRadius: '15px', border: '1px solid #e8e0d5' }}><div className="card-title" style={{ fontSize: '0.85rem', marginBottom: '10px' }}>Search Preview</div><div style={{ background: 'white', padding: '15px', borderRadius: '10px' }}><div style={{ color: '#1a0dab', fontSize: '1.2rem', marginBottom: '4px' }}>{blogForm.seoTitle || blogForm.title || 'Post Title'}</div><div style={{ color: '#006621', fontSize: '0.85rem' }}>dsj-academy.com/blog/{blogForm.slug || 'post-slug'}</div><div style={{ color: '#545454', fontSize: '0.85rem' }}>{blogForm.seoDescription || 'Meta description preview...'}</div></div></div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                                <div>
+                                  <h3 style={{ fontWeight: '800', margin: 0 }}>SEO Settings</h3>
+                                  <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#64748b' }}>Configure search engine tags, focus keywords, and social previews</p>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 14px', borderRadius: '20px', background: calculateLiveSeoScore(blogForm) >= 80 ? '#dcfce7' : calculateLiveSeoScore(blogForm) >= 50 ? '#fef3c7' : '#fee2e2', border: `1px solid ${calculateLiveSeoScore(blogForm) >= 80 ? '#86efac' : calculateLiveSeoScore(blogForm) >= 50 ? '#fde047' : '#fca5a5'}` }}>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569' }}>SEO Score:</span>
+                                    <span style={{ fontSize: '0.85rem', fontWeight: '800', color: calculateLiveSeoScore(blogForm) >= 80 ? '#16a34a' : calculateLiveSeoScore(blogForm) >= 50 ? '#b45309' : '#dc2626' }}>{calculateLiveSeoScore(blogForm)}%</span>
+                                  </div>
+                                  <button 
+                                    type="button"
+                                    onClick={handleAutoGenerateSeo}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#b35a00', color: 'white', padding: '8px 16px', borderRadius: '10px', border: 'none', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer' }}
+                                  >
+                                    <Sparkles size={15} /> Auto-Generate SEO
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="login-input-group"><label>Focus Keyword</label><input type="text" value={blogForm.focusKeyword} onChange={e => setBlogForm({...blogForm, focusKeyword: e.target.value})} placeholder="e.g. web development, react tips" /></div>
+                              <div className="login-input-group"><div style={{ display: 'flex', justifyContent: 'space-between' }}><label>Meta Title</label><span style={{ fontSize: '0.75rem', color: (blogForm.seoTitle || '').length > 60 ? '#ef4444' : '#16a34a', fontWeight: '700' }}>{(blogForm.seoTitle || '').length}/60</span></div><input type="text" value={blogForm.seoTitle || ''} onChange={e => setBlogForm({...blogForm, seoTitle: e.target.value})} placeholder="Optimized title for search engines" /></div>
+                              <div className="login-input-group"><div style={{ display: 'flex', justifyContent: 'space-between' }}><label>Meta Description</label><span style={{ fontSize: '0.75rem', color: (blogForm.seoDescription || '').length > 160 ? '#ef4444' : '#16a34a', fontWeight: '700' }}>{(blogForm.seoDescription || '').length}/160</span></div><textarea rows="4" value={blogForm.seoDescription || ''} onChange={e => setBlogForm({...blogForm, seoDescription: e.target.value})} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '1px solid #e8e0d5' }} placeholder="Brief summary of the article that appears in Google search results..."></textarea></div>
+                              <div style={{ padding: '20px', background: '#fcf8f4', borderRadius: '15px', border: '1px solid #e8e0d5' }}><div className="card-title" style={{ fontSize: '0.85rem', marginBottom: '10px' }}>Search Preview</div><div style={{ background: 'white', padding: '15px', borderRadius: '10px' }}><div style={{ color: '#1a0dab', fontSize: '1.2rem', marginBottom: '4px' }}>{blogForm.seoTitle || blogForm.title || 'Post Title'}</div><div style={{ color: '#006621', fontSize: '0.85rem' }}>taizercodecrafter.com/blog/{blogForm.slug || 'post-slug'}</div><div style={{ color: '#545454', fontSize: '0.85rem' }}>{blogForm.seoDescription || 'Meta description preview...'}</div></div></div>
                               
                               <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '20px', background: '#f9f9f9', borderRadius: '15px', marginTop: '10px' }}>
                                 <label className="switch">
@@ -3133,6 +3219,19 @@ const AdminPage = () => {
 
               {seoTab === 'Post Analysis' && (
                 <div className="white-card" style={{ padding: '0', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 25px', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap', gap: '15px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontWeight: '800' }}>Blog Posts SEO Analysis</h3>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#64748b' }}>Real-time audit of keywords, titles, descriptions, and crawl readiness</p>
+                    </div>
+                    <button 
+                      onClick={handleOptimizeAllSeo}
+                      className="btn-primary" 
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#b35a00', color: 'white', padding: '10px 20px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer' }}
+                    >
+                      <Sparkles size={16} /> Auto-Optimize All Posts
+                    </button>
+                  </div>
                   <table className="admin-table">
                     <thead><tr><th>Post Title</th><th>Status</th><th>SEO Score</th><th>Action</th></tr></thead>
                     <tbody>
@@ -3148,7 +3247,7 @@ const AdminPage = () => {
                               <span style={{ fontWeight: '800', color: (b.seo?.seoScore || 0) > 80 ? '#16a34a' : (b.seo?.seoScore || 0) > 50 ? '#b35a00' : '#ef4444' }}>{b.seo?.seoScore || 0}%</span>
                             </div>
                           </td>
-                          <td><button onClick={() => { setBlogForm(b); setActiveTab('Blogs'); setShowAddBlog(true); setEditorTab('SEO'); }} style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #ddd', background: 'white', fontSize: '0.8rem', fontWeight: '700' }}>Optimize</button></td>
+                          <td><button onClick={() => { setActiveTab('Blogs'); handleEditBlog(b, 'SEO'); }} style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #ddd', background: 'white', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer' }}>Optimize</button></td>
                         </tr>
                       ))}
                     </tbody>
