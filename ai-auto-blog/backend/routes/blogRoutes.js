@@ -88,8 +88,9 @@ router.get('/', async (req, res) => {
 router.get('/admin/all', async (req, res) => {
   try {
     const blogs = await BlogPost.find()
-      .select('-content')
-      .sort({ createdAt: -1 });
+      .select('-content -coverImage')
+      .sort({ createdAt: -1 })
+      .lean();
     res.json(blogs);
   } catch (error) {
     res.status(500).json({ message: error.message });

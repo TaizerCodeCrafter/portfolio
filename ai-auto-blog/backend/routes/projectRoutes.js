@@ -17,7 +17,7 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     res.set('Cache-Control', 'public, max-age=120, s-maxage=600, stale-while-revalidate=86400');
-    const projects = await Project.find().sort({ createdAt: -1 });
+    const projects = await Project.find().sort({ createdAt: -1 }).lean();
     res.json(projects);
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -387,6 +387,52 @@ const AdminPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // 1. Fast-Path: 1-Shot Consolidated Admin Bootstrap API
+      try {
+        const bootRes = await axios.get('/api/admin/bootstrap');
+        if (bootRes.data && typeof bootRes.data === 'object') {
+          const d = bootRes.data;
+          if (Array.isArray(d.blogs)) {
+            setBlogs(d.blogs);
+            try { localStorage.setItem('admin_cached_blogs', JSON.stringify(d.blogs)); } catch (e) {}
+          }
+          if (Array.isArray(d.projects)) {
+            setProjects(d.projects);
+            try { localStorage.setItem('admin_cached_projects', JSON.stringify(d.projects)); } catch (e) {}
+          }
+          if (Array.isArray(d.testimonials)) setTestimonials(d.testimonials);
+          if (Array.isArray(d.stats)) setStats(d.stats);
+          if (Array.isArray(d.skills)) setSkills(d.skills);
+          if (Array.isArray(d.services)) setServices(d.services);
+          if (Array.isArray(d.categories)) {
+            setCategories(d.categories);
+            try { localStorage.setItem('admin_cached_categories', JSON.stringify(d.categories)); } catch (e) {}
+          }
+          if (Array.isArray(d.tags)) {
+            setTags(d.tags);
+            try { localStorage.setItem('admin_cached_tags', JSON.stringify(d.tags)); } catch (e) {}
+          }
+          if (Array.isArray(d.companies)) setCompanies(d.companies);
+          if (Array.isArray(d.packages)) setPackages(d.packages);
+          if (Array.isArray(d.subscribers)) {
+            setSubscribers(d.subscribers);
+            try { localStorage.setItem('admin_cached_subscribers', JSON.stringify(d.subscribers)); } catch (e) {}
+          }
+          if (Array.isArray(d.comments)) {
+            setComments(d.comments);
+            try { localStorage.setItem('admin_cached_comments', JSON.stringify(d.comments)); } catch (e) {}
+          }
+          if (d.settings) setSettings(d.settings);
+
+          setBackendError(false);
+          setLoading(false);
+          return;
+        }
+      } catch (bootErr) {
+        console.warn('Bootstrap API fallback to individual queries:', bootErr.message);
+      }
+
+      // 2. Fallback: Individual Queries
       const [
         blogRes, projectRes, testimonialRes, statRes, skillRes, serviceRes, catRes, tagRes, seoRes, seoAnRes, companyRes, packageRes, subRes, commentRes
       ] = await Promise.allSettled([
