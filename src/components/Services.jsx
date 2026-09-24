@@ -56,17 +56,17 @@ const defaultServices = [
 ];
 
 const IconMap = {
-  Layout: <Layout size={32} />,
-  Server: <Server size={32} />,
-  Database: <Database size={32} />,
-  Sparkles: <Sparkles size={32} />,
-  Smartphone: <Smartphone size={32} />,
-  Code: <Code size={32} />,
-  PenTool: <PenTool size={32} />,
-  Globe: <Globe size={32} />
+  Layout: <Layout size={22} />,
+  Server: <Server size={22} />,
+  Database: <Database size={22} />,
+  Sparkles: <Sparkles size={22} />,
+  Smartphone: <Smartphone size={22} />,
+  Code: <Code size={22} />,
+  PenTool: <PenTool size={22} />,
+  Globe: <Globe size={22} />
 };
 
-const getIcon = (iconName) => IconMap[iconName] || <Code size={32} />;
+const getIcon = (iconName) => IconMap[iconName] || <Code size={22} />;
 
 const Services = () => {
   const [selectedService, setSelectedService] = useState(null);
