@@ -284,18 +284,50 @@
   }
 
   .hero-actions {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 30px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+    width: 100%;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .hero-actions a,
   .hero-actions button {
     width: 100%;
     margin: 0;
-    text-align: center;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 14px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
+    gap: 6px;
+    text-align: center;
+    white-space: nowrap;
+    transition: all 0.25s ease;
+  }
+
+  .hero-actions a svg,
+  .hero-actions button svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* When there are 3 buttons: Primary button spans full width on top, Contact & CV sit side by side below */
+  .hero-actions a:first-child:nth-last-child(3),
+  .hero-actions button:first-child:nth-last-child(3) {
+    grid-column: span 2;
+  }
+
+  /* If only 1 button exists */
+  .hero-actions a:only-child,
+  .hero-actions button:only-child {
+    grid-column: span 2;
   }
 
   .social-links {
