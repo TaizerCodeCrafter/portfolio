@@ -132,16 +132,55 @@
   color: #ff9d42;
 }
 
+.project-desc-wrapper {
+  margin-bottom: 14px;
+}
+
 .project-desc {
   color: var(--text-secondary);
   line-height: 1.6;
-  margin-bottom: 18px;
+  margin-bottom: 4px;
   font-size: 0.92rem;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Limit to 2 clean lines - no more long book text */
+  -webkit-line-clamp: 2; /* 2 lines by default with See More toggle */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: all 0.3s ease;
+}
+
+.project-desc.expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  white-space: pre-line;
+}
+
+.project-desc-toggle-btn {
+  background: transparent;
+  border: none;
+  color: #ff9d42;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 2px 0 6px 0;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.project-desc-toggle-btn:hover {
+  color: #ffa726;
+  transform: translateY(-1px);
+}
+
+[data-theme='light'] .project-desc-toggle-btn {
+  color: #b35a00;
+}
+
+[data-theme='light'] .project-desc-toggle-btn:hover {
+  color: #d97706;
 }
 
 .mobile-preview-btn {
@@ -151,16 +190,17 @@
 .project-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
 }
 
 .project-tag {
-  font-size: 0.85rem;
-  padding: 6px 14px;
+  font-size: 0.78rem;
+  padding: 4px 10px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   color: var(--text-primary);
+  line-height: 1.3;
 }
 
 .github-link-btn {
@@ -228,9 +268,26 @@
     -webkit-line-clamp: 2;
   }
 
-  /* Hide book-length description on phone 2-col tiles */
+  .project-desc-wrapper {
+    margin-bottom: 6px;
+  }
+
   .project-desc {
-    display: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    margin-bottom: 2px;
+  }
+
+  .project-desc.expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+  }
+
+  .project-desc-toggle-btn {
+    font-size: 0.68rem;
+    padding: 1px 0 4px 0;
   }
 
   .project-tags {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, Eye, Monitor, Smartphone, X, MessageSquare, ArrowLeft } from 'lucide-react';
+import { ExternalLink, Eye, Monitor, Smartphone, X, MessageSquare, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { GithubIcon } from './BrandIcons';
 import LikeButton from './LikeButton';
 import CommentSection from './CommentSection';
@@ -77,6 +77,14 @@ const Projects = ({ isPage = false }) => {
     return ['All', ...new Set(source.map(p => p.category).filter(Boolean))];
   });
   const [activeCategory, setActiveCategory] = useState('All');
+  const [expandedDescs, setExpandedDescs] = useState({});
+
+  const toggleDesc = (id) => {
+    setExpandedDescs(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -170,7 +178,34 @@ const Projects = ({ isPage = false }) => {
               >
                 {project.title}
               </h3>
-              <p className="project-desc">{cleanProjectDesc(project.description)}</p>
+              {(() => {
+                const pId = project._id || `proj-${index}`;
+                const fullDesc = cleanProjectDesc(project.description);
+                const isLongDesc = fullDesc && fullDesc.length > 85;
+                const isExpanded = !!expandedDescs[pId];
+
+                return (
+                  <div className="project-desc-wrapper">
+                    <p className={`project-desc ${isExpanded ? 'expanded' : ''}`}>
+                      {fullDesc}
+                    </p>
+                    {isLongDesc && (
+                      <button 
+                        type="button"
+                        className="project-desc-toggle-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleDesc(pId);
+                        }}
+                        aria-expanded={isExpanded}
+                      >
+                        <span>{isExpanded ? 'See Less' : 'See More'}</span>
+                        {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
               
               <div className="project-footer">
                 <button
@@ -256,9 +291,16 @@ const Projects = ({ isPage = false }) => {
               {(() => {
                 let iframeSrc = previewProject.links?.live;
                 if (!iframeSrc || iframeSrc === '#') return (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#374151' }}>
-                    <h3>No Live Preview Available</h3>
-                    <p>This project does not have a valid template URL.</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#374151', padding: '40px 24px', textAlign: 'center', maxWidth: '650px', margin: '0 auto', overflowY: 'auto' }}>
+                    <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '14px', color: '#111827' }}>{previewProject.title}</h3>
+                    <p style={{ fontSize: '0.95rem', lineHeight: '1.7', color: '#4b5563', whiteSpace: 'pre-line', marginBottom: '20px' }}>
+                      {cleanProjectDesc(previewProject.description)}
+                    </p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+                      {(previewProject.tags || []).map(t => (
+                        <span key={t} style={{ background: '#f3f4f6', border: '1px solid #e5e7eb', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', color: '#374151' }}>{t}</span>
+                      ))}
+                    </div>
                   </div>
                 );
                 
