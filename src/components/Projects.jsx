@@ -30,7 +30,7 @@ const defaultProjects = [
   }
 ];
 
-const Projects = () => {
+const Projects = ({ isPage = false }) => {
   const [projects, setProjects] = useState([]);
   const [previewProject, setPreviewProject] = useState(null);
   const [commentProject, setCommentProject] = useState(null);
@@ -76,7 +76,11 @@ const Projects = () => {
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
       >
-        <h2 className="section-title">Featured <span className="text-gradient">Projects</span></h2>
+        {isPage ? (
+          <h1 className="section-title">Featured <span className="text-gradient">Projects</span></h1>
+        ) : (
+          <h2 className="section-title">Featured <span className="text-gradient">Projects</span></h2>
+        )}
         <p className="section-subtitle">A selection of my recent freelance work and scalable applications.</p>
         
         <div className="project-filters">

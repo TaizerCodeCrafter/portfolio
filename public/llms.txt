@@ -1,0 +1,23 @@
+# TaizerCodeCrafter
+
+> High-Performance Web Applications, Custom AI Chatbots, Full-Stack Architecture, and Educational Tech Articles by Supun Dilshan.
+
+## Overview
+TaizerCodeCrafter is a professional software engineering portfolio, web development agency, and technology publication platform founded by Supun Dilshan. We build modern, accessible, and high-converting web applications, integrate custom LLM chatbots (Google Gemini, OpenAI, Claude), and provide comprehensive web development tutorials.
+
+## Core Services & Offerings
+- **Full Stack Web Development**: Modern responsive applications built with React, Node.js, Express, MongoDB, and Tailwind/CSS.
+- **Custom AI Chatbots & LLMs**: Intelligent conversational bots, automated workflows, and contextual business tools.
+- **Performance & SEO Optimization**: Lightning-fast loading speeds, mobile-first responsiveness, and search engine visibility.
+- **Website Packages & Pricing**: Transparent fixed-price packages ranging from single-page portfolios to enterprise SaaS platforms.
+
+## Core Navigation
+- [Home](https://taizercodecrafter.com/): Official portfolio, services overview, client testimonials, and featured work.
+- [Articles & Guides](https://taizercodecrafter.com/articles): Tech tutorials, web development best practices, AI guides, and coding insights.
+- [Projects](https://taizercodecrafter.com/projects): Selected production websites, scalable web applications, and open-source projects.
+- [Packages & Pricing](https://taizercodecrafter.com/packages): Fixed-price website packages and milestone-based development tiers.
+- [Contact & Hire](https://taizercodecrafter.com/contact): Direct project inquiries, consultation scheduling, WhatsApp chat, and quotation requests.
+
+## Legal & Compliance
+- [Privacy Policy](https://taizercodecrafter.com/privacy-policy): Privacy commitments, cookie usage, analytics, and data protection practices.
+- [Terms of Service](https://taizercodecrafter.com/terms): Service terms, payment milestones, intellectual property rights, and liability limitations.

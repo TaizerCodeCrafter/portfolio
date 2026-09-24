@@ -116,9 +116,15 @@ const Packages = ({ isPage = false }) => {
             <Zap size={14} />
             <span>Transparent Pricing & Plans</span>
           </div>
-          <h2 className="section-title">
-            Website Development <span className="text-gradient">Packages</span>
-          </h2>
+          {isPage ? (
+            <h1 className="section-title">
+              Website Development <span className="text-gradient">Packages</span>
+            </h1>
+          ) : (
+            <h2 className="section-title">
+              Website Development <span className="text-gradient">Packages</span>
+            </h2>
+          )}
           <p className="section-subtitle">
             Tailored solutions with clean code, lightning-fast performance, and dedicated support.
           </p>
