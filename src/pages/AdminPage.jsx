@@ -9,7 +9,8 @@ import {
   Award, Coffee, Star, Heart, Cpu, Rocket,
   AlertCircle, CheckCircle2, Info, Maximize, Minimize, AlignCenter, AlignRight, Edit2, PenTool, Layout, Server, Database, Smartphone, LayoutGrid,
   Building2, ExternalLink, CreditCard, Package as PackageIcon, QrCode,
-  Flame, ArrowUp, ArrowDown, Copy, Download, Paperclip, FileArchive, FileCode
+  Flame, ArrowUp, ArrowDown, Copy, Download, Paperclip, FileArchive, FileCode,
+  Wand2, Layers, HelpCircle, ChevronDown, Hash
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -95,6 +96,33 @@ const AdminPage = () => {
   });
 
   const [showAdvancedSeo, setShowAdvancedSeo] = useState(false);
+
+  // Keyword Magic Tool (Semrush-style Country Keyword Intelligence)
+  const KMT_COUNTRIES = [
+    { name: 'Sri Lanka', code: 'LK', flag: '🇱🇰', currency: 'LKR / USD' },
+    { name: 'United States', code: 'US', flag: '🇺🇸', currency: 'USD' },
+    { name: 'United Kingdom', code: 'UK', flag: '🇬🇧', currency: 'GBP / USD' },
+    { name: 'India', code: 'IN', flag: '🇮🇳', currency: 'INR / USD' },
+    { name: 'Canada', code: 'CA', flag: '🇨🇦', currency: 'CAD / USD' },
+    { name: 'Australia', code: 'AU', flag: '🇦🇺', currency: 'AUD / USD' },
+    { name: 'Germany', code: 'DE', flag: '🇩🇪', currency: 'EUR / USD' },
+    { name: 'United Arab Emirates', code: 'AE', flag: '🇦🇪', currency: 'AED / USD' },
+    { name: 'Singapore', code: 'SG', flag: '🇸🇬', currency: 'SGD / USD' },
+    { name: 'Global', code: 'GL', flag: '🌐', currency: 'USD' }
+  ];
+
+  const [kmtKeyword, setKmtKeyword] = useState('software engineering');
+  const [kmtDomain, setKmtDomain] = useState('taizercodecrafter.com');
+  const [kmtCountry, setKmtCountry] = useState('Sri Lanka');
+  const [kmtData, setKmtData] = useState(null);
+  const [kmtLoading, setKmtLoading] = useState(false);
+  const [kmtMatchType, setKmtMatchType] = useState('All');
+  const [kmtIntentFilter, setKmtIntentFilter] = useState('All');
+  const [kmtKdFilter, setKmtKdFilter] = useState('All');
+  const [kmtSearchQuery, setKmtSearchQuery] = useState('');
+  const [kmtSelectedKeywords, setKmtSelectedKeywords] = useState([]);
+  const [kmtViewMode, setKmtViewMode] = useState('table');
+  const [kmtShowMetricsModal, setKmtShowMetricsModal] = useState(false);
 
   // Projects State
   const [projects, setProjects] = useState([]);
@@ -712,6 +740,113 @@ const AdminPage = () => {
       setIsGenerating(false);
     });
   };
+
+  // Keyword Magic Tool Handlers
+  const handleSearchKeywords = async (kw = kmtKeyword, country = kmtCountry) => {
+    const query = (kw || '').trim();
+    if (!query) {
+      return showAlert('Please enter a seed keyword!', 'error');
+    }
+    setKmtLoading(true);
+    try {
+      const res = await axios.post('/api/blogs/keyword-magic', {
+        keyword: query,
+        country: country,
+        domain: (kmtDomain || '').trim()
+      });
+      if (res.data) {
+        setKmtData(res.data);
+        setKmtSelectedKeywords([]);
+        showAlert(`Keyword Magic: Found ${res.data.summary?.totalKeywords || res.data.keywords?.length || 0} keywords for ${country}!`);
+      }
+    } catch (err) {
+      console.error('KMT Error:', err);
+      showAlert(err.response?.data?.message || 'Failed to research keywords', 'error');
+    }
+    setKmtLoading(false);
+  };
+
+  const handleUseKeywordInBlog = (kwItem) => {
+    const topic = typeof kwItem === 'string' ? kwItem : kwItem.keyword;
+    setAiForm(prev => ({
+      ...prev,
+      topic: topic,
+      keywords: topic
+    }));
+    setAiTab('Auto Generate & Post');
+    showAlert(`Loaded "${topic}" into AI Blog Generator!`);
+  };
+
+  const handleCopySelectedKeywords = () => {
+    const list = kmtSelectedKeywords.length > 0 ? kmtSelectedKeywords : (filteredKmtKeywords.map(k => k.keyword));
+    if (list.length === 0) return showAlert('No keywords to copy!', 'error');
+    navigator.clipboard.writeText(list.join(', '));
+    showAlert(`Copied ${list.length} keywords to clipboard!`);
+  };
+
+  const handleExportKmtCsv = () => {
+    if (!kmtData || !kmtData.keywords || kmtData.keywords.length === 0) return showAlert('No keyword data to export!', 'error');
+    const items = kmtSelectedKeywords.length > 0 
+      ? kmtData.keywords.filter(k => kmtSelectedKeywords.includes(k.keyword))
+      : kmtData.keywords;
+
+    let csv = 'Keyword,Intent,Search Volume,KD %,CPC (USD),SERP Features\n';
+    items.forEach(k => {
+      const sf = (k.serpFeatures || []).join('; ');
+      csv += `"${k.keyword}","${k.intentLabel || k.intent}","${k.volume}","${k.kd}%","${k.cpc}","${sf}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `keyword_magic_${(kmtKeyword || 'keywords').replace(/\s+/g, '_')}_${kmtCountry}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showAlert(`Exported ${items.length} keywords to CSV!`);
+  };
+
+  // Filtered keywords for table and clusters
+  const filteredKmtKeywords = (kmtData?.keywords || []).filter(item => {
+    if (kmtMatchType === 'Questions' && !item.isQuestion && !/^(how|what|why|where|which|can|who|is|are|best)/i.test(item.keyword)) {
+      return false;
+    }
+    if (kmtMatchType === 'Broad Match' && item.matchType !== 'broad' && item.matchType !== 'exact') {
+      return false;
+    }
+    if (kmtMatchType === 'Phrase Match' && item.matchType !== 'phrase') {
+      return false;
+    }
+    if (kmtMatchType === 'Exact Match' && item.matchType !== 'exact') {
+      return false;
+    }
+    if (kmtMatchType === 'Related' && item.matchType !== 'related') {
+      return false;
+    }
+
+    if (kmtIntentFilter !== 'All' && item.intent !== kmtIntentFilter) {
+      return false;
+    }
+
+    if (kmtKdFilter === 'Easy' && item.kd >= 30) return false;
+    if (kmtKdFilter === 'Medium' && (item.kd < 30 || item.kd >= 60)) return false;
+    if (kmtKdFilter === 'Hard' && item.kd < 60) return false;
+
+    if (kmtSearchQuery) {
+      const q = kmtSearchQuery.toLowerCase().trim();
+      return item.keyword.toLowerCase().includes(q);
+    }
+
+    return true;
+  });
+
+  // Auto-load default initial search when entering Keyword Magic Tool
+  useEffect(() => {
+    if (aiTab === 'Keyword Magic Tool' && !kmtData && !kmtLoading) {
+      handleSearchKeywords('software engineering', 'Sri Lanka');
+    }
+  }, [aiTab]);
 
   const handleSaveGeneratedBlog = async () => {
     if (!generatedPreview) return;
@@ -2575,7 +2710,7 @@ const AdminPage = () => {
               </div>
 
               <div className="ai-tabs">
-                {['Auto Generate & Post', 'Blog Writer', 'SEO Optimizer', 'Trending Topics', 'Settings'].map(tab => (
+                {['Auto Generate & Post', 'Blog Writer', 'SEO Optimizer', 'Keyword Magic Tool', 'Trending Topics', 'Settings'].map(tab => (
                   <button 
                     key={tab} 
                     className={`ai-tab-btn ${aiTab === tab ? 'active' : ''}`}
@@ -2584,6 +2719,7 @@ const AdminPage = () => {
                     {tab === 'Auto Generate & Post' && <Zap size={16} />}
                     {tab === 'Blog Writer' && <FileText size={16} />}
                     {tab === 'SEO Optimizer' && <Search size={16} />}
+                    {tab === 'Keyword Magic Tool' && <Sparkles size={16} />}
                     {tab === 'Trending Topics' && <TrendingUp size={16} />}
                     {tab === 'Settings' && <Settings size={16} />}
                     {tab}
@@ -2798,6 +2934,501 @@ const AdminPage = () => {
                           Use Auto Generate For Now
                         </button>
                       </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {aiTab === 'Keyword Magic Tool' && (
+                  <motion.div key="keyword-magic" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                    <div className="kmt-wrapper">
+                      {/* 1. Hero & Search Section (Matching Semrush Image 2) */}
+                      <div className="kmt-hero">
+                        <div className="kmt-badge">
+                          <Sparkles size={14} color="#ff9d42" /> Free Keyword Research Tool
+                        </div>
+                        <h1 className="kmt-hero-title">
+                          Find SEO Keyword Suggestions Instantly with the <span>Keyword Magic Tool</span>
+                        </h1>
+                        <p className="kmt-hero-desc">
+                          Discover millions of high-value keywords from popular terms to long-tail phrases to improve your website's marketing performance.
+                        </p>
+
+                        {/* Search Box */}
+                        <div className="kmt-search-box">
+                          <div className="kmt-search-input-row">
+                            <Search size={20} color="#94a3b8" />
+                            <input 
+                              type="text" 
+                              className="kmt-search-input"
+                              placeholder="Enter keyword (e.g. software engineering, web development, loans)..."
+                              value={kmtKeyword}
+                              onChange={(e) => setKmtKeyword(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') handleSearchKeywords(kmtKeyword, kmtCountry); }}
+                            />
+                            {kmtKeyword && (
+                              <button 
+                                type="button" 
+                                onClick={() => setKmtKeyword('')} 
+                                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+                              >
+                                <X size={16} />
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="kmt-search-bottom-row">
+                            <div className="kmt-domain-input-wrap">
+                              <Sparkles size={14} color="#8b5cf6" />
+                              <input 
+                                type="text" 
+                                className="kmt-domain-input"
+                                placeholder="Enter domain for personalized data (optional)"
+                                value={kmtDomain}
+                                onChange={(e) => setKmtDomain(e.target.value)}
+                              />
+                            </div>
+
+                            <select 
+                              className="kmt-country-select"
+                              value={kmtCountry}
+                              onChange={(e) => {
+                                setKmtCountry(e.target.value);
+                                if (kmtKeyword) handleSearchKeywords(kmtKeyword, e.target.value);
+                              }}
+                            >
+                              {KMT_COUNTRIES.map(c => (
+                                <option key={c.name} value={c.name}>
+                                  {c.flag} {c.code} ({c.name})
+                                </option>
+                              ))}
+                            </select>
+
+                            <button 
+                              className="kmt-search-btn"
+                              onClick={() => handleSearchKeywords(kmtKeyword, kmtCountry)}
+                              disabled={kmtLoading}
+                            >
+                              {kmtLoading ? <div className="loader-ai"></div> : <><Search size={16} /> Search</>}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Quick Example Chips */}
+                        <div className="kmt-examples-row">
+                          <span>Keyword tips Examples:</span>
+                          {['software engineering', 'web development', 'react js', 'loans', 'movies', 'how to learn coding', 'digital marketing'].map(ex => (
+                            <button 
+                              key={ex} 
+                              type="button" 
+                              className="kmt-example-chip"
+                              onClick={() => {
+                                setKmtKeyword(ex);
+                                handleSearchKeywords(ex, kmtCountry);
+                              }}
+                            >
+                              {ex}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 2. Active Search Header & Metrics Ribbon (Matching Semrush Image 4) */}
+                      {kmtData && (
+                        <>
+                          <div className="kmt-active-header">
+                            <div>
+                              <div className="kmt-breadcrumb">
+                                <span>Home</span> <ChevronRight size={12} />
+                                <span>SEO</span> <ChevronRight size={12} />
+                                <span style={{ color: '#0f172a', fontWeight: 600 }}>Keyword Magic Tool</span>
+                              </div>
+                              <h2 className="kmt-target-title">
+                                Keyword Magic Tool: <span style={{ color: '#b35a00' }}>{kmtData.summary?.seedKeyword || kmtKeyword}</span>
+                              </h2>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                              <div className="kmt-db-pill">
+                                <span>Database:</span>
+                                <strong>{KMT_COUNTRIES.find(c => c.name === kmtCountry)?.flag} {kmtCountry}</strong>
+                              </div>
+                              <button 
+                                className="kmt-action-btn"
+                                onClick={() => setKmtShowMetricsModal(!kmtShowMetricsModal)}
+                                title="View metric definitions"
+                              >
+                                <HelpCircle size={15} /> Key Metrics
+                              </button>
+                              <div style={{ display: 'flex', background: '#f1f5f9', padding: '3px', borderRadius: '10px' }}>
+                                <button 
+                                  className={`kmt-action-btn ${kmtViewMode === 'table' ? 'primary' : ''}`}
+                                  style={{ border: 'none', padding: '6px 12px' }}
+                                  onClick={() => setKmtViewMode('table')}
+                                >
+                                  <BarChart2 size={14} /> Table
+                                </button>
+                                <button 
+                                  className={`kmt-action-btn ${kmtViewMode === 'clusters' ? 'primary' : ''}`}
+                                  style={{ border: 'none', padding: '6px 12px' }}
+                                  onClick={() => setKmtViewMode('clusters')}
+                                >
+                                  <Layers size={14} /> Topic Clusters
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Key Metrics Ribbon (Image 4) */}
+                          <div className="kmt-metrics-grid">
+                            <div className="kmt-metric-card">
+                              <span className="kmt-metric-label">All Keywords</span>
+                              <span className="kmt-metric-value">{(kmtData.summary?.totalKeywords || kmtData.keywords?.length || 0).toLocaleString()}</span>
+                              <span className="kmt-metric-sub">Matching search queries</span>
+                            </div>
+
+                            <div className="kmt-metric-card">
+                              <span className="kmt-metric-label">Total Volume</span>
+                              <span className="kmt-metric-value">{kmtData.summary?.totalVolume || '145K'}</span>
+                              <span className="kmt-metric-sub">Monthly searches in {kmtCountry}</span>
+                            </div>
+
+                            <div className="kmt-metric-card">
+                              <span className="kmt-metric-label">Average KD</span>
+                              <span className="kmt-metric-value" style={{ color: (kmtData.summary?.averageKd || 42) < 30 ? '#16a34a' : (kmtData.summary?.averageKd || 42) < 60 ? '#ca8a04' : '#dc2626' }}>
+                                {kmtData.summary?.averageKd || 42}%
+                              </span>
+                              <span className="kmt-metric-sub">
+                                {(kmtData.summary?.averageKd || 42) < 30 ? 'Easy competition' : (kmtData.summary?.averageKd || 42) < 60 ? 'Possible to rank' : 'Hard competition'}
+                              </span>
+                            </div>
+
+                            <div className="kmt-metric-card">
+                              <span className="kmt-metric-label">Average CPC</span>
+                              <span className="kmt-metric-value">{kmtData.summary?.averageCpc || '$1.95'}</span>
+                              <span className="kmt-metric-sub">Cost per click estimate</span>
+                            </div>
+                          </div>
+
+                          {/* Key Metrics Explainer Banner (Image 3) */}
+                          {kmtShowMetricsModal && (
+                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="kmt-explainer-card">
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Stay on Top of Key Metrics with Our Free Keyword Tool</h3>
+                                <button type="button" onClick={() => setKmtShowMetricsModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
+                              </div>
+                              <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '6px 0 16px' }}>
+                                Free and paid versions of our keyword tool provide the following metrics:
+                              </p>
+                              <div className="kmt-explainer-grid">
+                                <div className="kmt-explainer-item">
+                                  <h4>• Keyword search volume</h4>
+                                  <p>The average monthly searches for a keyword in {kmtCountry}.</p>
+                                </div>
+                                <div className="kmt-explainer-item">
+                                  <h4>• CPC (Cost Per Click)</h4>
+                                  <p>The average cost per click if you advertise for that keyword.</p>
+                                </div>
+                                <div className="kmt-explainer-item">
+                                  <h4>• Search intent</h4>
+                                  <p>The purpose behind the query, indicating what users are looking for: Informational (I), Commercial (C), Transactional (T), or Navigational (N).</p>
+                                </div>
+                                <div className="kmt-explainer-item">
+                                  <h4>• SERP features</h4>
+                                  <p>Additional elements in the search results for a keyword, such as Featured Snippet, SiteLinks, or People Also Ask.</p>
+                                </div>
+                                <div className="kmt-explainer-item">
+                                  <h4>• 12-month trend</h4>
+                                  <p>The keyword's changes in popularity over the past year.</p>
+                                </div>
+                                <div className="kmt-explainer-item">
+                                  <h4>• Competitive density</h4>
+                                  <p>The level of advertiser competition bidding on a keyword.</p>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+
+                          {/* 3. Toolbar: Match Type Tabs & Filters */}
+                          <div className="kmt-toolbar">
+                            <div className="kmt-match-tabs">
+                              {['All', 'Questions', 'Broad Match', 'Phrase Match', 'Exact Match', 'Related'].map(mt => (
+                                <button 
+                                  key={mt}
+                                  type="button"
+                                  className={`kmt-match-tab ${kmtMatchType === mt ? 'active' : ''}`}
+                                  onClick={() => setKmtMatchType(mt)}
+                                >
+                                  {mt}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div className="kmt-filter-bar">
+                              <div className="kmt-filter-group">
+                                <select 
+                                  className="kmt-filter-select"
+                                  value={kmtIntentFilter}
+                                  onChange={(e) => setKmtIntentFilter(e.target.value)}
+                                >
+                                  <option value="All">Intent: All</option>
+                                  <option value="I">Informational (I)</option>
+                                  <option value="C">Commercial (C)</option>
+                                  <option value="T">Transactional (T)</option>
+                                  <option value="N">Navigational (N)</option>
+                                </select>
+
+                                <select 
+                                  className="kmt-filter-select"
+                                  value={kmtKdFilter}
+                                  onChange={(e) => setKmtKdFilter(e.target.value)}
+                                >
+                                  <option value="All">KD %: All</option>
+                                  <option value="Easy">Easy (&lt; 30%)</option>
+                                  <option value="Medium">Possible (30 - 59%)</option>
+                                  <option value="Hard">Hard (60%+)</option>
+                                </select>
+
+                                <input 
+                                  type="text"
+                                  className="kmt-search-filter"
+                                  placeholder="Filter keywords..."
+                                  value={kmtSearchQuery}
+                                  onChange={(e) => setKmtSearchQuery(e.target.value)}
+                                />
+                              </div>
+
+                              <div className="kmt-btn-group">
+                                <button 
+                                  className="kmt-action-btn"
+                                  onClick={handleCopySelectedKeywords}
+                                  title="Copy keywords to clipboard"
+                                >
+                                  <Copy size={14} /> Copy ({kmtSelectedKeywords.length || filteredKmtKeywords.length})
+                                </button>
+                                <button 
+                                  className="kmt-action-btn"
+                                  onClick={handleExportKmtCsv}
+                                  title="Export keywords as CSV spreadsheet"
+                                >
+                                  <Download size={14} /> Export CSV
+                                </button>
+                                {kmtSelectedKeywords.length > 0 && (
+                                  <button 
+                                    className="kmt-action-btn primary"
+                                    onClick={() => handleUseKeywordInBlog(kmtSelectedKeywords[0])}
+                                  >
+                                    <Zap size={14} /> Write Blog with Selected
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 4. Table View (Image 4) */}
+                          {kmtViewMode === 'table' && (
+                            <div className="kmt-table-wrap">
+                              <table className="kmt-table">
+                                <thead>
+                                  <tr>
+                                    <th style={{ width: '40px', textAlign: 'center' }}>
+                                      <input 
+                                        type="checkbox" 
+                                        checked={kmtSelectedKeywords.length > 0 && kmtSelectedKeywords.length === filteredKmtKeywords.length}
+                                        onChange={(e) => {
+                                          if (e.target.checked) setKmtSelectedKeywords(filteredKmtKeywords.map(k => k.keyword));
+                                          else setKmtSelectedKeywords([]);
+                                        }}
+                                      />
+                                    </th>
+                                    <th>Keyword</th>
+                                    <th style={{ width: '80px' }}>Intent</th>
+                                    <th style={{ width: '130px' }}>Volume</th>
+                                    <th style={{ width: '110px' }}>KD %</th>
+                                    <th style={{ width: '100px' }}>CPC (USD)</th>
+                                    <th>SERP Features</th>
+                                    <th style={{ width: '140px', textAlign: 'right' }}>Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {filteredKmtKeywords.map((item, idx) => {
+                                    const isSelected = kmtSelectedKeywords.includes(item.keyword);
+                                    const kdClass = item.kd < 30 ? 'kd-easy' : item.kd < 60 ? 'kd-possible' : item.kd < 80 ? 'kd-hard' : 'kd-vhard';
+                                    const intentClass = `kmt-intent-${(item.intent || 'I').toLowerCase()}`;
+
+                                    return (
+                                      <tr key={idx} style={{ background: isSelected ? '#fff8f0' : 'transparent' }}>
+                                        <td style={{ textAlign: 'center' }}>
+                                          <input 
+                                            type="checkbox" 
+                                            checked={isSelected}
+                                            onChange={(e) => {
+                                              if (e.target.checked) setKmtSelectedKeywords([...kmtSelectedKeywords, item.keyword]);
+                                              else setKmtSelectedKeywords(kmtSelectedKeywords.filter(k => k !== item.keyword));
+                                            }}
+                                          />
+                                        </td>
+                                        <td>
+                                          <div className="kmt-kw-name-cell">
+                                            <span className="kmt-kw-text">{item.keyword}</span>
+                                            <button 
+                                              type="button" 
+                                              className="kmt-kw-copy-btn" 
+                                              title="Copy keyword"
+                                              onClick={() => {
+                                                navigator.clipboard.writeText(item.keyword);
+                                                showAlert(`Copied "${item.keyword}"`);
+                                              }}
+                                            >
+                                              <Copy size={13} />
+                                            </button>
+                                          </div>
+                                        </td>
+                                        <td>
+                                          <span className={`kmt-intent-pill ${intentClass}`} title={item.intentLabel || item.intent}>
+                                            {item.intent}
+                                          </span>
+                                        </td>
+                                        <td>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ fontWeight: 800, color: '#0f172a' }}>{item.volumeFormatted || item.volume}</span>
+                                            <div className="kmt-trend-bars" title="12-Month Search Trend">
+                                              {(item.trend || [40, 50, 60, 70, 80, 75, 85, 90, 80, 95, 90, 100]).map((t, ti) => (
+                                                <div 
+                                                  key={ti} 
+                                                  className={`kmt-trend-bar ${ti >= 8 ? 'active' : ''}`} 
+                                                  style={{ height: `${Math.max(4, Math.round((t / 100) * 18))}px` }} 
+                                                />
+                                              ))}
+                                            </div>
+                                          </div>
+                                        </td>
+                                        <td>
+                                          <div className={`kmt-kd-pill ${kdClass}`} title={`${item.kdLabel || ''} (${item.kd}%)`}>
+                                            <span className="kmt-kd-dot"></span>
+                                            <span>{item.kd}%</span>
+                                          </div>
+                                        </td>
+                                        <td style={{ fontWeight: 700, color: '#334155' }}>
+                                          {item.cpc}
+                                        </td>
+                                        <td>
+                                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                                            {(item.serpFeatures || ['Snippet', 'SiteLinks']).slice(0, 2).map((sf, sfi) => (
+                                              <span key={sfi} className="kmt-sf-tag">{sf}</span>
+                                            ))}
+                                          </div>
+                                        </td>
+                                        <td style={{ textAlign: 'right' }}>
+                                          <button 
+                                            type="button"
+                                            className="kmt-action-btn"
+                                            style={{ padding: '5px 10px', fontSize: '0.78rem', background: '#fff8f0', color: '#b35a00', borderColor: '#fed7aa' }}
+                                            onClick={() => handleUseKeywordInBlog(item)}
+                                            title="Generate a high-ranking blog post targeting this keyword"
+                                          >
+                                            <Zap size={12} /> Write Blog
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                              {filteredKmtKeywords.length === 0 && (
+                                <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+                                  <Search size={36} opacity={0.4} style={{ marginBottom: '10px' }} />
+                                  <h4>No matching keywords found</h4>
+                                  <p style={{ margin: 0, fontSize: '0.85rem' }}>Try clearing the filters or changing the match type.</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* 5. Topic Clusters View (Image 5) */}
+                          {kmtViewMode === 'clusters' && (
+                            <div className="kmt-clusters-container">
+                              <div className="kmt-page-info-box">
+                                <div className="kmt-info-header">Page Info</div>
+                                <div className="kmt-info-stat-row">
+                                  <span style={{ color: '#64748b' }}>Total volume</span>
+                                  <strong style={{ color: '#0f172a' }}>{kmtData.summary?.totalVolume || '145K'}</strong>
+                                </div>
+                                <div className="kmt-info-stat-row">
+                                  <span style={{ color: '#64748b' }}>Average KD %</span>
+                                  <strong style={{ color: '#16a34a', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    {kmtData.summary?.averageKd || 35}% <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#16a34a' }}></span>
+                                  </strong>
+                                </div>
+                                <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '14px 0' }} />
+                                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '8px' }}>
+                                  Keywords ({filteredKmtKeywords.length})
+                                </div>
+                                <ul style={{ paddingLeft: '18px', margin: 0, fontSize: '0.82rem', color: '#475569', lineHeight: 1.8 }}>
+                                  {filteredKmtKeywords.slice(0, 5).map((k, ki) => (
+                                    <li key={ki}><strong>{k.keyword}</strong></li>
+                                  ))}
+                                  {filteredKmtKeywords.length > 5 && (
+                                    <li style={{ color: '#8b5cf6', fontWeight: 600 }}>and {filteredKmtKeywords.length - 5} more keywords</li>
+                                  )}
+                                </ul>
+
+                                <button 
+                                  className="kmt-action-btn primary"
+                                  style={{ width: '100%', justifyContent: 'center', marginTop: '20px' }}
+                                  onClick={handleExportKmtCsv}
+                                >
+                                  <Download size={14} /> Export & Share
+                                </button>
+                              </div>
+
+                              <div className="kmt-clusters-canvas">
+                                <div style={{ position: 'absolute', top: '15px', right: '15px' }}>
+                                  <button className="kmt-action-btn" onClick={handleExportKmtCsv}>
+                                    <ExternalLink size={13} /> Export and Share
+                                  </button>
+                                </div>
+
+                                <div className="kmt-orbit-cluster">
+                                  {(kmtData.topicClusters || [
+                                    { clusterName: 'Core Disciplines', pillar: `${kmtKeyword} Pillar`, volume: '45K', kd: 32, subTopics: ['Degrees', 'Salaries', 'Jobs', 'Roadmap 2026'] },
+                                    { clusterName: 'Skill Building', pillar: 'Learn & Tutorials', volume: '32K', kd: 26, subTopics: ['Beginners Guide', 'Online Courses', 'Projects', 'Best Tools'] }
+                                  ]).map((cluster, ci) => (
+                                    <div key={ci} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+                                      <div className="kmt-pillar-bubble" onClick={() => handleUseKeywordInBlog(cluster.pillar)}>
+                                        <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', opacity: 0.9 }}>Topic Pillar</span>
+                                        <strong style={{ fontSize: '0.95rem', margin: '4px 0' }}>{cluster.pillar}</strong>
+                                        <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '999px' }}>
+                                          Vol: {cluster.volume} • KD: {cluster.kd}%
+                                        </span>
+                                      </div>
+
+                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', maxWidth: '320px' }}>
+                                        {(cluster.subTopics || []).map((sub, subi) => (
+                                          <div 
+                                            key={subi} 
+                                            className="kmt-sub-bubble"
+                                            onClick={() => {
+                                              const fullKw = `${kmtKeyword} ${sub}`;
+                                              handleUseKeywordInBlog(fullKw);
+                                            }}
+                                            title="Click to write a blog targeting this subtopic"
+                                          >
+                                            {sub}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '0.85rem', color: '#8b5cf6', fontWeight: 600 }}>
+                                  Share your keyword lists and work as a team • Click any pillar or bubble to write a blog post!
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </motion.div>
                 )}

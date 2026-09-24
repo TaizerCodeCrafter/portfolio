@@ -227,7 +227,67 @@ const chatWithAI = async (userMessage, context, config) => {
       handleAIError(error, 'AI Chat');
     }
   }
-  throw new Error("AI is currently under heavy load. Please try again in a few minutes.");
+const getKeywordMagicData = async ({ keyword, country = "Sri Lanka", domain = "" }, config) => {
+  try {
+    const genAI = new GoogleGenerativeAI(config.geminiApiKey.trim());
+    const model = genAI.getGenerativeModel({ 
+      model: getValidModel(config.aiModel),
+      generationConfig: { responseMimeType: "application/json" }
+    });
+
+    const prompt = `
+      Act as the Semrush Keyword Magic Tool engine. Perform deep SEO keyword research for the seed keyword "${keyword}" specifically for the target country/database "${country}".
+      ${domain ? `Customized for website domain: ${domain}` : ''}
+
+      Generate 20-30 realistic, country-specific high-value keyword variations matching real search query habits in "${country}".
+      Include broad match, phrase match, exact match, high-intent questions (how, what, best, etc.), and related terms.
+
+      Return ONLY a valid JSON object strictly matching this schema:
+      {
+        "summary": {
+          "seedKeyword": "${keyword}",
+          "country": "${country}",
+          "totalKeywords": 2450,
+          "totalVolume": "145.2K",
+          "averageKd": 42,
+          "averageCpc": "$1.95"
+        },
+        "keywords": [
+          {
+            "keyword": "string keyword phrase",
+            "intent": "I",
+            "intentLabel": "Informational",
+            "volume": 4400,
+            "volumeFormatted": "4.4K",
+            "kd": 28,
+            "kdLabel": "Easy",
+            "cpc": "$1.40",
+            "competitiveDensity": 0.35,
+            "serpFeatures": ["Featured Snippet", "SiteLinks", "People Also Ask"],
+            "matchType": "broad",
+            "isQuestion": false,
+            "trend": [45, 50, 60, 65, 80, 85, 90, 75, 80, 95, 98, 100]
+          }
+        ],
+        "topicClusters": [
+          {
+            "clusterName": "Cluster / Sub-category",
+            "pillar": "Pillar Topic",
+            "volume": "18.4K",
+            "kd": 35,
+            "keywordsCount": 8,
+            "subTopics": ["subtopic 1", "subtopic 2", "subtopic 3"]
+          }
+        ]
+      }
+    `;
+
+    const result = await model.generateContent(prompt);
+    const text = (await result.response).text();
+    return extractJSON(text);
+  } catch (error) {
+    handleAIError(error, 'Keyword Magic Tool');
+  }
 };
 
-module.exports = { generateBlogPost, optimizeSEO, getTrendingTopics, generateTags, chatWithAI };
+module.exports = { generateBlogPost, optimizeSEO, getTrendingTopics, generateTags, chatWithAI, getKeywordMagicData };
