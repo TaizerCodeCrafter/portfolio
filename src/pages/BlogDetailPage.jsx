@@ -3,10 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, User, Eye, ArrowLeft, Share2, Clock, Check, 
-  List, MessageCircle, Copy, ChevronDown, ChevronUp
+  List, MessageCircle, Copy, ChevronDown, ChevronUp,
+  Sparkles, BookOpen, ArrowRight
 } from 'lucide-react';
 import axios from 'axios';
 import LikeButton from '../components/LikeButton';
+import CommentSection from '../components/CommentSection';
 import './BlogDetailPage.css';
 
 const LinkedInIcon = () => (
@@ -163,6 +165,7 @@ const BlogDetailPage = () => {
   const [copied, setCopied] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
   const [showToc, setShowToc] = useState(true);
+  const [relatedArticles, setRelatedArticles] = useState([]);
 
   // Track Reading Progress Bar
   useEffect(() => {
@@ -198,6 +201,27 @@ const BlogDetailPage = () => {
       return cleanup;
     }
   }, [blog]);
+
+  // Fetch Recommended / Related Articles
+  useEffect(() => {
+    if (!blog) return;
+    const fetchRelated = async () => {
+      try {
+        const res = await axios.get('/api/blogs');
+        if (Array.isArray(res.data)) {
+          const others = res.data.filter(b => b.slug !== slug && b.status === 'published');
+          // Prioritize articles in the same category
+          const sameCategory = others.filter(b => b.category && blog.category && b.category.toLowerCase() === blog.category.toLowerCase());
+          const otherCategory = others.filter(b => !blog.category || !b.category || b.category.toLowerCase() !== blog.category.toLowerCase());
+          const combined = [...sameCategory, ...otherCategory].slice(0, 3);
+          setRelatedArticles(combined);
+        }
+      } catch (err) {
+        console.warn('Could not fetch related articles:', err.message);
+      }
+    };
+    fetchRelated();
+  }, [blog, slug]);
 
   // Extract H2 & H3 Headings for Dynamic Table of Contents
   const tocHeadings = useMemo(() => {
@@ -477,6 +501,58 @@ const BlogDetailPage = () => {
             </div>
           </footer>
         </article>
+
+        {/* Recommended / Related Articles Grid */}
+        {relatedArticles.length > 0 && (
+          <section className="blog-related-section">
+            <div className="blog-related-header">
+              <div className="blog-related-badge">
+                <Sparkles size={14} /> Recommended Reading
+              </div>
+              <h2 className="blog-related-title">You Might Also Like</h2>
+              <p className="blog-related-subtitle">Continue exploring more software engineering tutorials and insights.</p>
+            </div>
+
+            <div className="blog-related-grid">
+              {relatedArticles.map((item) => (
+                <Link key={item._id || item.slug} to={`/blog/${item.slug}`} className="blog-related-card glass">
+                  <div className="blog-related-card-img-wrap">
+                    {item.coverImage ? (
+                      <img src={item.coverImage} alt={item.title} className="blog-related-card-img" loading="lazy" />
+                    ) : (
+                      <div className="blog-related-card-img-placeholder">
+                        <BookOpen size={28} />
+                      </div>
+                    )}
+                    <span className="blog-related-card-cat">{item.category || 'Technology'}</span>
+                  </div>
+                  <div className="blog-related-card-body">
+                    <div className="blog-related-card-meta">
+                      <span className="blog-related-read"><Clock size={12} /> {estimateReadTime(item.content)}</span>
+                      <span className="blog-related-date">{new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    </div>
+                    <h3 className="blog-related-card-title">{item.title}</h3>
+                    <p className="blog-related-card-excerpt">
+                      {item.excerpt || (item.content ? item.content.replace(/<[^>]*>/g, '').slice(0, 110) + '...' : '')}
+                    </p>
+                    <span className="blog-related-card-cta">
+                      Read Guide <ArrowRight size={13} />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Interactive Discussion & Comments Section */}
+        <section className="blog-discussion-wrapper">
+          <CommentSection 
+            targetType="blog" 
+            targetId={blog._id} 
+            targetTitle={blog.title} 
+          />
+        </section>
       </div>
     </motion.main>
   );

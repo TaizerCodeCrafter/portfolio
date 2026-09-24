@@ -383,20 +383,25 @@
 }
 
 /* Light mode overrides */
+[data-theme='light'] .comment-section-container,
 :root:not(.dark) .comment-section-container {
   border-top-color: rgba(0, 0, 0, 0.1);
 }
 
+[data-theme='light'] .comment-header-title h3,
 :root:not(.dark) .comment-header-title h3 {
   color: #0f172a;
 }
 
+[data-theme='light'] .comment-form,
 :root:not(.dark) .comment-form {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
 }
 
+[data-theme='light'] .comment-input,
+[data-theme='light'] .comment-textarea,
 :root:not(.dark) .comment-input,
 :root:not(.dark) .comment-textarea {
   background: #f8fafc;
@@ -404,16 +409,19 @@
   color: #0f172a;
 }
 
+[data-theme='light'] .comment-card,
 :root:not(.dark) .comment-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
 }
 
+[data-theme='light'] .comment-author-name,
 :root:not(.dark) .comment-author-name {
   color: #0f172a;
 }
 
+[data-theme='light'] .comment-content-text,
 :root:not(.dark) .comment-content-text {
   color: #334155;
 }
