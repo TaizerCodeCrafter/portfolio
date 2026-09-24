@@ -1,0 +1,62 @@
+{
+  "name": "TaizerCodeCrafter | Supun Dilshan",
+  "short_name": "TaizerCode",
+  "description": "Full Stack Developer, AI Solutions & Web Architecture Portfolio by Supun Dilshan",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b1120",
+  "theme_color": "#ff9d42",
+  "lang": "en",
+  "categories": ["portfolio", "developer", "technology", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Articles & Guides",
+      "short_name": "Articles",
+      "description": "Explore full-stack web and AI articles",
+      "url": "/articles?source=pwa",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Projects",
+      "short_name": "Projects",
+      "description": "Explore live portfolio projects",
+      "url": "/projects?source=pwa",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Contact Supun",
+      "short_name": "Contact",
+      "description": "Send a message or project inquiry",
+      "url": "/contact?source=pwa",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

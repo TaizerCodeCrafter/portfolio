@@ -9,6 +9,7 @@ import ContactPage from './pages/ContactPage';
 import ArticlesPage from './pages/ArticlesPage';
 import FloatingSideTag from './components/FloatingSideTag';
 import ScrollToTop from './components/ScrollToTop';
+import PwaInstallPrompt from './components/PwaInstallPrompt';
 
 // Code-split heavy & secondary routes for maximum loading speed
 const AdminPage = lazy(() => import('./pages/AdminPage'));
@@ -35,6 +36,7 @@ function AppContent() {
       <ScrollToTop />
       {!isCeo && <Navbar />}
       {!isCeo && <FloatingSideTag />}
+      {!isCeo && <PwaInstallPrompt />}
       <Suspense fallback={<PageFallback />}>
         <Routes>
           <Route path="/" element={<Home />} />
