@@ -2614,10 +2614,15 @@ const AdminPage = () => {
                           <input 
                             type="password" 
                             className="admin-input" 
-                            placeholder="Enter your Google Gemini API Key"
+                            placeholder="Enter your Google Gemini API Key (starts with AIzaSy...)"
                             value={aiSettings.geminiApiKey}
-                            onChange={(e) => setAiSettings({...aiSettings, geminiApiKey: e.target.value})}
+                            onChange={(e) => setAiSettings({...aiSettings, geminiApiKey: e.target.value.trim()})}
                           />
+                          <span style={{ fontSize: '0.78rem', color: aiSettings.geminiApiKey && !aiSettings.geminiApiKey.startsWith('AIzaSy') ? '#ef4444' : '#64748b', marginTop: '5px', display: 'block', fontWeight: aiSettings.geminiApiKey && !aiSettings.geminiApiKey.startsWith('AIzaSy') ? '700' : '500' }}>
+                            {aiSettings.geminiApiKey && !aiSettings.geminiApiKey.startsWith('AIzaSy') 
+                              ? '⚠️ Invalid Key Format: Gemini API keys must start with "AIzaSy...". Click "Get FREE API Key" above to copy the real key.' 
+                              : '💡 Gemini API Keys start with AIzaSy... (Free from Google AI Studio)'}
+                          </span>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
@@ -2638,12 +2643,13 @@ const AdminPage = () => {
                             <label>Preferred Model</label>
                             <select 
                               className="admin-input"
-                              value={aiSettings.aiModel}
+                              value={aiSettings.aiModel || 'gemini-1.5-flash'}
                               onChange={(e) => setAiSettings({...aiSettings, aiModel: e.target.value})}
                             >
-                              <option value="gemini-3.5-flash">gemini-3.5-flash (Fast)</option>
-                              <option value="gemini-3.6-flash">gemini-3.6-flash (Smart)</option>
-                              <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Lite)</option>
+                              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast & Stable - Recommended)</option>
+                              <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Reasoning)</option>
+                              <option value="gemini-2.0-flash">Gemini 2.0 Flash (Next-Gen)</option>
+                              <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash-8B (Lightweight)</option>
                             </select>
                           </div>
                         </div>

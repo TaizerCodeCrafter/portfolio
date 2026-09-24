@@ -1,9 +1,9 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const getValidModel = (modelName) => {
-  let model = modelName || "gemini-3.5-flash-lite";
-  if (model.includes("-latest") || model.includes("1.5") || model === "gemini-pro") {
-    model = "gemini-3.5-flash-lite"; // Auto-upgrade unsupported models for this API key
+  let model = modelName || "gemini-1.5-flash";
+  if (model.includes("3.5") || model.includes("3.6") || model.includes("-latest") || model === "gemini-pro") {
+    model = "gemini-1.5-flash";
   }
   return model;
 };
@@ -11,16 +11,16 @@ const getValidModel = (modelName) => {
 const handleAIError = (error, context) => {
   console.error(`${context} Error:`, error.message);
   if (error.message.includes('401') || error.message.includes('Unauthorized') || error.message.includes('invalid authentication credentials')) {
-    throw new Error('Your Gemini API Key is invalid or unauthorized. Please check and update your API Key in Settings.');
+    throw new Error('Your Gemini API Key is invalid or unauthorized. Note: Gemini API Keys must start with "AIzaSy...". Please get a free key from Google AI Studio (aistudio.google.com) and update it in Settings.');
   }
   if (error.message.includes('400') && error.message.includes('API key not valid')) {
-    throw new Error('Your Gemini API Key is invalid. Please check and update it in Settings.');
+    throw new Error('Your Gemini API Key is not valid. Please make sure to copy the full API Key starting with "AIzaSy..." from Google AI Studio.');
   }
   if (error.message.includes('404') && error.message.includes('not found')) {
-    throw new Error('Your API Key does not support this model. Please select a newer model (like gemini-3.5-flash-lite) in Settings.');
+    throw new Error('Selected AI model is not supported. Automatically switched to gemini-1.5-flash. Please try generating again.');
   }
   if (error.message.includes('503') || error.message.includes('Service Unavailable') || error.message.includes('overloaded')) {
-    throw new Error('Google Gemini API is currently overloaded or down. Please try again in a few minutes, or switch to the Lite model.');
+    throw new Error('Google Gemini API is currently overloaded or down. Please try again in a few moments.');
   }
   throw error;
 };
