@@ -90,9 +90,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 0.8rem;
+  padding: 7px 16px;
+  border-radius: 9px;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -297,4 +297,141 @@
 .file-remove-btn:hover {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.12);
+}
+
+/* ========================================================
+   LIGHT MODE OVERRIDES ([data-theme='light'])
+   High-contrast, crystal-clear typography and styling
+   ======================================================== */
+[data-theme='light'] .dropzone-box {
+  border: 2px dashed #cbd5e1;
+  background: #f8fafc;
+}
+
+[data-theme='light'] .dropzone-box:hover {
+  border-color: #b35a00;
+  background: #fffbf5;
+}
+
+[data-theme='light'] .dropzone-box.drag-over {
+  border-color: #b35a00;
+  background: #fff7ed;
+  box-shadow: 0 0 25px rgba(179, 90, 0, 0.15);
+}
+
+[data-theme='light'] .dropzone-icon-wrap {
+  background: #fff7ed;
+  color: #b35a00;
+}
+
+[data-theme='light'] .dropzone-main-text {
+  color: #0f172a !important;
+  font-weight: 700;
+}
+
+[data-theme='light'] .dropzone-main-text span {
+  color: #b35a00 !important;
+  text-decoration: underline;
+}
+
+[data-theme='light'] .dropzone-sub-text {
+  color: #475569 !important;
+  font-weight: 500;
+}
+
+[data-theme='light'] .dropzone-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .dropzone-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a !important;
+}
+
+[data-theme='light'] .dropzone-btn.browse-btn {
+  background: #fff7ed;
+  border-color: #fdba74;
+  color: #b35a00 !important;
+}
+
+[data-theme='light'] .dropzone-btn.browse-btn:hover {
+  background: #ffedd5;
+  border-color: #ea580c;
+  color: #9a3412 !important;
+}
+
+[data-theme='light'] .dropzone-btn.folder-btn {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155 !important;
+}
+
+[data-theme='light'] .dropzone-btn.folder-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a !important;
+}
+
+[data-theme='light'] .upload-progress-wrapper {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+[data-theme='light'] .upload-progress-header {
+  color: #0f172a;
+}
+
+[data-theme='light'] .upload-progress-track {
+  background: #e2e8f0;
+}
+
+[data-theme='light'] .files-count-badge {
+  color: #b35a00;
+  background: #fff7ed;
+  border-color: #fdba74;
+}
+
+[data-theme='light'] .clear-all-btn {
+  color: #dc2626;
+}
+
+[data-theme='light'] .clear-all-btn:hover {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+[data-theme='light'] .files-preview-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+[data-theme='light'] .file-item-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .file-item-card:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+[data-theme='light'] .file-name {
+  color: #0f172a !important;
+}
+
+[data-theme='light'] .file-size-text {
+  color: #64748b !important;
+}
+
+[data-theme='light'] .file-remove-btn {
+  color: #94a3b8;
+}
+
+[data-theme='light'] .file-remove-btn:hover {
+  color: #ef4444;
+  background: #fee2e2;
 }
