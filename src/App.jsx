@@ -10,6 +10,7 @@ import ArticlesPage from './pages/ArticlesPage';
 import FloatingSideTag from './components/FloatingSideTag';
 import ScrollToTop from './components/ScrollToTop';
 import PwaInstallPrompt from './components/PwaInstallPrompt';
+import AnalyticsTracker from './components/AnalyticsTracker';
 
 // Code-split heavy & secondary routes for maximum loading speed
 const AdminPage = lazy(() => import('./pages/AdminPage'));
@@ -41,6 +42,7 @@ function AppContent() {
       <div className="bg-glow-2"></div>
       
       <ScrollToTop />
+      <AnalyticsTracker />
       {!isCeo && <Navbar />}
       {!isCeo && <FloatingSideTag />}
       {!isCeo && <PwaInstallPrompt />}

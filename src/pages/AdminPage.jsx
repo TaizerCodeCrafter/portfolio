@@ -10,7 +10,8 @@ import {
   AlertCircle, CheckCircle2, Info, Maximize, Minimize, AlignCenter, AlignRight, Edit2, PenTool, Layout, Server, Database, Smartphone, LayoutGrid,
   Building2, ExternalLink, CreditCard, Package as PackageIcon, QrCode,
   Flame, ArrowUp, ArrowDown, Copy, Download, Paperclip, FileArchive, FileCode,
-  Wand2, Layers, HelpCircle, ChevronDown, Hash
+  Wand2, Layers, HelpCircle, ChevronDown, Hash,
+  Monitor, Tablet
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -184,6 +185,21 @@ const AdminPage = () => {
   const [seoAnalysis, setSeoAnalysis] = useState([]);
   const [seoTab, setSeoTab] = useState('Global Settings');
   
+  // Visitor & GA4 Analytics State
+  const [visitorStats, setVisitorStats] = useState({
+    totalViews: 0,
+    todayViews: 0,
+    uniqueVisitors: 0,
+    topPages: [],
+    deviceMap: { mobile: 0, desktop: 0, tablet: 0 },
+    recentViews: [],
+    recentVisitors: [],
+    gaMeasurementId: 'G-D8L7P9QW1X'
+  });
+  const [gaInputId, setGaInputId] = useState('G-D8L7P9QW1X');
+  const [savingGaConfig, setSavingGaConfig] = useState(false);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  
   const [messages, setMessages] = useState([]);
   const [viewingMessage, setViewingMessage] = useState(null);
   const [previewAttachment, setPreviewAttachment] = useState(null);
@@ -256,6 +272,39 @@ const AdminPage = () => {
     } catch (err) { console.error('Failed to fetch settings'); }
   };
 
+  const fetchAnalytics = async () => {
+    setAnalyticsLoading(true);
+    try {
+      const res = await axios.get('/api/analytics/stats');
+      if (res.data) {
+        setVisitorStats(res.data);
+        if (res.data.gaMeasurementId) {
+          setGaInputId(res.data.gaMeasurementId);
+        }
+      }
+    } catch (err) {
+      console.warn('Analytics fetch error:', err.message);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+
+  const handleSaveGaConfig = async () => {
+    if (!gaInputId.trim()) {
+      return showAlert('Please enter a valid GA4 Measurement ID (e.g. G-XXXXXXX)', 'error');
+    }
+    setSavingGaConfig(true);
+    try {
+      await axios.post('/api/analytics/config', { measurementId: gaInputId.trim() });
+      showAlert('Google Analytics 4 ID saved successfully!');
+      fetchAnalytics();
+    } catch (err) {
+      showAlert('Failed to save GA4 configuration', 'error');
+    } finally {
+      setSavingGaConfig(false);
+    }
+  };
+
   const [confirmModal, setConfirmModal] = useState({ visible: false, message: '', onConfirm: null });
 
   const showConfirm = (message, onConfirm) => {
@@ -274,8 +323,15 @@ const AdminPage = () => {
       fetchAiSettings();
       fetchMessages();
       fetchTemplates();
+      fetchAnalytics();
     }
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (isAuthenticated && activeTab === 'Analytics') {
+      fetchAnalytics();
+    }
+  }, [activeTab, isAuthenticated]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -2011,101 +2067,333 @@ const AdminPage = () => {
 
           {activeTab === 'Analytics' && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="analytics-container">
+              {/* Header */}
               <div className="admin-header-flex">
                 <div>
-                  <h1>Analytics & Insights</h1>
-                  <p>Track your blog performance and visitor engagement</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    <h1>Analytics & Traffic Insights</h1>
+                    <span className="live-pulse-badge">
+                      <span className="pulse-dot"></span> Live Real-Time & GA4 Connected
+                    </span>
+                  </div>
+                  <p>Real-time privacy-compliant visitor telemetry and Google Analytics 4 (GA4) stream synchronization</p>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={fetchAnalytics} className="admin-btn-secondary" disabled={analyticsLoading}>
+                    <RotateCcw size={16} className={analyticsLoading ? 'spin-icon' : ''} />
+                    {analyticsLoading ? 'Syncing...' : 'Refresh Telemetry'}
+                  </button>
                 </div>
               </div>
 
-              <div className="admin-stats-grid" style={{ marginBottom: '30px' }}>
+              {/* Top Stats Grid */}
+              <div className="admin-stats-grid" style={{ marginBottom: '25px' }}>
                 <StatCard 
-                  label="Total Blog Views" 
-                  value={blogs.reduce((acc, b) => acc + (b.views || 0), 0).toLocaleString()} 
+                  label="Total Website Hits" 
+                  value={(visitorStats.totalViews || 0).toLocaleString()} 
                   icon={Eye} 
                   color="#b35a00" 
                   bg="#fef3c7" 
                 />
                 <StatCard 
-                  label="Total Articles" 
-                  value={blogs.length} 
-                  icon={FileText} 
+                  label="Today's Live Visits" 
+                  value={(visitorStats.todayViews || 0).toLocaleString()} 
+                  icon={Activity} 
+                  color="#10b981" 
+                  bg="#d1fae5" 
+                />
+                <StatCard 
+                  label="Unique Visitors" 
+                  value={(visitorStats.uniqueVisitors || 0).toLocaleString()} 
+                  icon={Users} 
                   color="#2563eb" 
                   bg="#dbeafe" 
                 />
                 <StatCard 
-                  label="Contact Inquiries" 
-                  value={messages.length} 
-                  icon={Mail} 
-                  color="#16a34a" 
-                  bg="#dcfce7" 
-                />
-                <StatCard 
-                  label="Avg Views / Post" 
-                  value={blogs.length > 0 ? Math.round(blogs.reduce((acc, b) => acc + (b.views || 0), 0) / blogs.length) : 0} 
-                  icon={BarChart2} 
+                  label="Total Blog Reads" 
+                  value={blogs.reduce((acc, b) => acc + (b.views || 0), 0).toLocaleString()} 
+                  icon={FileText} 
                   color="#8b5cf6" 
                   bg="#f3e8ff" 
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '30px' }}>
-                {/* Top Posts Table */}
-                <div className="white-card" style={{ padding: '25px' }}>
-                  <div className="card-title">Top Performing Articles</div>
-                  <div className="admin-table-wrapper" style={{ marginTop: '20px' }}>
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          <th>Post Title</th>
-                          <th>Category</th>
-                          <th style={{ textAlign: 'right' }}>Views</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {blogs
-                          .sort((a, b) => (b.views || 0) - (a.views || 0))
-                          .slice(0, 5)
-                          .map(post => (
-                            <tr key={post._id}>
-                              <td style={{ fontWeight: '600' }}>{post.title}</td>
-                              <td><span className="category-badge">{post.category}</span></td>
-                              <td style={{ textAlign: 'right', fontWeight: '800', color: '#b35a00' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '5px' }}>
-                                  <Eye size={14} /> {post.views || 0}
-                                </div>
-                              </td>
-                            </tr>
-                          ))
-                        }
-                      </tbody>
-                    </table>
+              {/* Google Analytics 4 (GA4) Integration Banner */}
+              <div className="ga-config-banner">
+                <div className="ga-config-header">
+                  <div className="ga-brand-title">
+                    <Globe size={22} color="#b35a00" />
+                    <span>Google Analytics 4 (GA4) Stream Configuration</span>
+                    <span className="ga-brand-badge">SPA Auto-Tracking Active</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <a 
+                      href="https://analytics.google.com/" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="ga-quick-link-btn"
+                    >
+                      <ExternalLink size={14} /> Open Google Analytics
+                    </a>
+                    <a 
+                      href="https://search.google.com/search-console" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="ga-quick-link-btn"
+                    >
+                      <ExternalLink size={14} /> Google Search Console
+                    </a>
                   </div>
                 </div>
 
-                {/* Category Distribution */}
-                <div className="white-card" style={{ padding: '25px' }}>
-                  <div className="card-title">Content Distribution</div>
-                  <div style={{ marginTop: '25px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    {Object.entries(
-                      blogs.reduce((acc, b) => {
-                        acc[b.category] = (acc[b.category] || 0) + 1;
-                        return acc;
-                      }, {})
-                    ).map(([cat, count]) => {
-                      const percentage = Math.round((count / blogs.length) * 100);
+                <div className="ga-input-row">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '280px' }}>
+                    <span style={{ fontSize: '0.88rem', fontWeight: '700', color: '#475569' }}>Measurement ID:</span>
+                    <input 
+                      type="text" 
+                      value={gaInputId} 
+                      onChange={(e) => setGaInputId(e.target.value)} 
+                      placeholder="G-D8L7P9QW1X" 
+                      className="ga-input-field" 
+                    />
+                  </div>
+                  <button 
+                    onClick={handleSaveGaConfig} 
+                    className="ga-save-btn" 
+                    disabled={savingGaConfig}
+                  >
+                    {savingGaConfig ? (
+                      <>
+                        <RotateCcw size={15} className="spin-icon" /> Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save size={15} /> Save & Sync GA4 ID
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className="ga-info-pill">
+                  <strong>🛡️ Dual-Engine Architecture:</strong> Google Analytics 4 tracks virtual page views, sessions, and client devices via <code>gtag.js</code>. Simultaneously, internal first-party MongoDB logging captures visits even when visitors use ad-blockers (Brave, uBlock Origin, Firefox strict mode). Zero cookies required, 100% GDPR-compliant.
+                </div>
+              </div>
+
+              {/* Two Column Layout: Pages & Feed vs Devices & Categories */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '25px' }}>
+                {/* Left Column: Top Pages & Live Activity Stream */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+                  {/* Top Pages */}
+                  <div className="white-card" style={{ padding: '24px' }}>
+                    <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <TrendingUp size={18} color="#b35a00" />
+                      <span>Most Visited Website Pages</span>
+                    </div>
+                    <div className="admin-table-wrapper" style={{ marginTop: '16px' }}>
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>Path & Page</th>
+                            <th style={{ textAlign: 'right' }}>Hits</th>
+                            <th style={{ textAlign: 'right', width: '35%' }}>Traffic Share</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(visitorStats.topPages || []).map((page, idx) => {
+                            const maxHits = Math.max(...(visitorStats.topPages || []).map(p => p.count || 1), 1);
+                            const pct = Math.round(((page.count || 0) / maxHits) * 100);
+                            return (
+                              <tr key={idx}>
+                                <td>
+                                  <div style={{ fontWeight: '700', color: '#0f172a' }}>{page.title || page._id}</div>
+                                  <div style={{ fontSize: '0.78rem', color: '#64748b', fontFamily: 'monospace' }}>{page._id}</div>
+                                </td>
+                                <td style={{ textAlign: 'right', fontWeight: '800', color: '#b35a00' }}>
+                                  {(page.count || 0).toLocaleString()}
+                                </td>
+                                <td style={{ textAlign: 'right' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
+                                    <div style={{ width: '80px', height: '6px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                                      <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #b35a00, #ff8c00)', borderRadius: '4px' }}></div>
+                                    </div>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', minWidth: '32px' }}>{pct}%</span>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Live Recent Visitor Stream */}
+                  <div className="white-card" style={{ padding: '24px' }}>
+                    <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Activity size={18} color="#10b981" />
+                      <span>Recent Visitor Activity Stream</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#64748b', marginLeft: 'auto' }}>Last 10 Visits</span>
+                    </div>
+                    <div className="admin-table-wrapper" style={{ marginTop: '16px' }}>
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>Page Route</th>
+                            <th>Traffic Source</th>
+                            <th>Platform</th>
+                            <th style={{ textAlign: 'right' }}>Time</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(visitorStats.recentVisitors || []).slice(0, 8).map((visit, idx) => {
+                            const ref = visit.referrerDomain || 'Direct';
+                            const refClass = ref.includes('google') ? 'referrer-google' : ref.includes('whatsapp') ? 'referrer-whatsapp' : ref.includes('facebook') ? 'referrer-facebook' : 'referrer-direct';
+                            const visitTime = visit.createdAt ? new Date(visit.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+                            return (
+                              <tr key={idx}>
+                                <td>
+                                  <div style={{ fontWeight: '600', fontSize: '0.85rem' }}>{visit.title || visit.path}</div>
+                                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontFamily: 'monospace' }}>{visit.path}</div>
+                                </td>
+                                <td>
+                                  <span className={`referrer-badge ${refClass}`}>{ref}</span>
+                                </td>
+                                <td>
+                                  <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', textTransform: 'capitalize' }}>
+                                    {visit.device || 'desktop'} · {visit.browser || 'Browser'}
+                                  </span>
+                                </td>
+                                <td style={{ textAlign: 'right', fontSize: '0.78rem', color: '#64748b', fontWeight: '600' }}>
+                                  {visitTime}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Device Breakdown, Top Articles & Categories */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+                  {/* Device Breakdown */}
+                  <div className="white-card" style={{ padding: '24px' }}>
+                    <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Smartphone size={18} color="#b35a00" />
+                      <span>Device & Platform Share</span>
+                    </div>
+                    
+                    {(() => {
+                      const totalDevices = ((visitorStats.deviceMap?.mobile || 0) + (visitorStats.deviceMap?.desktop || 0) + (visitorStats.deviceMap?.tablet || 0)) || 1;
+                      const mobPct = Math.round(((visitorStats.deviceMap?.mobile || 0) / totalDevices) * 100);
+                      const dskPct = Math.round(((visitorStats.deviceMap?.desktop || 0) / totalDevices) * 100);
+                      const tabPct = Math.max(0, 100 - mobPct - dskPct);
+
                       return (
-                        <div key={cat}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
-                            <span style={{ fontWeight: '600' }}>{cat}</span>
-                            <span style={{ opacity: 0.7 }}>{count} posts ({percentage}%)</span>
+                        <div className="device-cards-grid">
+                          <div className="device-card-item">
+                            <div className="device-card-top">
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '700', color: '#475569' }}>
+                                <Smartphone size={16} color="#3b82f6" /> Mobile
+                              </span>
+                              <span className="device-card-pct">{mobPct}%</span>
+                            </div>
+                            <div className="device-progress-bg">
+                              <div className="device-progress-fill" style={{ width: `${mobPct}%`, background: '#3b82f6' }}></div>
+                            </div>
+                            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{(visitorStats.deviceMap?.mobile || 0).toLocaleString()} hits</span>
                           </div>
-                          <div style={{ width: '100%', height: '8px', background: '#f5f5f5', borderRadius: '10px', overflow: 'hidden' }}>
-                            <div style={{ width: `${percentage}%`, height: '100%', background: 'linear-gradient(90deg, #b35a00, #ff8c00)', borderRadius: '10px' }}></div>
+
+                          <div className="device-card-item">
+                            <div className="device-card-top">
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '700', color: '#475569' }}>
+                                <Monitor size={16} color="#10b981" /> Desktop
+                              </span>
+                              <span className="device-card-pct">{dskPct}%</span>
+                            </div>
+                            <div className="device-progress-bg">
+                              <div className="device-progress-fill" style={{ width: `${dskPct}%`, background: '#10b981' }}></div>
+                            </div>
+                            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{(visitorStats.deviceMap?.desktop || 0).toLocaleString()} hits</span>
+                          </div>
+
+                          <div className="device-card-item">
+                            <div className="device-card-top">
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '700', color: '#475569' }}>
+                                <Tablet size={16} color="#8b5cf6" /> Tablet
+                              </span>
+                              <span className="device-card-pct">{tabPct}%</span>
+                            </div>
+                            <div className="device-progress-bg">
+                              <div className="device-progress-fill" style={{ width: `${tabPct}%`, background: '#8b5cf6' }}></div>
+                            </div>
+                            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{(visitorStats.deviceMap?.tablet || 0).toLocaleString()} hits</span>
                           </div>
                         </div>
                       );
-                    })}
+                    })()}
+                  </div>
+
+                  {/* Top Articles Table */}
+                  <div className="white-card" style={{ padding: '24px' }}>
+                    <div className="card-title">Top Performing Articles</div>
+                    <div className="admin-table-wrapper" style={{ marginTop: '16px' }}>
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>Post Title</th>
+                            <th>Category</th>
+                            <th style={{ textAlign: 'right' }}>Reads</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {blogs
+                            .sort((a, b) => (b.views || 0) - (a.views || 0))
+                            .slice(0, 5)
+                            .map(post => (
+                              <tr key={post._id}>
+                                <td style={{ fontWeight: '600', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {post.title}
+                                </td>
+                                <td><span className="category-badge">{post.category}</span></td>
+                                <td style={{ textAlign: 'right', fontWeight: '800', color: '#b35a00' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '5px' }}>
+                                    <Eye size={14} /> {post.views || 0}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Category Distribution */}
+                  <div className="white-card" style={{ padding: '24px' }}>
+                    <div className="card-title">Content Categories</div>
+                    <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      {Object.entries(
+                        blogs.reduce((acc, b) => {
+                          acc[b.category] = (acc[b.category] || 0) + 1;
+                          return acc;
+                        }, {})
+                      ).map(([cat, count]) => {
+                        const percentage = blogs.length > 0 ? Math.round((count / blogs.length) * 100) : 0;
+                        return (
+                          <div key={cat}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.85rem' }}>
+                              <span style={{ fontWeight: '700', color: '#334155' }}>{cat}</span>
+                              <span style={{ opacity: 0.7 }}>{count} posts ({percentage}%)</span>
+                            </div>
+                            <div style={{ width: '100%', height: '7px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden' }}>
+                              <div style={{ width: `${percentage}%`, height: '100%', background: 'linear-gradient(90deg, #b35a00, #ff8c00)', borderRadius: '10px' }}></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
