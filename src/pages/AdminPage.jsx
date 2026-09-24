@@ -120,7 +120,7 @@ const AdminPage = () => {
     { name: 'Global', code: 'GL', flag: '🌐', currency: 'USD' }
   ];
 
-  const [kmtKeyword, setKmtKeyword] = useState('software engineering');
+  const [kmtKeyword, setKmtKeyword] = useState('');
   const [kmtDomain, setKmtDomain] = useState('taizercodecrafter.com');
   const [kmtCountry, setKmtCountry] = useState('Sri Lanka');
   const [kmtData, setKmtData] = useState(null);
@@ -984,12 +984,6 @@ const AdminPage = () => {
     return true;
   });
 
-  // Auto-load default initial search when entering Keyword Magic Tool
-  useEffect(() => {
-    if (aiTab === 'Keyword Magic Tool' && !kmtData && !kmtLoading) {
-      handleSearchKeywords('software engineering', 'Sri Lanka');
-    }
-  }, [aiTab]);
 
   const handleSaveGeneratedBlog = async () => {
     if (!generatedPreview) return;
@@ -3404,10 +3398,7 @@ const AdminPage = () => {
                             <select 
                               className="kmt-country-select"
                               value={kmtCountry}
-                              onChange={(e) => {
-                                setKmtCountry(e.target.value);
-                                if (kmtKeyword) handleSearchKeywords(kmtKeyword, e.target.value);
-                              }}
+                              onChange={(e) => setKmtCountry(e.target.value)}
                             >
                               {KMT_COUNTRIES.map(c => (
                                 <option key={c.name} value={c.name}>
@@ -3436,7 +3427,6 @@ const AdminPage = () => {
                               className="kmt-example-chip"
                               onClick={() => {
                                 setKmtKeyword(ex);
-                                handleSearchKeywords(ex, kmtCountry);
                               }}
                             >
                               {ex}
@@ -3972,6 +3962,45 @@ const AdminPage = () => {
                             );
                           })()}
                         </>
+                      )}
+
+                      {/* Loading state while searching */}
+                      {kmtLoading && !kmtData && (
+                        <div style={{ textAlign: 'center', padding: '60px 20px', background: '#f8fafc', borderRadius: '16px', border: '1px dashed #cbd5e1', marginTop: '24px' }}>
+                          <div className="loader-ai" style={{ width: '40px', height: '40px', borderWidth: '3px', margin: '0 auto 16px' }}></div>
+                          <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                            Analyzing Keywords for {kmtCountry}...
+                          </h3>
+                          <p style={{ color: '#64748b', fontSize: '0.9rem', maxWidth: '450px', margin: '0 auto' }}>
+                            Gathering search volume, keyword difficulty (KD%), search intents, and constructing Semrush-style topic mindmap clusters.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Initial Welcome / Prompt state before user clicks search */}
+                      {!kmtData && !kmtLoading && (
+                        <div style={{ textAlign: 'center', padding: '50px 20px', background: '#f8fafc', borderRadius: '16px', border: '1px dashed #cbd5e1', marginTop: '24px' }}>
+                          <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(179, 90, 0, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                            <Sparkles size={28} color="#b35a00" />
+                          </div>
+                          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>
+                            Ready to Discover High-Value Keywords?
+                          </h3>
+                          <p style={{ color: '#64748b', fontSize: '0.92rem', maxWidth: '520px', margin: '0 auto 20px', lineHeight: 1.5 }}>
+                            Type any broad topic or niche keyword in the search bar above, pick your target country, and click <strong>Search</strong> to reveal search volume, competition difficulty, and interactive topic cluster mindmaps.
+                          </p>
+                          <div style={{ display: 'inline-flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#475569', background: '#ffffff', padding: '6px 14px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                              <Globe size={14} color="#b35a00" /> 10+ Country Databases
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#475569', background: '#ffffff', padding: '6px 14px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                              <Layers size={14} color="#b35a00" /> Semrush Mindmap Canvas
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#475569', background: '#ffffff', padding: '6px 14px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                              <Sparkles size={14} color="#b35a00" /> 1-Click AI Blog Creator
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </motion.div>
