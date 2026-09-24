@@ -227,6 +227,9 @@ const chatWithAI = async (userMessage, context, config) => {
       handleAIError(error, 'AI Chat');
     }
   }
+  throw new Error("AI is currently under heavy load. Please try again in a few minutes.");
+};
+
 const getKeywordMagicData = async ({ keyword, country = "Sri Lanka", domain = "" }, config) => {
   try {
     const genAI = new GoogleGenerativeAI(config.geminiApiKey.trim());

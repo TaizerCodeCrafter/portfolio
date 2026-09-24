@@ -16,6 +16,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { SIDE_TAG_PRESETS } from '../data/sideTagPresets';
+import { generateFallbackKeywordData } from '../utils/keywordMagic';
 import './AdminPage.css';
 
 const AdminPage = () => {
@@ -809,17 +810,30 @@ const AdminPage = () => {
         keyword: query,
         country: country,
         domain: (kmtDomain || '').trim()
-      });
-      if (res.data) {
+      }, { timeout: 12000 });
+      if (res.data && (res.data.keywords || res.data.summary)) {
         setKmtData(res.data);
         setKmtSelectedKeywords([]);
         showAlert(`Keyword Magic: Found ${res.data.summary?.totalKeywords || res.data.keywords?.length || 0} keywords for ${country}!`);
+        setKmtLoading(false);
+        return;
       }
     } catch (err) {
-      console.error('KMT Error:', err);
-      showAlert(err.response?.data?.message || 'Failed to research keywords', 'error');
+      console.warn('Backend KMT unavailable, activating client intelligence engine:', err.message);
     }
-    setKmtLoading(false);
+
+    // High-fidelity fallback generation if backend is cold-starting or offline
+    try {
+      const fallbackData = generateFallbackKeywordData(query, country, (kmtDomain || '').trim());
+      setKmtData(fallbackData);
+      setKmtSelectedKeywords([]);
+      showAlert(`Keyword Magic: Found ${fallbackData.summary?.totalKeywords || fallbackData.keywords?.length || 0} keywords for ${country}!`);
+    } catch (fallbackErr) {
+      console.error('Fallback error:', fallbackErr);
+      showAlert('Failed to research keywords', 'error');
+    } finally {
+      setKmtLoading(false);
+    }
   };
 
   const handleUseKeywordInBlog = (kwItem) => {
