@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, Eye, Monitor, Smartphone, X, MessageSquare, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { ExternalLink, Eye, Monitor, Smartphone, X, MessageSquare, ArrowLeft } from 'lucide-react';
 import { GithubIcon } from './BrandIcons';
 import LikeButton from './LikeButton';
 import CommentSection from './CommentSection';
@@ -70,21 +70,33 @@ const Projects = ({ isPage = false }) => {
     return defaultProjects.map(normalizeProject);
   });
   const [previewProject, setPreviewProject] = useState(null);
-  const [commentProject, setCommentProject] = useState(null);
+  const [detailProject, setDetailProject] = useState(null);
   const [previewMode, setPreviewMode] = useState('desktop');
   const [categories, setCategories] = useState(() => {
     const source = (Array.isArray(cachedProjects) && cachedProjects.length > 0) ? cachedProjects : defaultProjects;
     return ['All', ...new Set(source.map(p => p.category).filter(Boolean))];
   });
   const [activeCategory, setActiveCategory] = useState('All');
-  const [expandedDescs, setExpandedDescs] = useState({});
 
-  const toggleDesc = (id) => {
-    setExpandedDescs(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
+  // Prevent background page scrolling and support Escape key when any modal is open
+  useEffect(() => {
+    if (detailProject || previewProject) {
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          setDetailProject(null);
+          setPreviewProject(null);
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [detailProject, previewProject]);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -172,37 +184,31 @@ const Projects = ({ isPage = false }) => {
             <div className="project-info">
               <h3 
                 className="project-title"
-                onClick={() => setPreviewProject(project)}
+                onClick={() => setDetailProject(project)}
                 style={{ cursor: 'pointer' }}
-                title="Click to preview project"
+                title="Click to view full project details"
               >
                 {project.title}
               </h3>
               {(() => {
-                const pId = project._id || `proj-${index}`;
                 const fullDesc = cleanProjectDesc(project.description);
-                const isLongDesc = fullDesc && fullDesc.length > 85;
-                const isExpanded = !!expandedDescs[pId];
-
                 return (
                   <div className="project-desc-wrapper">
-                    <p className={`project-desc ${isExpanded ? 'expanded' : ''}`}>
+                    <p className="project-desc">
                       {fullDesc}
                     </p>
-                    {isLongDesc && (
-                      <button 
-                        type="button"
-                        className="project-desc-toggle-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleDesc(pId);
-                        }}
-                        aria-expanded={isExpanded}
-                      >
-                        <span>{isExpanded ? 'See Less' : 'See More'}</span>
-                        {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                      </button>
-                    )}
+                    <button 
+                      type="button" 
+                      className="project-see-more-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDetailProject(project);
+                      }}
+                      title="View full project details"
+                    >
+                      <span>See More</span>
+                      <ExternalLink size={11} />
+                    </button>
                   </div>
                 );
               })()}
@@ -227,7 +233,7 @@ const Projects = ({ isPage = false }) => {
                   {project._id && (
                     <button 
                       type="button" 
-                      onClick={() => setCommentProject(project)} 
+                      onClick={() => setDetailProject(project)} 
                       className="project-comment-btn"
                       title="Discussion & Feedback"
                     >
@@ -340,95 +346,144 @@ const Projects = ({ isPage = false }) => {
       )}
 
       {/* Project Details, Full View & Discussion Modal */}
-      {commentProject && (
-        <div className="preview-modal-overlay" onClick={() => setCommentProject(null)}>
+      {detailProject && (
+        <div className="preview-modal-overlay" onClick={() => setDetailProject(null)}>
           <div 
             className="project-detail-modal" 
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-project-title"
           >
             {/* Sticky Header with Back to Projects and Close */}
             <div className="project-modal-sticky-header">
               <button 
                 type="button" 
                 className="project-modal-back-btn" 
-                onClick={() => setCommentProject(null)}
+                onClick={() => setDetailProject(null)}
               >
                 <ArrowLeft size={16} /> Back to Projects
               </button>
-              <button 
-                type="button" 
-                className="project-modal-close-btn" 
-                onClick={() => setCommentProject(null)}
-                aria-label="Close project modal"
-              >
-                <X size={18} />
-              </button>
+              <div className="project-modal-header-actions">
+                {detailProject.links?.live && (
+                  <a 
+                    href={detailProject.links.live} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="project-modal-header-link live"
+                    title="Open Live Website"
+                  >
+                    <ExternalLink size={13} /> Live Demo
+                  </a>
+                )}
+                {detailProject.links?.github && (
+                  <a 
+                    href={detailProject.links.github} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="project-modal-header-link github"
+                    title="View Source Code on GitHub"
+                  >
+                    <GithubIcon size={14} /> Code
+                  </a>
+                )}
+                <button 
+                  type="button" 
+                  className="project-modal-close-btn" 
+                  onClick={() => setDetailProject(null)}
+                  aria-label="Close project modal"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Scrollable Body */}
             <div className="project-modal-body-scroll">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '8px' }}>
-                <span className="project-tag">{commentProject.category}</span>
+              <div className="project-modal-meta-row">
+                <span className="project-category-badge">{detailProject.category || 'Featured'}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <LikeButton targetType="project" targetId={commentProject._id} initialLikes={commentProject.likes} size={15} />
-                  {commentProject.links?.live && (
-                    <a 
-                      href={commentProject.links.live} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      className="buy-now-btn"
-                      style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
-                    >
-                      <ExternalLink size={13} /> Live Demo
-                    </a>
+                  {detailProject._id && (
+                    <LikeButton targetType="project" targetId={detailProject._id} initialLikes={detailProject.likes} size={15} />
                   )}
-                  {commentProject.isForSale && (
+                  {detailProject.isForSale && (
                     <button 
                       className="buy-now-btn" 
-                      onClick={() => window.open(`https://wa.me/94705770398?text=Hi! I want to buy the project: ${commentProject.title}`, '_blank')}
-                      title={`Buy this project for $${commentProject.price}`}
+                      onClick={() => window.open(`https://wa.me/94705770398?text=Hi! I want to buy the project: ${detailProject.title}`, '_blank')}
+                      title={`Buy this project for $${detailProject.price}`}
                     >
-                      Buy ${commentProject.price}
+                      Buy ${detailProject.price}
                     </button>
-                  )}
-                  {commentProject.links?.github && (
-                    <a 
-                      href={commentProject.links.github} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      className="github-link-btn"
-                      title="View Source Code"
-                    >
-                      <GithubIcon size={18} />
-                    </a>
                   )}
                 </div>
               </div>
 
-              <h2 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '8px 0 14px 0', color: 'var(--text-primary)' }}>
-                {commentProject.title}
+              <h2 id="modal-project-title" className="project-modal-title">
+                {detailProject.title}
               </h2>
 
+              {/* Technologies / Tags list */}
+              {Array.isArray(detailProject.tags) && detailProject.tags.length > 0 && (
+                <div className="project-modal-tags">
+                  {detailProject.tags.map(tag => (
+                    <span key={tag} className="project-modal-tag-pill">{tag}</span>
+                  ))}
+                </div>
+              )}
+
               {/* Full View Image Container - NO CROPPING */}
-              {commentProject.image && (
+              {detailProject.image && (
                 <div className="project-modal-full-img-container">
                   <img 
-                    src={commentProject.image} 
-                    alt={commentProject.title} 
+                    src={detailProject.image} 
+                    alt={detailProject.title} 
                     className="project-modal-full-img"
                   />
                 </div>
               )}
 
-              <div className="project-modal-desc-text">
-                {cleanProjectDesc(commentProject.description)}
+              {/* Full Detailed Description */}
+              <div className="project-modal-desc-section">
+                <h3 className="project-modal-section-title">About the Project</h3>
+                <div className="project-modal-desc-text">
+                  {cleanProjectDesc(detailProject.description)}
+                </div>
               </div>
 
-              <CommentSection 
-                targetType="project" 
-                targetId={commentProject._id} 
-                targetTitle={commentProject.title} 
-              />
+              {/* Action Buttons Row */}
+              <div className="project-modal-action-row">
+                {detailProject.links?.live && (
+                  <a 
+                    href={detailProject.links.live} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="modal-primary-btn"
+                  >
+                    <ExternalLink size={16} /> Launch Live Demo
+                  </a>
+                )}
+                {detailProject.links?.github && (
+                  <a 
+                    href={detailProject.links.github} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="modal-secondary-btn"
+                  >
+                    <GithubIcon size={17} /> View Source Code
+                  </a>
+                )}
+              </div>
+
+              {/* Discussion & Feedback */}
+              {detailProject._id && (
+                <div className="project-modal-comments-section">
+                  <CommentSection 
+                    targetType="project" 
+                    targetId={detailProject._id} 
+                    targetTitle={detailProject.title} 
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
