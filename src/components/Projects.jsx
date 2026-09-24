@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, Eye, Monitor, Smartphone, X, MessageSquare } from 'lucide-react';
+import { ExternalLink, Eye, Monitor, Smartphone, X, MessageSquare, ArrowLeft } from 'lucide-react';
 import { GithubIcon } from './BrandIcons';
 import LikeButton from './LikeButton';
 import CommentSection from './CommentSection';
@@ -232,14 +232,21 @@ const Projects = ({ isPage = false }) => {
       </div>
 
       {previewProject && (
-        <div className="preview-modal-overlay">
-          <div className="preview-modal">
+        <div className="preview-modal-overlay" onClick={() => setPreviewProject(null)}>
+          <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
             <div className="preview-header">
+              <button 
+                type="button" 
+                className="project-modal-back-btn"
+                onClick={() => setPreviewProject(null)}
+              >
+                <ArrowLeft size={16} /> Back to Projects
+              </button>
               <div className="preview-title-bar">
-                <span style={{ color: '#111827', fontWeight: 600 }}>Template preview</span>
+                <span>{previewProject.title || 'Template preview'}</span>
               </div>
               <div className="preview-controls">
-                <button className="close-preview" onClick={() => setPreviewProject(null)}>
+                <button className="close-preview" onClick={() => setPreviewProject(null)} aria-label="Close preview">
                   <X size={20} color="#111827" />
                 </button>
               </div>
@@ -290,65 +297,97 @@ const Projects = ({ isPage = false }) => {
         </div>
       )}
 
-      {/* Project Comments & Discussion Modal */}
+      {/* Project Details, Full View & Discussion Modal */}
       {commentProject && (
         <div className="preview-modal-overlay" onClick={() => setCommentProject(null)}>
           <div 
-            className="project-comments-modal glass" 
+            className="project-detail-modal" 
             onClick={(e) => e.stopPropagation()}
-            style={{
-              maxWidth: '750px',
-              width: '92%',
-              maxHeight: '88vh',
-              overflowY: 'auto',
-              padding: '30px',
-              borderRadius: '24px',
-              margin: 'auto',
-              position: 'relative'
-            }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-              <div>
-                <span className="project-tag" style={{ marginBottom: '8px', display: 'inline-block' }}>{commentProject.category}</span>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '4px 0 8px 0', color: '#fff' }}>{commentProject.title}</h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <LikeButton targetType="project" targetId={commentProject._id} initialLikes={commentProject.likes} size={16} />
-                  {commentProject.links?.live && (
-                    <a 
-                      href={commentProject.links.live} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      style={{ fontSize: '0.82rem', color: '#b35a00', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', fontWeight: 700 }}
-                    >
-                      <ExternalLink size={14} /> Live Demo
-                    </a>
-                  )}
-                </div>
-              </div>
+            {/* Sticky Header with Back to Projects and Close */}
+            <div className="project-modal-sticky-header">
               <button 
                 type="button" 
-                onClick={() => setCommentProject(null)} 
-                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}
+                className="project-modal-back-btn" 
+                onClick={() => setCommentProject(null)}
+              >
+                <ArrowLeft size={16} /> Back to Projects
+              </button>
+              <button 
+                type="button" 
+                className="project-modal-close-btn" 
+                onClick={() => setCommentProject(null)}
+                aria-label="Close project modal"
               >
                 <X size={18} />
               </button>
             </div>
 
-            {commentProject.image && (
-              <div style={{ width: '100%', height: '220px', borderRadius: '16px', overflow: 'hidden', marginBottom: '20px' }}>
-                <img src={commentProject.image} alt={commentProject.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {/* Scrollable Body */}
+            <div className="project-modal-body-scroll">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '8px' }}>
+                <span className="project-tag">{commentProject.category}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <LikeButton targetType="project" targetId={commentProject._id} initialLikes={commentProject.likes} size={15} />
+                  {commentProject.links?.live && (
+                    <a 
+                      href={commentProject.links.live} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="buy-now-btn"
+                      style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                    >
+                      <ExternalLink size={13} /> Live Demo
+                    </a>
+                  )}
+                  {commentProject.isForSale && (
+                    <button 
+                      className="buy-now-btn" 
+                      onClick={() => window.open(`https://wa.me/94705770398?text=Hi! I want to buy the project: ${commentProject.title}`, '_blank')}
+                      title={`Buy this project for $${commentProject.price}`}
+                    >
+                      Buy ${commentProject.price}
+                    </button>
+                  )}
+                  {commentProject.links?.github && (
+                    <a 
+                      href={commentProject.links.github} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="github-link-btn"
+                      title="View Source Code"
+                    >
+                      <GithubIcon size={18} />
+                    </a>
+                  )}
+                </div>
               </div>
-            )}
 
-            <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '20px' }}>
-              {commentProject.description}
-            </p>
+              <h2 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '8px 0 14px 0', color: 'var(--text-primary)' }}>
+                {commentProject.title}
+              </h2>
 
-            <CommentSection 
-              targetType="project" 
-              targetId={commentProject._id} 
-              targetTitle={commentProject.title} 
-            />
+              {/* Full View Image Container - NO CROPPING */}
+              {commentProject.image && (
+                <div className="project-modal-full-img-container">
+                  <img 
+                    src={commentProject.image} 
+                    alt={commentProject.title} 
+                    className="project-modal-full-img"
+                  />
+                </div>
+              )}
+
+              <div className="project-modal-desc-text">
+                {cleanProjectDesc(commentProject.description)}
+              </div>
+
+              <CommentSection 
+                targetType="project" 
+                targetId={commentProject._id} 
+                targetTitle={commentProject.title} 
+              />
+            </div>
           </div>
         </div>
       )}
