@@ -546,3 +546,205 @@
     justify-content: center;
   }
 }
+
+/* ========================================================
+   READING PROGRESS BAR (Top of viewport)
+   ======================================================== */
+.blog-reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3.5px;
+  background: linear-gradient(90deg, #b35a00, #f59e0b, #ff9d42);
+  z-index: 99999;
+  box-shadow: 0 0 10px rgba(255, 157, 66, 0.5);
+  transition: width 0.08s ease-out;
+}
+
+/* ========================================================
+   TABLE OF CONTENTS (TOC)
+   ======================================================== */
+.blog-toc-card {
+  margin: 28px 0 36px 0;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 16px 20px;
+  transition: all 0.25s ease;
+}
+
+[data-theme='light'] .blog-toc-card {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.blog-toc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.blog-toc-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.blog-toc-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(179, 90, 0, 0.12);
+  color: #b35a00;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.blog-toc-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.blog-toc-list {
+  list-style: none;
+  margin: 14px 0 0 0;
+  padding: 12px 0 0 0;
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+[data-theme='light'] .blog-toc-list {
+  border-top-color: #e2e8f0;
+}
+
+.blog-toc-item.level-3 {
+  padding-left: 20px;
+}
+
+.blog-toc-link {
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  display: inline-block;
+  line-height: 1.4;
+  transition: all 0.2s ease;
+}
+
+.blog-toc-link:hover {
+  color: #b35a00;
+  background: rgba(179, 90, 0, 0.08);
+  transform: translateX(4px);
+}
+
+.blog-toc-num {
+  font-weight: 700;
+  color: #b35a00;
+  margin-right: 4px;
+}
+
+/* ========================================================
+   ONE-CLICK SOCIAL SHARE STRIP
+   ======================================================== */
+.blog-social-share-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 40px 0 24px 0;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+}
+
+[data-theme='light'] .blog-social-share-strip {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.blog-share-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.blog-social-icons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.social-share-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid var(--card-border);
+}
+
+.social-share-pill.whatsapp {
+  background: rgba(37, 211, 102, 0.1);
+  color: #25d366;
+  border-color: rgba(37, 211, 102, 0.25);
+}
+.social-share-pill.whatsapp:hover {
+  background: #25d366;
+  color: #ffffff;
+}
+
+.social-share-pill.linkedin {
+  background: rgba(10, 102, 194, 0.1);
+  color: #0a66c2;
+  border-color: rgba(10, 102, 194, 0.25);
+}
+.social-share-pill.linkedin:hover {
+  background: #0a66c2;
+  color: #ffffff;
+}
+
+.social-share-pill.twitter {
+  background: rgba(29, 155, 240, 0.1);
+  color: #1d9bf0;
+  border-color: rgba(29, 155, 240, 0.25);
+}
+.social-share-pill.twitter:hover {
+  background: #1d9bf0;
+  color: #ffffff;
+}
+
+.social-share-pill.copy {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+}
+[data-theme='light'] .social-share-pill.copy {
+  background: #ffffff;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+.social-share-pill.copy:hover,
+.social-share-pill.copy.active {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
+}

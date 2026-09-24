@@ -5,6 +5,7 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const Message = require('../models/Message');
+const { sendContactAlert } = require('../services/notificationService');
 
 // Persistent storage directory for large uploads
 const persistentUploadDir = path.join(__dirname, '..', 'uploads', 'attachments');
@@ -306,6 +307,16 @@ router.post('/', (req, res, next) => {
     });
 
     const savedMessage = await newMessage.save();
+
+    // Trigger instant Telegram / Email alert in background (non-blocking)
+    sendContactAlert({
+      name,
+      email,
+      subject,
+      message,
+      attachments
+    }).catch(err => console.warn('Notification alert error:', err.message));
+
     res.status(201).json(savedMessage);
   } catch (err) {
     console.error('Create Message Error:', err);

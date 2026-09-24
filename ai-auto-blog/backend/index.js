@@ -34,6 +34,7 @@ const tagRoutes = require('./routes/tagRoutes');
 const seoRoutes = require('./routes/seoRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const { router: adminRoutes } = require('./routes/adminRoutes');
+const seoFeedRoutes = require('./routes/seoFeedRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,6 +47,10 @@ app.use((req, res, next) => {
 });
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
+
+// Dynamic SEO Sitemap and RSS Feeds
+app.use('/', seoFeedRoutes);
+app.use('/api', seoFeedRoutes);
 
 // API Routes
 app.use('/api/admin', adminRoutes);

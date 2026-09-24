@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Subscriber = require('../models/Subscriber');
+const { sendSubscriptionAlert } = require('../services/notificationService');
 
 // Subscribe to newsletter
 router.post('/', async (req, res) => {
@@ -19,6 +20,9 @@ router.post('/', async (req, res) => {
 
     const newSubscriber = new Subscriber({ email });
     await newSubscriber.save();
+
+    // Trigger alert
+    sendSubscriptionAlert(email).catch(() => {});
 
     res.status(201).json({ message: 'Successfully subscribed to the newsletter!' });
   } catch (error) {
