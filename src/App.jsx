@@ -15,6 +15,7 @@ const AdminPage = lazy(() => import('./pages/AdminPage'));
 const BlogDetailPage = lazy(() => import('./pages/BlogDetailPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const TermsPage = lazy(() => import('./pages/TermsPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 const PageFallback = () => (
   <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -47,7 +48,7 @@ function AppContent() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/ceo" element={<AdminPage />} />
           <Route path="/admin" element={<Navigate to="/" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
       {!isCeo && <Footer />}
