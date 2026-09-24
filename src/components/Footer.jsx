@@ -190,11 +190,10 @@ const Footer = () => {
             <h4 className="footer-col-title">Navigation</h4>
             <ul className="footer-links-list">
               <li><a href="/#home">Home</a></li>
-              <li><Link to="/articles">Learn & Articles</Link></li>
               <li><a href="/#services">Services</a></li>
               <li><Link to="/projects">Featured Projects</Link></li>
               <li><Link to="/packages">Website Packages</Link></li>
-              <li><Link to="/blog">Blog & Tech Insights</Link></li>
+              <li><Link to="/articles">Learn & Articles</Link></li>
               <li><Link to="/contact">Contact & Hire Me</Link></li>
             </ul>
           </div>

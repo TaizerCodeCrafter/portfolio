@@ -32,7 +32,7 @@ function AppContent() {
         <Route path="/packages" element={<PackagesPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
-        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog" element={<Navigate to="/articles" replace />} />
         <Route path="/blog/:slug" element={<BlogDetailPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/terms" element={<TermsPage />} />

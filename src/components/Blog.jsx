@@ -109,9 +109,9 @@ const Blog = ({ isHomePage = false }) => {
       >
         <h2 className="section-title">
           {isHomePage ? 'Latest ' : 'All '} 
-          <span className="text-gradient">Blog Posts</span>
+          <span className="text-gradient">Articles & Insights</span>
         </h2>
-        <p className="section-subtitle">AI-curated insights and technology trends, updated in real-time.</p>
+        <p className="section-subtitle">AI-curated tutorials, developer guides, and tech trends updated in real-time.</p>
         
         {!isHomePage && tags.length > 0 && (
           <div className="tag-filter-bar">
@@ -206,14 +206,14 @@ const Blog = ({ isHomePage = false }) => {
 
       {isHomePage ? (
         <div className="load-more-container">
-          <Link to="/blog">
+          <Link to="/articles">
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="load-more-btn"
               style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
             >
-              View All Posts <ExternalLink size={18} />
+              View All Articles <ExternalLink size={18} />
             </motion.button>
           </Link>
         </div>

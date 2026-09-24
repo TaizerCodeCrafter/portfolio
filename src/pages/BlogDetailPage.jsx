@@ -55,7 +55,7 @@ const BlogDetailPage = () => {
       <div className="blog-detail-error">
         <h2>Post Not Found</h2>
         <p>The article you are looking for doesn't exist or has been moved.</p>
-        <Link to="/blog" className="btn-primary">Back to Blog</Link>
+        <Link to="/articles" className="btn-primary">Back to Articles</Link>
       </div>
     );
   }
@@ -67,7 +67,7 @@ const BlogDetailPage = () => {
       className="blog-detail-container"
     >
       <div className="blog-detail-header glass">
-        <Link to="/blog" className="back-link"><ArrowLeft size={20} /> Back to Blog</Link>
+        <Link to="/articles" className="back-link"><ArrowLeft size={20} /> Back to Articles</Link>
         <div className="blog-detail-meta">
           <span className="category-pill">{blog.category}</span>
           <h1 className="blog-title">{blog.title}</h1>
