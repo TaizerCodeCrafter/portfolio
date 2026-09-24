@@ -197,6 +197,7 @@ const BlogDetailPage = () => {
 
   useEffect(() => {
     if (blog) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       const cleanup = updateMetaTags(blog);
       return cleanup;
     }
