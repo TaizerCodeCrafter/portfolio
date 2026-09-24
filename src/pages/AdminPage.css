@@ -347,6 +347,53 @@
 .status-published { background: #f0fdf4; color: #16a34a; }
 .status-draft { background: #fffbeb; color: #d97706; }
 
+/* Sleek Admin Table Scroll Container & Sticky Header */
+.admin-table-scroll-container {
+    max-height: 580px;
+    overflow-y: auto;
+    overflow-x: auto;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.admin-table-scroll-container::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.admin-table-scroll-container::-webkit-scrollbar-track {
+    background: #f8fafc;
+}
+
+.admin-table-scroll-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.admin-table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.admin-table thead th.sticky-th {
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    z-index: 10;
+    box-shadow: 0 1px 0 #f0e6da;
+}
+
+.admin-table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: #fafaf9;
+    border-top: 1px solid #f0e6da;
+    font-size: 0.82rem;
+    color: #78716c;
+}
+
 /* Mobile Menu */
 @media (max-width: 992px) {
     .admin-sidebar { display: none; }

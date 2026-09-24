@@ -1931,41 +1931,62 @@ const AdminPage = () => {
                         <button onClick={() => { setBlogForm({ title: '', slug: '', category: 'Technology', content: '', image: '', altText: '', tags: '', focusKeyword: '', seoTitle: '', seoDescription: '', status: 'published', isFeatured: false }); if(editorRef.current) editorRef.current.innerHTML = ''; setShowAddBlog(true); }} className="btn-primary" style={{ background: '#b35a00', color: 'white', padding: '10px 25px', borderRadius: '15px' }}><Plus size={18} /> New Post</button>
                       </div>
                     </div>
-                    <div className="white-card" style={{ padding: '0', overflow: 'visible' }}>
-                      <table className="admin-table">
-                        <thead>
-                          <tr><th>Title</th><th>Category</th><th>Status</th><th>Date & Views</th><th>Action</th></tr>
-                        </thead>
-                        <tbody>
-                          {filteredBlogs.map(b => (
-                            <tr key={b._id}>
-                              <td>{b.title}</td>
-                              <td>{b.category}</td>
-                              <td><span className={`status-pill ${b.status === 'published' ? 'status-published' : 'status-draft'}`}>{b.status}</span></td>
-                              <td>
-                                <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>{new Date(b.createdAt).toLocaleDateString()}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#b35a00', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800' }}>
-                                  <Eye size={12} /> {b.views || 0}
-                                </div>
-                              </td>
-                              <td style={{ position: 'relative' }}>
-                                <button onClick={(e) => { e.stopPropagation(); setMenuOpenId(menuOpenId === b._id ? null : b._id); }} className="action-menu-btn">
-                                  <MoreHorizontal size={18} />
-                                </button>
-                                <AnimatePresence>
-                                  {menuOpenId === b._id && (
-                                    <motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} className="action-dropdown">
-                                      <button onClick={() => window.open(`${window.location.origin}/blog/${b.slug}`, '_blank')}><Eye size={14} /> View</button>
-                                      <button onClick={() => handleEditBlog(b)}><Edit2 size={14} /> Edit</button>
-                                      <button onClick={() => handleDeleteBlog(b._id)} style={{ color: '#ef4444' }}><Trash2 size={14} /> Delete</button>
-                                    </motion.div>
-                                  )}
-                                </AnimatePresence>
-                              </td>
+                    <div className="white-card" style={{ padding: '0', overflow: 'hidden' }}>
+                      <div className="admin-table-scroll-container">
+                        <table className="admin-table">
+                          <thead>
+                            <tr>
+                              <th className="sticky-th">Title</th>
+                              <th className="sticky-th">Category</th>
+                              <th className="sticky-th">Status</th>
+                              <th className="sticky-th">Date & Views</th>
+                              <th className="sticky-th">Action</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody>
+                            {filteredBlogs.map((b, idx) => {
+                              const isNearBottom = idx >= Math.max(0, filteredBlogs.length - 2);
+                              return (
+                                <tr key={b._id}>
+                                  <td>{b.title}</td>
+                                  <td>{b.category}</td>
+                                  <td><span className={`status-pill ${b.status === 'published' ? 'status-published' : 'status-draft'}`}>{b.status}</span></td>
+                                  <td>
+                                    <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>{new Date(b.createdAt).toLocaleDateString()}</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#b35a00', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800' }}>
+                                      <Eye size={12} /> {b.views || 0}
+                                    </div>
+                                  </td>
+                                  <td style={{ position: 'relative' }}>
+                                    <button onClick={(e) => { e.stopPropagation(); setMenuOpenId(menuOpenId === b._id ? null : b._id); }} className="action-menu-btn">
+                                      <MoreHorizontal size={18} />
+                                    </button>
+                                    <AnimatePresence>
+                                      {menuOpenId === b._id && (
+                                        <motion.div 
+                                          initial={{ opacity: 0, y: isNearBottom ? -10 : 10, scale: 0.95 }} 
+                                          animate={{ opacity: 1, y: 0, scale: 1 }} 
+                                          exit={{ opacity: 0, y: isNearBottom ? -10 : 10, scale: 0.95 }} 
+                                          className="action-dropdown"
+                                          style={isNearBottom ? { bottom: '40px', top: 'auto', boxShadow: '0 -10px 25px rgba(0,0,0,0.15)' } : {}}
+                                        >
+                                          <button onClick={() => window.open(`${window.location.origin}/blog/${b.slug}`, '_blank')}><Eye size={14} /> View</button>
+                                          <button onClick={() => handleEditBlog(b)}><Edit2 size={14} /> Edit</button>
+                                          <button onClick={() => handleDeleteBlog(b._id)} style={{ color: '#ef4444' }}><Trash2 size={14} /> Delete</button>
+                                        </motion.div>
+                                      )}
+                                    </AnimatePresence>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="admin-table-footer">
+                        <span>Showing {filteredBlogs.length} of {blogs.length} posts (scroll down to view all)</span>
+                        <span style={{ color: '#b35a00', fontWeight: '700' }}>Total: {blogs.length} Blogs</span>
+                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -2956,15 +2977,16 @@ const AdminPage = () => {
               </div>
 
               <div className="white-card" style={{ padding: '0', overflow: 'hidden' }}>
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '25%' }}>Author & Email</th>
-                      <th style={{ width: '25%' }}>Item / Target</th>
-                      <th style={{ width: '35%' }}>Comment Message</th>
-                      <th style={{ width: '15%' }}>Action</th>
-                    </tr>
-                  </thead>
+                <div className="admin-table-scroll-container">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th className="sticky-th" style={{ width: '25%' }}>Author & Email</th>
+                        <th className="sticky-th" style={{ width: '25%' }}>Item / Target</th>
+                        <th className="sticky-th" style={{ width: '35%' }}>Comment Message</th>
+                        <th className="sticky-th" style={{ width: '15%' }}>Action</th>
+                      </tr>
+                    </thead>
                   <tbody>
                     {filteredComments.length > 0 ? (
                       filteredComments.map(c => (
@@ -3044,6 +3066,11 @@ const AdminPage = () => {
                   </tbody>
                 </table>
               </div>
+              <div className="admin-table-footer">
+                <span>Showing {filteredComments.length} of {comments.length} comments</span>
+                <span style={{ color: '#b35a00', fontWeight: '700' }}>Total: {comments.length} Comments</span>
+              </div>
+            </div>
             </motion.div>
           )}
 
@@ -3089,68 +3116,74 @@ const AdminPage = () => {
               </div>
 
               <div className="white-card" style={{ padding: '0', overflow: 'hidden' }}>
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '10%' }}>#</th>
-                      <th style={{ width: '45%' }}>Subscriber Email</th>
-                      <th style={{ width: '25%' }}>Subscribed Date</th>
-                      <th style={{ width: '20%' }}>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredSubscribers.length > 0 ? (
-                      filteredSubscribers.map((s, index) => (
-                        <tr key={s._id}>
-                          <td style={{ fontWeight: 700, color: '#94a3b8' }}>{index + 1}</td>
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#f5f3ff', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Mail size={16} />
+                <div className="admin-table-scroll-container">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th className="sticky-th" style={{ width: '10%' }}>#</th>
+                        <th className="sticky-th" style={{ width: '45%' }}>Subscriber Email</th>
+                        <th className="sticky-th" style={{ width: '25%' }}>Subscribed Date</th>
+                        <th className="sticky-th" style={{ width: '20%' }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredSubscribers.length > 0 ? (
+                        filteredSubscribers.map((s, index) => (
+                          <tr key={s._id}>
+                            <td style={{ fontWeight: 700, color: '#94a3b8' }}>{index + 1}</td>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#f5f3ff', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <Mail size={16} />
+                                </div>
+                                <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0f172a' }}>{s.email}</span>
                               </div>
-                              <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0f172a' }}>{s.email}</span>
-                            </div>
-                          </td>
-                          <td>
-                            <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#475569' }}>
-                              {new Date(s.subscribedAt).toLocaleDateString()}
-                            </div>
-                            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                              {new Date(s.subscribedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </div>
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                              <a 
-                                href={`mailto:${s.email}`} 
-                                className="action-menu-btn" 
-                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', color: '#555' }}
-                                title="Compose Email"
-                              >
-                                <Mail size={15} />
-                              </a>
-                              <button 
-                                onClick={() => handleDeleteSubscriber(s._id)} 
-                                className="action-menu-btn" 
-                                style={{ color: '#ef4444' }}
-                                title="Remove Subscriber"
-                              >
-                                <Trash2 size={15} />
-                              </button>
-                            </div>
+                            </td>
+                            <td>
+                              <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#475569' }}>
+                                {new Date(s.subscribedAt).toLocaleDateString()}
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                                {new Date(s.subscribedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <a 
+                                  href={`mailto:${s.email}`} 
+                                  className="action-menu-btn" 
+                                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', color: '#555' }}
+                                  title="Compose Email"
+                                >
+                                  <Mail size={15} />
+                                </a>
+                                <button 
+                                  onClick={() => handleDeleteSubscriber(s._id)} 
+                                  className="action-menu-btn" 
+                                  style={{ color: '#ef4444' }}
+                                  title="Remove Subscriber"
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="4" style={{ textAlign: 'center', padding: '50px', color: '#888' }}>
+                            <Users size={36} style={{ opacity: 0.3, margin: '0 auto 10px auto', display: 'block' }} />
+                            No subscribers found.
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="4" style={{ textAlign: 'center', padding: '50px', color: '#888' }}>
-                          <Users size={36} style={{ opacity: 0.3, margin: '0 auto 10px auto', display: 'block' }} />
-                          No subscribers found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="admin-table-footer">
+                  <span>Showing {filteredSubscribers.length} of {subscribers.length} subscribers</span>
+                  <span style={{ color: '#b35a00', fontWeight: '700' }}>Total: {subscribers.length} Subscribers</span>
+                </div>
               </div>
             </motion.div>
           )}
