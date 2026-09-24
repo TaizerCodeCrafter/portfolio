@@ -298,10 +298,125 @@
 
 @media (max-width: 768px) {
   .articles-page {
-    padding: 90px 16px 60px 16px;
+    padding: 85px 12px 60px 12px;
   }
+
+  .articles-hero {
+    margin-bottom: 25px;
+  }
+
+  .articles-title {
+    font-size: 1.85rem;
+    margin-bottom: 8px;
+  }
+
+  .articles-subtitle {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .articles-toolbar {
+    gap: 14px;
+    margin-bottom: 25px;
+  }
+
+  .articles-search-input {
+    font-size: 0.88rem;
+    padding: 10px 14px 10px 42px;
+  }
+
+  .articles-categories {
+    gap: 6px;
+  }
+
+  .category-chip {
+    padding: 6px 12px;
+    font-size: 0.76rem;
+  }
+
+  /* 2-column side-by-side grid on mobile */
   .articles-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .article-card {
+    border-radius: 14px;
+  }
+
+  .article-thumb-wrap {
+    height: 115px;
+  }
+
+  .article-category-badge {
+    top: 6px;
+    left: 6px;
+    font-size: 0.62rem;
+    padding: 2px 7px;
+    letter-spacing: 0;
+  }
+
+  .article-content {
+    padding: 10px;
+  }
+
+  .article-meta {
+    font-size: 0.65rem;
+    gap: 4px;
+    margin-bottom: 5px;
+  }
+
+  .article-meta-item svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .article-title-text {
+    font-size: 0.82rem;
+    line-height: 1.35;
+    margin-bottom: 4px;
+    -webkit-line-clamp: 2;
+  }
+
+  /* Hide long excerpt on 2-col mobile cards so tiles stay clean and aligned */
+  .article-excerpt-text {
+    display: none;
+  }
+
+  .article-footer {
+    padding-top: 6px;
+    font-size: 0.72rem;
+  }
+
+  .article-read-btn {
+    font-size: 0.72rem;
+    gap: 3px;
+  }
+
+  .article-read-btn svg {
+    width: 12px;
+    height: 12px;
   }
 }
+
+@media (max-width: 400px) {
+  .articles-page {
+    padding: 80px 8px 50px 8px;
+  }
+  .articles-grid {
+    gap: 8px;
+  }
+  .article-thumb-wrap {
+    height: 100px;
+  }
+  .article-content {
+    padding: 8px;
+  }
+  .article-title-text {
+    font-size: 0.78rem;
+  }
+  .article-meta {
+    font-size: 0.62rem;
+  }
+}
+
