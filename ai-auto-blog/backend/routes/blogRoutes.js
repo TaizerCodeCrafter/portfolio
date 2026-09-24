@@ -74,6 +74,7 @@ router.post('/', async (req, res) => {
 // Get all published blogs (excludes heavy content field for fast loading & serverless safety)
 router.get('/', async (req, res) => {
   try {
+    res.set('Cache-Control', 'public, max-age=120, s-maxage=600, stale-while-revalidate=86400');
     const blogs = await BlogPost.find({ status: 'published' })
       .select('-content')
       .sort({ createdAt: -1 });

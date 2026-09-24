@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { BookOpen, Search, Calendar, Clock, ArrowRight, Eye, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { getCachedData, setCachedData } from '../utils/cache';
 import './ArticlesPage.css';
 
 const estimateReadTime = (content) => {
@@ -16,8 +17,9 @@ const estimateReadTime = (content) => {
 const CATEGORIES = ['All', 'Learn & Articles', 'Tutorials', 'Technology', 'AI', 'Business'];
 
 const ArticlesPage = () => {
-  const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cachedArticles = getCachedData('articles');
+  const [articles, setArticles] = useState(cachedArticles || []);
+  const [loading, setLoading] = useState(!cachedArticles || cachedArticles.length === 0);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -28,8 +30,9 @@ const ArticlesPage = () => {
     const fetchArticles = async () => {
       try {
         const res = await axios.get('/api/blogs');
-        if (Array.isArray(res.data)) {
+        if (Array.isArray(res.data) && res.data.length > 0) {
           setArticles(res.data);
+          setCachedData('articles', res.data);
         }
       } catch (err) {
         console.error('Failed to fetch articles:', err);

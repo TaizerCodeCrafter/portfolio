@@ -4,6 +4,7 @@ import { ExternalLink, Eye, Monitor, Smartphone, X, MessageSquare } from 'lucide
 import { GithubIcon } from './BrandIcons';
 import LikeButton from './LikeButton';
 import CommentSection from './CommentSection';
+import { getCachedData, setCachedData } from '../utils/cache';
 import './Projects.css';
 
 const defaultProjects = [
@@ -31,11 +32,17 @@ const defaultProjects = [
 ];
 
 const Projects = ({ isPage = false }) => {
-  const [projects, setProjects] = useState([]);
+  const cachedProjects = getCachedData('projects');
+  const [projects, setProjects] = useState(cachedProjects || defaultProjects);
   const [previewProject, setPreviewProject] = useState(null);
   const [commentProject, setCommentProject] = useState(null);
   const [previewMode, setPreviewMode] = useState('desktop');
-  const [categories, setCategories] = useState(['All']);
+  const [categories, setCategories] = useState(() => {
+    if (cachedProjects && Array.isArray(cachedProjects)) {
+      return ['All', ...new Set(cachedProjects.map(p => p.category).filter(Boolean))];
+    }
+    return ['All'];
+  });
   const [activeCategory, setActiveCategory] = useState('All');
 
   useEffect(() => {
@@ -44,7 +51,7 @@ const Projects = ({ isPage = false }) => {
         const response = await fetch('/api/projects');
         const data = await response.json();
         
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           // Map backend data to frontend structure
           const mappedData = data.map(p => ({
             ...p,
@@ -52,17 +59,15 @@ const Projects = ({ isPage = false }) => {
             links: { live: p.liveLink, github: p.githubLink }
           }));
           
-          setProjects(mappedData.length > 0 ? mappedData : defaultProjects);
+          setProjects(mappedData);
+          setCachedData('projects', mappedData);
           
           // Extract unique categories
           const cats = ['All', ...new Set(mappedData.map(p => p.category).filter(Boolean))];
           setCategories(cats);
-        } else {
-          setProjects(defaultProjects);
         }
       } catch (err) {
         console.error('Failed to fetch projects:', err);
-        setProjects(defaultProjects);
       }
     };
     fetchProjects();
@@ -109,7 +114,7 @@ const Projects = ({ isPage = false }) => {
             className="project-card glass"
           >
             <div className="project-image-container">
-              <img src={project.image} alt={project.title} className="project-image" />
+              <img src={project.image} alt={project.title} className="project-image" loading="lazy" decoding="async" />
               <div className="project-overlay">
                 <button 
                   onClick={() => setPreviewProject(project)} 

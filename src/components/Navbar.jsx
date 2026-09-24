@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { prefetchResource } from '../utils/cache';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -8,6 +9,15 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
   const navRef = useRef(null);
+
+  // Background prefetch for instant 0ms navigation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      prefetchResource('articles', '/api/blogs');
+      prefetchResource('projects', '/api/projects');
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -85,7 +95,15 @@ const Navbar = () => {
         <div className="desktop-menu">
           {navLinks.map((link) => (
             link.isRoute ? (
-              <Link key={link.name} to={link.href} className="nav-link">
+              <Link 
+                key={link.name} 
+                to={link.href} 
+                className="nav-link"
+                onMouseEnter={() => {
+                  if (link.name === 'Articles') prefetchResource('articles', '/api/blogs');
+                  if (link.name === 'Projects') prefetchResource('projects', '/api/projects');
+                }}
+              >
                 {link.name}
               </Link>
             ) : (
