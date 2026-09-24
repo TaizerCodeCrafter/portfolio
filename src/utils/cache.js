@@ -36,7 +36,16 @@ export const prefetchResource = async (key, url) => {
     if (res.ok) {
       const json = await res.json();
       if (Array.isArray(json) && json.length > 0) {
-        setCachedData(key, json);
+        if (key === 'projects') {
+          const mapped = json.map(p => ({
+            ...p,
+            tags: (Array.isArray(p.tags) && p.tags.length > 0 ? p.tags : (Array.isArray(p.technologies) ? p.technologies : [])).filter(Boolean),
+            links: p.links || { live: p.liveLink || '', github: p.githubLink || '' }
+          }));
+          setCachedData(key, mapped);
+        } else {
+          setCachedData(key, json);
+        }
       }
     }
   } catch (err) {

@@ -31,17 +31,42 @@ const defaultProjects = [
   }
 ];
 
+export const normalizeProject = (p) => {
+  if (!p) return null;
+  const tags = Array.isArray(p.tags) && p.tags.length > 0
+    ? p.tags
+    : (Array.isArray(p.technologies) ? p.technologies : []).filter(Boolean);
+  
+  const links = p.links || {
+    live: p.liveLink || p.live || '',
+    github: p.githubLink || p.github || ''
+  };
+
+  return {
+    ...p,
+    title: p.title || 'Untitled Project',
+    category: p.category || 'Web App',
+    description: p.description || '',
+    image: p.image || p.coverImage || 'https://images.unsplash.com/photo-1557821552-17105176677c?q=80&w=1000&auto=format&fit=crop',
+    tags,
+    links
+  };
+};
+
 const Projects = ({ isPage = false }) => {
   const cachedProjects = getCachedData('projects');
-  const [projects, setProjects] = useState(cachedProjects || defaultProjects);
+  const [projects, setProjects] = useState(() => {
+    if (Array.isArray(cachedProjects) && cachedProjects.length > 0) {
+      return cachedProjects.map(normalizeProject).filter(Boolean);
+    }
+    return defaultProjects.map(normalizeProject);
+  });
   const [previewProject, setPreviewProject] = useState(null);
   const [commentProject, setCommentProject] = useState(null);
   const [previewMode, setPreviewMode] = useState('desktop');
   const [categories, setCategories] = useState(() => {
-    if (cachedProjects && Array.isArray(cachedProjects)) {
-      return ['All', ...new Set(cachedProjects.map(p => p.category).filter(Boolean))];
-    }
-    return ['All'];
+    const source = (Array.isArray(cachedProjects) && cachedProjects.length > 0) ? cachedProjects : defaultProjects;
+    return ['All', ...new Set(source.map(p => p.category).filter(Boolean))];
   });
   const [activeCategory, setActiveCategory] = useState('All');
 
@@ -52,17 +77,10 @@ const Projects = ({ isPage = false }) => {
         const data = await response.json();
         
         if (Array.isArray(data) && data.length > 0) {
-          // Map backend data to frontend structure
-          const mappedData = data.map(p => ({
-            ...p,
-            tags: (Array.isArray(p.technologies) ? p.technologies : []).filter(Boolean),
-            links: { live: p.liveLink, github: p.githubLink }
-          }));
-          
+          const mappedData = data.map(normalizeProject).filter(Boolean);
           setProjects(mappedData);
           setCachedData('projects', mappedData);
           
-          // Extract unique categories
           const cats = ['All', ...new Set(mappedData.map(p => p.category).filter(Boolean))];
           setCategories(cats);
         }
@@ -72,6 +90,9 @@ const Projects = ({ isPage = false }) => {
     };
     fetchProjects();
   }, []);
+
+  const displayProjects = projects.length > 0 ? projects : defaultProjects.map(normalizeProject);
+  const filteredProjects = displayProjects.filter(p => activeCategory === 'All' || p.category === activeCategory);
 
   return (
     <section id="projects" className="section">
@@ -102,9 +123,8 @@ const Projects = ({ isPage = false }) => {
       </motion.div>
 
       <div className="projects-grid">
-        {projects
-          .filter(p => activeCategory === 'All' || p.category === activeCategory)
-          .map((project, index) => (
+        {filteredProjects.length > 0 ? (
+          filteredProjects.map((project, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 30 }}
@@ -131,7 +151,7 @@ const Projects = ({ isPage = false }) => {
               
               <div className="project-footer">
                 <div className="project-tags">
-                  {project.tags.map(tag => (
+                  {(project.tags || []).map(tag => (
                     <span key={tag} className="project-tag">{tag}</span>
                   ))}
                 </div>
@@ -158,7 +178,7 @@ const Projects = ({ isPage = false }) => {
                       Buy ${project.price}
                     </button>
                   )}
-                  {project.links.github && (
+                  {project.links?.github && (
                     <a 
                       href={project.links.github} 
                       target="_blank" 
@@ -173,7 +193,12 @@ const Projects = ({ isPage = false }) => {
               </div>
             </div>
           </motion.div>
-        ))}
+          ))
+        ) : (
+          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.7)' }}>
+            <p style={{ fontSize: '1.2rem', fontWeight: '600' }}>No projects found in this category.</p>
+          </div>
+        )}
       </div>
 
       {previewProject && (
@@ -192,7 +217,7 @@ const Projects = ({ isPage = false }) => {
             
             <div className="preview-iframe-container">
               {(() => {
-                let iframeSrc = previewProject.links.live;
+                let iframeSrc = previewProject.links?.live;
                 if (!iframeSrc || iframeSrc === '#') return (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#374151' }}>
                     <h3>No Live Preview Available</h3>
