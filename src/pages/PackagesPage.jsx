@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 const PackagesPage = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
+    document.title = 'Pricing & Web Packages | TaizerCodeCrafter';
   }, []);
 
   return (

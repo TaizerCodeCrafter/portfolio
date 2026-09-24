@@ -15,8 +15,8 @@ const ContactPage = () => {
 
   const [settings, setSettings] = useState({
     contactEmail: 'supundilshan358@gmail.com',
-    contactPhone: '+94 7X XXX XXXX',
-    contactWhatsapp: '+94770000000',
+    contactPhone: '+94 70 577 0398',
+    contactWhatsapp: '+94705770398',
     contactLocation: 'Colombo, Sri Lanka',
     whatsappGroupUrl: ''
   });
