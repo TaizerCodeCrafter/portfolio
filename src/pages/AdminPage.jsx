@@ -11,7 +11,8 @@ import {
   Building2, ExternalLink, CreditCard, Package as PackageIcon, QrCode,
   Flame, ArrowUp, ArrowDown, Copy, Download, Paperclip, FileArchive, FileCode,
   Wand2, Layers, HelpCircle, ChevronDown, Hash,
-  Monitor, Tablet
+  Monitor, Tablet,
+  ZoomIn, ZoomOut, Move, Share2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -21,9 +22,15 @@ import './AdminPage.css';
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('admin_active_tab') || 'Dashboard');
-  const [blogs, setBlogs] = useState([]);
-  const [subscribers, setSubscribers] = useState([]);
-  const [comments, setComments] = useState([]);
+  const [blogs, setBlogs] = useState(() => {
+    try { const c = JSON.parse(localStorage.getItem('admin_cached_blogs')); return Array.isArray(c) ? c : []; } catch(e) { return []; }
+  });
+  const [subscribers, setSubscribers] = useState(() => {
+    try { const c = JSON.parse(localStorage.getItem('admin_cached_subscribers')); return Array.isArray(c) ? c : []; } catch(e) { return []; }
+  });
+  const [comments, setComments] = useState(() => {
+    try { const c = JSON.parse(localStorage.getItem('admin_cached_comments')); return Array.isArray(c) ? c : []; } catch(e) { return []; }
+  });
   const [subscriberSearch, setSubscriberSearch] = useState('');
   const [commentSearch, setCommentSearch] = useState('');
   const [commentTargetFilter, setCommentTargetFilter] = useState('All');
@@ -125,9 +132,48 @@ const AdminPage = () => {
   const [kmtSelectedKeywords, setKmtSelectedKeywords] = useState([]);
   const [kmtViewMode, setKmtViewMode] = useState('table');
   const [kmtShowMetricsModal, setKmtShowMetricsModal] = useState(false);
+  
+  // Mindmap Zoom & Pan State
+  const [kmtZoom, setKmtZoom] = useState(1.0);
+  const [kmtPan, setKmtPan] = useState({ x: 0, y: 0 });
+  const [kmtIsDragging, setKmtIsDragging] = useState(false);
+  const [kmtDragStart, setKmtDragStart] = useState({ x: 0, y: 0 });
+  const [kmtActiveClusterIdx, setKmtActiveClusterIdx] = useState(0);
+  const [kmtHoveredSub, setKmtHoveredSub] = useState(null);
+
+  const handleKmtZoomIn = () => setKmtZoom(prev => Math.min(2.2, Number((prev + 0.15).toFixed(2))));
+  const handleKmtZoomOut = () => setKmtZoom(prev => Math.max(0.45, Number((prev - 0.15).toFixed(2))));
+  const handleKmtZoomReset = () => {
+    setKmtZoom(1.0);
+    setKmtPan({ x: 0, y: 0 });
+  };
+  
+  const handleKmtMouseDown = (e) => {
+    if (e.target.closest('.kmt-zoom-controls') || e.target.closest('.kmt-page-info-floating') || e.target.closest('.kmt-action-btn') || e.target.closest('button')) return;
+    setKmtIsDragging(true);
+    setKmtDragStart({ x: e.clientX - kmtPan.x, y: e.clientY - kmtPan.y });
+  };
+  
+  const handleKmtMouseMove = (e) => {
+    if (!kmtIsDragging) return;
+    setKmtPan({ x: e.clientX - kmtDragStart.x, y: e.clientY - kmtDragStart.y });
+  };
+  
+  const handleKmtMouseUp = () => setKmtIsDragging(false);
+
+  const handleKmtWheel = (e) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      setKmtZoom(prev => Math.min(2.2, Number((prev + 0.1).toFixed(2))));
+    } else {
+      setKmtZoom(prev => Math.max(0.45, Number((prev - 0.1).toFixed(2))));
+    }
+  };
 
   // Projects State
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState(() => {
+    try { const c = JSON.parse(localStorage.getItem('admin_cached_projects')); return Array.isArray(c) ? c : []; } catch(e) { return []; }
+  });
   const [showAddProject, setShowAddProject] = useState(false);
   const [projectForm, setProjectForm] = useState({
     title: '', category: 'Web App', description: '', image: '', liveLink: '', githubLink: '', technologies: '', isFeatured: false, isForSale: false, price: 0
@@ -174,11 +220,15 @@ const AdminPage = () => {
   const [editingSideTag, setEditingSideTag] = useState(null);
   
   // Categories & Tags & SEO State
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(() => {
+    try { const c = JSON.parse(localStorage.getItem('admin_cached_categories')); return Array.isArray(c) ? c : []; } catch(e) { return []; }
+  });
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [categoryForm, setCategoryForm] = useState({ name: '', slug: '', description: '' });
   
-  const [tags, setTags] = useState([]);
+  const [tags, setTags] = useState(() => {
+    try { const c = JSON.parse(localStorage.getItem('admin_cached_tags')); return Array.isArray(c) ? c : []; } catch(e) { return []; }
+  });
   const [showAddTag, setShowAddTag] = useState(false);
   const [tagForm, setTagForm] = useState({ name: '', slug: '' });
   
@@ -356,23 +406,46 @@ const AdminPage = () => {
         axios.get('/api/comments/admin/all')
       ]);
 
-      if (blogRes.status === 'fulfilled' && Array.isArray(blogRes.value?.data)) setBlogs(blogRes.value.data);
-      if (projectRes.status === 'fulfilled' && Array.isArray(projectRes.value?.data)) setProjects(projectRes.value.data);
+      if (blogRes.status === 'fulfilled' && Array.isArray(blogRes.value?.data)) {
+        setBlogs(blogRes.value.data);
+        try { localStorage.setItem('admin_cached_blogs', JSON.stringify(blogRes.value.data)); } catch (e) {}
+      }
+      if (projectRes.status === 'fulfilled' && Array.isArray(projectRes.value?.data)) {
+        setProjects(projectRes.value.data);
+        try { localStorage.setItem('admin_cached_projects', JSON.stringify(projectRes.value.data)); } catch (e) {}
+      }
       if (testimonialRes.status === 'fulfilled' && Array.isArray(testimonialRes.value?.data)) setTestimonials(testimonialRes.value.data);
       if (statRes.status === 'fulfilled' && Array.isArray(statRes.value?.data)) setStats(statRes.value.data);
       if (skillRes.status === 'fulfilled' && Array.isArray(skillRes.value?.data)) setSkills(skillRes.value.data);
       if (serviceRes.status === 'fulfilled' && Array.isArray(serviceRes.value?.data)) setServices(serviceRes.value.data);
-      if (catRes.status === 'fulfilled' && Array.isArray(catRes.value?.data)) setCategories(catRes.value.data);
-      if (tagRes.status === 'fulfilled' && Array.isArray(tagRes.value?.data)) setTags(tagRes.value.data);
+      if (catRes.status === 'fulfilled' && Array.isArray(catRes.value?.data)) {
+        setCategories(catRes.value.data);
+        try { localStorage.setItem('admin_cached_categories', JSON.stringify(catRes.value.data)); } catch (e) {}
+      }
+      if (tagRes.status === 'fulfilled' && Array.isArray(tagRes.value?.data)) {
+        setTags(tagRes.value.data);
+        try { localStorage.setItem('admin_cached_tags', JSON.stringify(tagRes.value.data)); } catch (e) {}
+      }
       if (seoRes.status === 'fulfilled' && seoRes.value?.data && typeof seoRes.value.data === 'object') setSeoSettings(seoRes.value.data);
       if (seoAnRes.status === 'fulfilled' && Array.isArray(seoAnRes.value?.data)) setSeoAnalysis(seoAnRes.value.data);
       if (companyRes.status === 'fulfilled' && Array.isArray(companyRes.value?.data)) setCompanies(companyRes.value.data);
       if (packageRes.status === 'fulfilled' && Array.isArray(packageRes.value?.data)) setPackages(packageRes.value.data);
-      if (subRes.status === 'fulfilled' && Array.isArray(subRes.value?.data)) setSubscribers(subRes.value.data);
-      if (commentRes.status === 'fulfilled' && Array.isArray(commentRes.value?.data)) setComments(commentRes.value.data);
+      if (subRes.status === 'fulfilled' && Array.isArray(subRes.value?.data)) {
+        setSubscribers(subRes.value.data);
+        try { localStorage.setItem('admin_cached_subscribers', JSON.stringify(subRes.value.data)); } catch (e) {}
+      }
+      if (commentRes.status === 'fulfilled' && Array.isArray(commentRes.value?.data)) {
+        setComments(commentRes.value.data);
+        try { localStorage.setItem('admin_cached_comments', JSON.stringify(commentRes.value.data)); } catch (e) {}
+      }
 
       const isBackendDown = [blogRes, projectRes, catRes, tagRes].every(r => r.status === 'rejected');
       setBackendError(isBackendDown);
+      if (isBackendDown) {
+        setTimeout(() => {
+          fetchData();
+        }, 3000);
+      }
     } catch (err) {
       console.error('Fetch error:', err);
       setBackendError(true);
@@ -1860,7 +1933,45 @@ const AdminPage = () => {
             </div>
           )}
           {activeTab === 'Dashboard' && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+              {/* Dashboard Header */}
+              <div className="admin-header-flex">
+                <div>
+                  <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '800', color: '#111827' }}>
+                    Welcome back, {adminProfile.name || 'Supun Dilshan'}! 👋
+                  </h1>
+                  <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '0.88rem' }}>
+                    Portfolio statistics, published blogs, projects, and audience activity overview.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button 
+                    onClick={() => { fetchData(); fetchAnalytics(); showAlert('Syncing dashboard data...'); }} 
+                    className="admin-btn-secondary"
+                    disabled={loading}
+                    style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+                  >
+                    <RotateCcw size={15} className={loading ? 'spin-icon' : ''} />
+                    {loading ? 'Syncing...' : 'Sync Data'}
+                  </button>
+                </div>
+              </div>
+
+              {backendError && (
+                <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '12px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#92400e', fontSize: '0.85rem', fontWeight: '600' }}>
+                    <AlertCircle size={16} color="#f59e0b" />
+                    <span>Connecting to backend database... Please wait a moment while the server establishes connection.</span>
+                  </div>
+                  <button 
+                    onClick={() => fetchData()} 
+                    style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: '700', cursor: 'pointer' }}
+                  >
+                    Retry Now
+                  </button>
+                </div>
+              )}
+
               {/* Main Stats Grid */}
               <div className="admin-stats-grid">
                 <StatCard label="Total Blogs" value={blogs.length} icon={FileText} color="#b35a00" bg="#fcf8f4" />
@@ -3646,89 +3757,220 @@ const AdminPage = () => {
                             </div>
                           )}
 
-                          {/* 5. Topic Clusters View (Image 5) */}
-                          {kmtViewMode === 'clusters' && (
-                            <div className="kmt-clusters-container">
-                              <div className="kmt-page-info-box">
-                                <div className="kmt-info-header">Page Info</div>
-                                <div className="kmt-info-stat-row">
-                                  <span style={{ color: '#64748b' }}>Total volume</span>
-                                  <strong style={{ color: '#0f172a' }}>{kmtData.summary?.totalVolume || '145K'}</strong>
-                                </div>
-                                <div className="kmt-info-stat-row">
-                                  <span style={{ color: '#64748b' }}>Average KD %</span>
-                                  <strong style={{ color: '#16a34a', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    {kmtData.summary?.averageKd || 35}% <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#16a34a' }}></span>
-                                  </strong>
-                                </div>
-                                <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '14px 0' }} />
-                                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '8px' }}>
-                                  Keywords ({filteredKmtKeywords.length})
-                                </div>
-                                <ul style={{ paddingLeft: '18px', margin: 0, fontSize: '0.82rem', color: '#475569', lineHeight: 1.8 }}>
-                                  {filteredKmtKeywords.slice(0, 5).map((k, ki) => (
-                                    <li key={ki}><strong>{k.keyword}</strong></li>
-                                  ))}
-                                  {filteredKmtKeywords.length > 5 && (
-                                    <li style={{ color: '#8b5cf6', fontWeight: 600 }}>and {filteredKmtKeywords.length - 5} more keywords</li>
-                                  )}
-                                </ul>
+                          {/* 5. Topic Clusters / Mindmap Canvas View (matching Semrush) */}
+                          {kmtViewMode === 'clusters' && (() => {
+                            const clusters = (kmtData.topicClusters && kmtData.topicClusters.length > 0)
+                              ? kmtData.topicClusters
+                              : [
+                                  {
+                                    clusterName: 'Career & Salaries',
+                                    pillar: `${kmtKeyword} Career Paths`,
+                                    volume: '18.4K',
+                                    kd: 34,
+                                    keywordsCount: 12,
+                                    subTopics: ['Salary guide in sri lanka', 'Entry level roles', 'Remote opportunities', 'Job requirements']
+                                  },
+                                  {
+                                    clusterName: 'Courses & Education',
+                                    pillar: `Learning ${kmtKeyword}`,
+                                    volume: '14.2K',
+                                    kd: 29,
+                                    keywordsCount: 9,
+                                    subTopics: ['Degrees vs Bootcamps', 'Top online tutorials', 'Free certifications', 'Roadmap 2026']
+                                  },
+                                  {
+                                    clusterName: 'Services & Business',
+                                    pillar: `${kmtKeyword} Solutions`,
+                                    volume: '9.6K',
+                                    kd: 52,
+                                    keywordsCount: 7,
+                                    subTopics: ['Hiring developers', 'Consulting rates', 'Agency vs Freelancer', 'Project planning']
+                                  }
+                                ];
 
-                                <button 
-                                  className="kmt-action-btn primary"
-                                  style={{ width: '100%', justifyContent: 'center', marginTop: '20px' }}
-                                  onClick={handleExportKmtCsv}
-                                >
-                                  <Download size={14} /> Export & Share
-                                </button>
-                              </div>
+                            const activeCluster = clusters[kmtActiveClusterIdx] || clusters[0];
+                            const clusterKeywords = (kmtData.keywords || []).filter(k => {
+                              const subTerms = (activeCluster.subTopics || []).map(s => (typeof s === 'string' ? s : s.name || '').toLowerCase());
+                              const clusterWord = (activeCluster.clusterName || '').toLowerCase().split(' ')[0];
+                              const text = (k.keyword || '').toLowerCase();
+                              return subTerms.some(st => text.includes(st.split(' ')[0])) || text.includes(clusterWord);
+                            });
+                            const displayKeywords = clusterKeywords.length >= 3 ? clusterKeywords : (kmtData.keywords || []).slice(0, 8);
 
-                              <div className="kmt-clusters-canvas">
-                                <div style={{ position: 'absolute', top: '15px', right: '15px' }}>
-                                  <button className="kmt-action-btn" onClick={handleExportKmtCsv}>
-                                    <ExternalLink size={13} /> Export and Share
+                            return (
+                              <div className="kmt-mindmap-wrapper">
+                                {/* Floating Page Info Card (matching Semrush Image 3) */}
+                                <div className="kmt-page-info-floating">
+                                  <div className="kmt-info-header">
+                                    <span>Page info</span>
+                                    <span style={{ fontSize: '0.72rem', background: '#ede9fe', color: '#7c3aed', padding: '2px 8px', borderRadius: '999px', textTransform: 'capitalize' }}>
+                                      {activeCluster.clusterName || 'Topic Cluster'}
+                                    </span>
+                                  </div>
+                                  <div className="kmt-info-stat-row">
+                                    <span style={{ color: '#64748b' }}>Total volume</span>
+                                    <strong style={{ color: '#0f172a' }}>{activeCluster.volume || '18.4K'}</strong>
+                                  </div>
+                                  <div className="kmt-info-stat-row">
+                                    <span style={{ color: '#64748b' }}>Average KD %</span>
+                                    <strong style={{ color: activeCluster.kd < 35 ? '#16a34a' : activeCluster.kd < 60 ? '#f59e0b' : '#ef4444', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                      {activeCluster.kd || 34}% 
+                                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: activeCluster.kd < 35 ? '#16a34a' : activeCluster.kd < 60 ? '#f59e0b' : '#ef4444' }}></span>
+                                    </strong>
+                                  </div>
+                                  <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '12px 0' }} />
+                                  <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#334155', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                                    <span>Keywords</span>
+                                    <span style={{ color: '#7c3aed' }}>{activeCluster.keywordsCount || displayKeywords.length}</span>
+                                  </div>
+                                  <ul style={{ paddingLeft: '16px', margin: 0, fontSize: '0.8rem', color: '#475569', lineHeight: 1.7, maxHeight: '160px', overflowY: 'auto' }}>
+                                    {displayKeywords.slice(0, 5).map((k, ki) => (
+                                      <li key={ki} style={{ marginBottom: '3px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px' }}>
+                                          <strong style={{ color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }} title={k.keyword}>
+                                            {k.keyword}
+                                          </strong>
+                                          <span style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'monospace' }}>
+                                            {k.volumeFormatted || k.volume}
+                                          </span>
+                                        </div>
+                                      </li>
+                                    ))}
+                                    {displayKeywords.length > 5 && (
+                                      <li style={{ color: '#7c3aed', fontWeight: 700, cursor: 'pointer', listStyle: 'none', marginTop: '4px' }} onClick={() => setKmtViewMode('table')}>
+                                        and {displayKeywords.length - 5} more keywords →
+                                      </li>
+                                    )}
+                                  </ul>
+
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '14px' }}>
+                                    <button 
+                                      className="kmt-action-btn primary"
+                                      style={{ width: '100%', justifyContent: 'center', fontSize: '0.8rem', padding: '8px 12px' }}
+                                      onClick={() => handleUseKeywordInBlog(activeCluster.pillar)}
+                                    >
+                                      <Sparkles size={13} /> Write Blog for this Pillar
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Floating Export and Share Button (Top Right) */}
+                                <div className="kmt-export-floating">
+                                  <button className="kmt-action-btn primary" onClick={handleExportKmtCsv} style={{ padding: '8px 16px', gap: '6px' }}>
+                                    <Share2 size={14} /> Export and Share
                                   </button>
                                 </div>
 
-                                <div className="kmt-orbit-cluster">
-                                  {(kmtData.topicClusters || [
-                                    { clusterName: 'Core Disciplines', pillar: `${kmtKeyword} Pillar`, volume: '45K', kd: 32, subTopics: ['Degrees', 'Salaries', 'Jobs', 'Roadmap 2026'] },
-                                    { clusterName: 'Skill Building', pillar: 'Learn & Tutorials', volume: '32K', kd: 26, subTopics: ['Beginners Guide', 'Online Courses', 'Projects', 'Best Tools'] }
-                                  ]).map((cluster, ci) => (
-                                    <div key={ci} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
-                                      <div className="kmt-pillar-bubble" onClick={() => handleUseKeywordInBlog(cluster.pillar)}>
-                                        <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', opacity: 0.9 }}>Topic Pillar</span>
-                                        <strong style={{ fontSize: '0.95rem', margin: '4px 0' }}>{cluster.pillar}</strong>
-                                        <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '999px' }}>
-                                          Vol: {cluster.volume} • KD: {cluster.kd}%
-                                        </span>
-                                      </div>
-
-                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', maxWidth: '320px' }}>
-                                        {(cluster.subTopics || []).map((sub, subi) => (
-                                          <div 
-                                            key={subi} 
-                                            className="kmt-sub-bubble"
-                                            onClick={() => {
-                                              const fullKw = `${kmtKeyword} ${sub}`;
-                                              handleUseKeywordInBlog(fullKw);
-                                            }}
-                                            title="Click to write a blog targeting this subtopic"
-                                          >
-                                            {sub}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  ))}
+                                {/* Floating Zoom Toolbar (Bottom Left) */}
+                                <div className="kmt-zoom-controls">
+                                  <button className="kmt-zoom-btn" onClick={handleKmtZoomIn} title="Zoom In">
+                                    <ZoomIn size={16} />
+                                  </button>
+                                  <span className="kmt-zoom-level-badge">{Math.round(kmtZoom * 100)}%</span>
+                                  <button className="kmt-zoom-btn" onClick={handleKmtZoomOut} title="Zoom Out">
+                                    <ZoomOut size={16} />
+                                  </button>
+                                  <button className="kmt-zoom-btn" onClick={handleKmtZoomReset} title="Reset View" style={{ fontSize: '0.72rem', width: 'auto', padding: '0 8px' }}>
+                                    Reset
+                                  </button>
+                                  <div className="kmt-zoom-hint">
+                                    <Move size={12} /> Drag to Pan • Scroll to Zoom
+                                  </div>
                                 </div>
 
-                                <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '0.85rem', color: '#8b5cf6', fontWeight: 600 }}>
-                                  Share your keyword lists and work as a team • Click any pillar or bubble to write a blog post!
+                                {/* Floating Teamwork Card (Bottom Right) */}
+                                <div className="kmt-teamwork-card">
+                                  <div className="kmt-teamwork-title">Share your keyword lists and work as a team</div>
+                                  <div className="kmt-teamwork-sub">Instant cluster export & AI content integration</div>
+                                </div>
+
+                                {/* Interactive Zoomable & Pannable Mindmap Canvas Viewport */}
+                                <div 
+                                  className={`kmt-mindmap-viewport ${kmtIsDragging ? 'dragging' : ''}`}
+                                  onMouseDown={handleKmtMouseDown}
+                                  onMouseMove={handleKmtMouseMove}
+                                  onMouseUp={handleKmtMouseUp}
+                                  onMouseLeave={handleKmtMouseUp}
+                                  onWheel={handleKmtWheel}
+                                >
+                                  <div 
+                                    className="kmt-mindmap-canvas-inner"
+                                    style={{
+                                      transform: `translate(${kmtPan.x}px, ${kmtPan.y}px) scale(${kmtZoom})`
+                                    }}
+                                  >
+                                    {clusters.map((cluster, ci) => {
+                                      const isClusterActive = ci === kmtActiveClusterIdx;
+                                      const subs = cluster.subTopics || [];
+                                      const radius = 175; // Orbit radius in pixels
+
+                                      return (
+                                        <div key={ci} className="kmt-orbit-system">
+                                          {/* Concentric Orbital Rings */}
+                                          <div className="kmt-orbit-ring-outer"></div>
+                                          <div className="kmt-orbit-ring-inner"></div>
+
+                                          <div className="kmt-orbit-label-subs">subs</div>
+                                          <div className="kmt-orbit-label-pillar">topic pillar</div>
+
+                                          {/* Central Topic Pillar Planet / Sphere */}
+                                          <div 
+                                            className={`kmt-pillar-sphere ${isClusterActive ? 'active' : ''}`}
+                                            onClick={() => setKmtActiveClusterIdx(ci)}
+                                            onDoubleClick={() => handleUseKeywordInBlog(cluster.pillar)}
+                                            title="Click to inspect page info • Double-click to write article"
+                                          >
+                                            <span className="pillar-tag">Topic Pillar</span>
+                                            <div className="pillar-title">{cluster.pillar}</div>
+                                            <div className="pillar-metric">
+                                              Keywords: {cluster.keywordsCount || subs.length * 3 || 12}
+                                            </div>
+                                            <span style={{ fontSize: '0.68rem', opacity: 0.9, marginTop: '2px' }}>
+                                              {cluster.volume} • {cluster.kd}% KD
+                                            </span>
+                                          </div>
+
+                                          {/* Orbiting Satellite Subtopic Nodes */}
+                                          {subs.map((sub, subi) => {
+                                            const subText = typeof sub === 'string' ? sub : sub.name;
+                                            // Angle distribution along the 360 degree orbit ring
+                                            const angle = ((2 * Math.PI) / Math.max(subs.length, 1)) * subi - (Math.PI / 3);
+                                            const x = Math.round(radius * Math.cos(angle));
+                                            const y = Math.round(radius * Math.sin(angle));
+
+                                            return (
+                                              <div 
+                                                key={subi}
+                                                className="kmt-satellite-wrapper"
+                                                style={{
+                                                  transform: `translate(${x}px, ${y}px)`
+                                                }}
+                                              >
+                                                <div 
+                                                  className="kmt-satellite-pill"
+                                                  onClick={() => {
+                                                    setKmtActiveClusterIdx(ci);
+                                                    setKmtHoveredSub(subText);
+                                                  }}
+                                                  onDoubleClick={() => {
+                                                    handleUseKeywordInBlog(`${kmtKeyword} ${subText}`);
+                                                  }}
+                                                  title={`Click to inspect in Page Info • Double click to use in blog`}
+                                                >
+                                                  <div className="kmt-satellite-orb"></div>
+                                                  <span>{subText}</span>
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          )}
+                            );
+                          })()}
                         </>
                       )}
                     </div>

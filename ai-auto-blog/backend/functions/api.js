@@ -4,7 +4,18 @@ const mongoose = require('mongoose');
 const dns = require('dns');
 
 try {
-  dns.setServers(['8.8.8.8', '8.8.4.4']);
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+  const origLookup = dns.lookup;
+  dns.lookup = function(hostname, options, callback) {
+    if (typeof options === 'function') { callback = options; options = {}; }
+    origLookup(hostname, options, (err, address, family) => {
+      if (!err && address) return callback(null, address, family);
+      dns.resolve4(hostname, (rErr, addresses) => {
+        if (!rErr && addresses && addresses.length > 0) return callback(null, addresses[0], 4);
+        callback(err || rErr);
+      });
+    });
+  };
 } catch (e) {
   console.warn('DNS server setup warning in serverless:', e.message);
 }
