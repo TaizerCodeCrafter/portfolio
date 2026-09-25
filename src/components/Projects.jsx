@@ -5,6 +5,7 @@ import { GithubIcon } from './BrandIcons';
 import LikeButton from './LikeButton';
 import CommentSection from './CommentSection';
 import { getCachedData, setCachedData } from '../utils/cache';
+import ProjectBuyModal from './ProjectBuyModal';
 import './Projects.css';
 
 const defaultProjects = [
@@ -71,6 +72,8 @@ const Projects = ({ isPage = false }) => {
   });
   const [previewProject, setPreviewProject] = useState(null);
   const [detailProject, setDetailProject] = useState(null);
+  const [buyingProject, setBuyingProject] = useState(null);
+  const [paymentSettings, setPaymentSettings] = useState({});
   const [previewMode, setPreviewMode] = useState('desktop');
   const [categories, setCategories] = useState(() => {
     const source = (Array.isArray(cachedProjects) && cachedProjects.length > 0) ? cachedProjects : defaultProjects;
@@ -80,12 +83,13 @@ const Projects = ({ isPage = false }) => {
 
   // Prevent background page scrolling and support Escape key when any modal is open
   useEffect(() => {
-    if (detailProject || previewProject) {
+    if (detailProject || previewProject || buyingProject) {
       document.body.style.overflow = 'hidden';
       const handleKeyDown = (e) => {
         if (e.key === 'Escape') {
           setDetailProject(null);
           setPreviewProject(null);
+          setBuyingProject(null);
         }
       };
       window.addEventListener('keydown', handleKeyDown);
@@ -96,7 +100,16 @@ const Projects = ({ isPage = false }) => {
     } else {
       document.body.style.overflow = '';
     }
-  }, [detailProject, previewProject]);
+  }, [detailProject, previewProject, buyingProject]);
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(d => {
+        if (d && typeof d === 'object') setPaymentSettings(d);
+      })
+      .catch(err => console.warn('Could not load settings in Projects:', err));
+  }, []);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -265,7 +278,7 @@ const Projects = ({ isPage = false }) => {
                       className="buy-now-btn" 
                       onClick={(e) => {
                         e.stopPropagation();
-                        window.open(`https://wa.me/94705770398?text=Hi! I want to buy the project: ${project.title}`, '_blank');
+                        setBuyingProject(project);
                       }}
                       title={`Buy this project for $${project.price}`}
                     >
@@ -423,7 +436,7 @@ const Projects = ({ isPage = false }) => {
                     <button 
                       type="button"
                       className="buy-now-btn" 
-                      onClick={() => window.open(`https://wa.me/94705770398?text=Hi! I want to buy the project: ${detailProject.title}`, '_blank')}
+                      onClick={() => setBuyingProject(detailProject)}
                       title={`Buy this project for $${detailProject.price}`}
                     >
                       <ShoppingCart size={13} />
@@ -468,14 +481,14 @@ const Projects = ({ isPage = false }) => {
               {/* Action Buttons Row */}
               <div className="project-modal-action-row">
                 {detailProject.isForSale && (
-                  <a 
-                    href={`https://wa.me/94705770398?text=Hi! I want to buy the project: ${detailProject.title}`}
-                    target="_blank" 
-                    rel="noreferrer" 
+                  <button 
+                    type="button"
+                    onClick={() => setBuyingProject(detailProject)}
                     className="modal-buy-full-btn"
+                    style={{ border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
                   >
                     <ShoppingCart size={16} /> Buy Project (${detailProject.price})
-                  </a>
+                  </button>
                 )}
                 {detailProject.links?.live && (
                   <a 
@@ -512,6 +525,15 @@ const Projects = ({ isPage = false }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Project Buy / Checkout Modal */}
+      {buyingProject && (
+        <ProjectBuyModal 
+          project={buyingProject} 
+          paymentSettings={paymentSettings} 
+          onClose={() => setBuyingProject(null)} 
+        />
       )}
     </section>
   );

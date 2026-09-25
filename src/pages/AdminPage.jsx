@@ -2254,6 +2254,79 @@ const AdminPage = () => {
                     </div>
                   </div>
                 </div>
+
+                <div style={{ marginTop: '50px', paddingTop: '40px', borderTop: '1px solid #f0e6da' }}>
+                  <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <CreditCard size={20} color="#b35a00" />
+                    <span>Project Store & Payment Checkout Settings</span>
+                  </div>
+                  <p style={{ color: '#888', fontSize: '0.85rem', marginBottom: '25px' }}>
+                    Configure the Binance USDT address and Bank Account details shown to buyers when they click the "Buy" button on projects.
+                  </p>
+                  
+                  <div className="settings-grid">
+                    <div className="login-input-group" style={{ gridColumn: 'span 2' }}>
+                      <label><DollarSign size={16} /> Binance USDT Deposit Address</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. TYDzsYbc2fRkHpx7V9a8x9H4YhQzNmTron"
+                        value={settings.binanceUsdtAddress || ''} 
+                        onChange={e => setSettings({...settings, binanceUsdtAddress: e.target.value})} 
+                        onBlur={() => handleUpdateSetting('binanceUsdtAddress', settings.binanceUsdtAddress)}
+                      />
+                    </div>
+                    <div className="login-input-group">
+                      <label><Activity size={16} /> Binance Network</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. USDT (TRC20 / BEP20)"
+                        value={settings.binanceNetwork || ''} 
+                        onChange={e => setSettings({...settings, binanceNetwork: e.target.value})} 
+                        onBlur={() => handleUpdateSetting('binanceNetwork', settings.binanceNetwork)}
+                      />
+                    </div>
+                    <div className="login-input-group">
+                      <label><Building2 size={16} /> Bank Name</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. Commercial Bank of Ceylon / BOC"
+                        value={settings.bankName || ''} 
+                        onChange={e => setSettings({...settings, bankName: e.target.value})} 
+                        onBlur={() => handleUpdateSetting('bankName', settings.bankName)}
+                      />
+                    </div>
+                    <div className="login-input-group">
+                      <label><User size={16} /> Bank Account Holder Name</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. K. A. Supun Dilshan"
+                        value={settings.bankAccountName || ''} 
+                        onChange={e => setSettings({...settings, bankAccountName: e.target.value})} 
+                        onBlur={() => handleUpdateSetting('bankAccountName', settings.bankAccountName)}
+                      />
+                    </div>
+                    <div className="login-input-group">
+                      <label><CreditCard size={16} /> Bank Account Number</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. 8008123456"
+                        value={settings.bankAccountNumber || ''} 
+                        onChange={e => setSettings({...settings, bankAccountNumber: e.target.value})} 
+                        onBlur={() => handleUpdateSetting('bankAccountNumber', settings.bankAccountNumber)}
+                      />
+                    </div>
+                    <div className="login-input-group">
+                      <label><MapPin size={16} /> Bank Branch</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. Colombo / Homagama"
+                        value={settings.bankBranch || ''} 
+                        onChange={e => setSettings({...settings, bankBranch: e.target.value})} 
+                        onBlur={() => handleUpdateSetting('bankBranch', settings.bankBranch)}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
