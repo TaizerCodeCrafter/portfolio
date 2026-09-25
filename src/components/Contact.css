@@ -2,6 +2,13 @@
   padding: 70px 0;
 }
 
+.contact-section .container {
+  max-width: 920px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .contact-grid {
   display: grid;
   grid-template-columns: 1fr 2fr;
