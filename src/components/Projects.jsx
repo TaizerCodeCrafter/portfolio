@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, Eye, Monitor, Smartphone, X, MessageSquare, ArrowLeft } from 'lucide-react';
+import { ExternalLink, Eye, Monitor, Smartphone, X, MessageSquare, ArrowLeft, ShoppingCart } from 'lucide-react';
 import { GithubIcon } from './BrandIcons';
 import LikeButton from './LikeButton';
 import CommentSection from './CommentSection';
@@ -213,20 +213,25 @@ const Projects = ({ isPage = false }) => {
                 );
               })()}
               
-              <div className="project-footer">
-                <button
-                  type="button"
-                  className="mobile-preview-btn"
-                  onClick={() => setPreviewProject(project)}
-                >
-                  <Eye size={12} /> Preview
-                </button>
+              {/* Project Tags Section - Full Width */}
+              {Array.isArray(project.tags) && project.tags.length > 0 && (
                 <div className="project-tags">
-                  {(project.tags || []).map(tag => (
+                  {project.tags.map(tag => (
                     <span key={tag} className="project-tag">{tag}</span>
                   ))}
                 </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+              )}
+
+              {/* Dedicated Project Action Footer */}
+              <div className="project-footer">
+                <div className="project-footer-left">
+                  <button
+                    type="button"
+                    className="mobile-preview-btn"
+                    onClick={() => setPreviewProject(project)}
+                  >
+                    <Eye size={12} /> Preview
+                  </button>
                   {project._id && (
                     <LikeButton targetType="project" targetId={project._id} initialLikes={project.likes} size={14} />
                   )}
@@ -240,15 +245,6 @@ const Projects = ({ isPage = false }) => {
                       <MessageSquare size={14} />
                     </button>
                   )}
-                  {project.isForSale && (
-                    <button 
-                      className="buy-now-btn" 
-                      onClick={() => window.open(`https://wa.me/94705770398?text=Hi! I want to buy the project: ${project.title}`, '_blank')}
-                      title={`Buy this project for $${project.price}`}
-                    >
-                      Buy ${project.price}
-                    </button>
-                  )}
                   {project.links?.github && (
                     <a 
                       href={project.links.github} 
@@ -257,10 +253,27 @@ const Projects = ({ isPage = false }) => {
                       className="github-link-btn"
                       title="View Source Code"
                     >
-                      <GithubIcon size={18} />
+                      <GithubIcon size={16} />
                     </a>
                   )}
                 </div>
+
+                {project.isForSale && (
+                  <div className="project-footer-right">
+                    <button 
+                      type="button"
+                      className="buy-now-btn" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`https://wa.me/94705770398?text=Hi! I want to buy the project: ${project.title}`, '_blank');
+                      }}
+                      title={`Buy this project for $${project.price}`}
+                    >
+                      <ShoppingCart size={13} />
+                      <span>Buy ${project.price}</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -408,11 +421,13 @@ const Projects = ({ isPage = false }) => {
                   )}
                   {detailProject.isForSale && (
                     <button 
+                      type="button"
                       className="buy-now-btn" 
                       onClick={() => window.open(`https://wa.me/94705770398?text=Hi! I want to buy the project: ${detailProject.title}`, '_blank')}
                       title={`Buy this project for $${detailProject.price}`}
                     >
-                      Buy ${detailProject.price}
+                      <ShoppingCart size={13} />
+                      <span>Buy ${detailProject.price}</span>
                     </button>
                   )}
                 </div>
@@ -452,6 +467,16 @@ const Projects = ({ isPage = false }) => {
 
               {/* Action Buttons Row */}
               <div className="project-modal-action-row">
+                {detailProject.isForSale && (
+                  <a 
+                    href={`https://wa.me/94705770398?text=Hi! I want to buy the project: ${detailProject.title}`}
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="modal-buy-full-btn"
+                  >
+                    <ShoppingCart size={16} /> Buy Project (${detailProject.price})
+                  </a>
+                )}
                 {detailProject.links?.live && (
                   <a 
                     href={detailProject.links.live} 
