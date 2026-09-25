@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Code2, Database, Globe, Layout, Server, Smartphone } from 'lucide-react';
+import { Code2, Database, Globe, Layout, Server, Smartphone, Sparkles, PenTool, Cpu, Wrench } from 'lucide-react';
 import axios from 'axios';
 import './Skills.css';
 
@@ -38,12 +38,15 @@ const defaultSkillCategories = [
 ];
 
 const getCategoryIcon = (categoryName) => {
-  const lower = categoryName.toLowerCase();
-  if (lower.includes('frontend')) return <Layout size={24} />;
-  if (lower.includes('backend')) return <Server size={24} />;
-  if (lower.includes('database') || lower.includes('devops')) return <Database size={24} />;
-  if (lower.includes('mobile') || lower.includes('app')) return <Smartphone size={24} />;
-  if (lower.includes('web')) return <Globe size={24} />;
+  const lower = (categoryName || '').toLowerCase();
+  if (lower.includes('frontend') || lower.includes('client') || lower.includes('web')) return <Layout size={24} />;
+  if (lower.includes('backend') || lower.includes('server') || lower.includes('api')) return <Server size={24} />;
+  if (lower.includes('database') || lower.includes('devops') || lower.includes('cloud') || lower.includes('docker')) return <Database size={24} />;
+  if (lower.includes('mobile') || lower.includes('app') || lower.includes('android') || lower.includes('ios') || lower.includes('flutter')) return <Smartphone size={24} />;
+  if (lower.includes('ai') || lower.includes('machine learning') || lower.includes('intelligence') || lower.includes('data')) return <Sparkles size={24} />;
+  if (lower.includes('design') || lower.includes('ui') || lower.includes('ux') || lower.includes('graphics')) return <PenTool size={24} />;
+  if (lower.includes('hardware') || lower.includes('iot') || lower.includes('robotics')) return <Cpu size={24} />;
+  if (lower.includes('tool') || lower.includes('testing') || lower.includes('qa')) return <Wrench size={24} />;
   return <Code2 size={24} />;
 };
 

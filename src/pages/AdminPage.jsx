@@ -193,6 +193,7 @@ const AdminPage = () => {
   const [skills, setSkills] = useState([]);
   const [showAddSkill, setShowAddSkill] = useState(false);
   const [skillForm, setSkillForm] = useState({ name: '', level: 0, category: 'Frontend Development', order: 0 });
+  const [isCustomSkillCategory, setIsCustomSkillCategory] = useState(false);
 
   // Services State
   const [services, setServices] = useState([]);
@@ -1152,16 +1153,22 @@ const AdminPage = () => {
   // Skills Handlers
   const handleSaveSkill = async () => {
     if (!skillForm.name || !skillForm.level) return showAlert('Name and Level required!', 'error');
+    if (!skillForm.category || !skillForm.category.trim()) return showAlert('Category is required!', 'error');
     try {
+      const payload = {
+        ...skillForm,
+        category: skillForm.category.trim()
+      };
       if (skillForm._id) {
-        await axios.put(`/api/skills/${skillForm._id}`, skillForm);
+        await axios.put(`/api/skills/${skillForm._id}`, payload);
         showAlert('Skill Updated!');
       } else {
-        await axios.post('/api/skills', skillForm);
+        await axios.post('/api/skills', payload);
         showAlert('Skill Added!');
       }
       setShowAddSkill(false);
       setSkillForm({ name: '', level: 0, category: 'Frontend Development', order: 0 });
+      setIsCustomSkillCategory(false);
       fetchData();
     } catch (err) { showAlert('Failed to save skill!', 'error'); }
   };
@@ -5557,12 +5564,78 @@ const AdminPage = () => {
                             <input type="number" min="0" max="100" value={skillForm.level} onChange={e => setSkillForm({...skillForm, level: Number(e.target.value)})} placeholder="e.g. 90" />
                           </div>
                           <div className="login-input-group">
-                            <label>Category</label>
-                            <select value={skillForm.category} onChange={e => setSkillForm({...skillForm, category: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e8e0d5', outline: 'none' }}>
-                              <option value="Frontend Development">Frontend Development</option>
-                              <option value="Backend Development">Backend Development</option>
-                              <option value="Database & DevOps">Database & DevOps</option>
-                            </select>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                              <label style={{ margin: 0 }}>Category</label>
+                              <button
+                                type="button"
+                                onClick={() => setIsCustomSkillCategory(!isCustomSkillCategory)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#b35a00',
+                                  fontSize: '0.8rem',
+                                  fontWeight: '700',
+                                  cursor: 'pointer',
+                                  padding: 0,
+                                  textDecoration: 'underline'
+                                }}
+                              >
+                                {isCustomSkillCategory ? '← Pick from list' : '+ Add Custom Category'}
+                              </button>
+                            </div>
+
+                            {isCustomSkillCategory ? (
+                              <div>
+                                <input 
+                                  type="text" 
+                                  value={skillForm.category} 
+                                  onChange={e => setSkillForm({...skillForm, category: e.target.value})} 
+                                  placeholder="e.g. AI & Machine Learning, Mobile App, Cloud..." 
+                                  style={{ 
+                                    width: '100%', 
+                                    padding: '12px 14px', 
+                                    borderRadius: '12px', 
+                                    border: '1.5px solid #b35a00', 
+                                    outline: 'none',
+                                    background: '#fffbf7'
+                                  }}
+                                  autoFocus
+                                />
+                                <span style={{ fontSize: '0.75rem', color: '#666', marginTop: '4px', display: 'block' }}>
+                                  Type any category name. It will create a separate section card on your website.
+                                </span>
+                              </div>
+                            ) : (
+                              <select 
+                                value={skillForm.category} 
+                                onChange={e => {
+                                  if (e.target.value === '__add_new__') {
+                                    setIsCustomSkillCategory(true);
+                                    setSkillForm({ ...skillForm, category: '' });
+                                  } else {
+                                    setSkillForm({ ...skillForm, category: e.target.value });
+                                  }
+                                }} 
+                                style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e8e0d5', outline: 'none' }}
+                              >
+                                {Array.from(new Set([
+                                  'Frontend Development',
+                                  'Backend Development',
+                                  'Database & DevOps',
+                                  'AI & Machine Learning',
+                                  'Mobile App Development',
+                                  'Cloud & Infrastructure',
+                                  'UI/UX & Product Design',
+                                  'Tools & Architecture',
+                                  ...(Array.isArray(skills) ? skills.map(s => s.category).filter(Boolean) : [])
+                                ])).map((cat, i) => (
+                                  <option key={i} value={cat}>{cat}</option>
+                                ))}
+                                <option value="__add_new__" style={{ fontWeight: 'bold', color: '#b35a00' }}>
+                                  ➕ + Add New Custom Category...
+                                </option>
+                              </select>
+                            )}
                           </div>
                           <div className="login-input-group">
                             <label>Order (optional)</label>
@@ -5571,14 +5644,14 @@ const AdminPage = () => {
                         </div>
                         <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
                           <button onClick={handleSaveSkill} className="btn-primary" style={{ padding: '12px 25px', borderRadius: '15px' }}>Save Skill</button>
-                          <button onClick={() => setShowAddSkill(false)} className="btn-secondary" style={{ background: '#f5f5f5', color: '#555', padding: '12px 25px', borderRadius: '15px' }}>Cancel</button>
+                          <button onClick={() => { setShowAddSkill(false); setIsCustomSkillCategory(false); }} className="btn-secondary" style={{ background: '#f5f5f5', color: '#555', padding: '12px 25px', borderRadius: '15px' }}>Cancel</button>
                         </div>
                       </div>
                     ) : (
                       <>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                           <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#333' }}>Manage Skills</h3>
-                          <button onClick={() => { setSkillForm({ name: '', level: 0, category: 'Frontend Development', order: 0 }); setShowAddSkill(true); }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '15px', fontSize: '0.9rem' }}>
+                          <button onClick={() => { setSkillForm({ name: '', level: 0, category: 'Frontend Development', order: 0 }); setIsCustomSkillCategory(false); setShowAddSkill(true); }} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '15px', fontSize: '0.9rem' }}>
                             <Plus size={16} /> Add Skill
                           </button>
                         </div>
@@ -5601,7 +5674,7 @@ const AdminPage = () => {
                                 <div style={{ width: `${skill.level}%`, height: '100%', background: '#b35a00' }}></div>
                               </div>
                               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                                <button onClick={() => { setSkillForm(skill); setShowAddSkill(true); }} style={{ flex: 1, padding: '8px', borderRadius: '10px', background: '#fcf8f4', color: '#b35a00', border: 'none', cursor: 'pointer', fontWeight: '600' }}>Edit</button>
+                                <button onClick={() => { setSkillForm(skill); setIsCustomSkillCategory(false); setShowAddSkill(true); }} style={{ flex: 1, padding: '8px', borderRadius: '10px', background: '#fcf8f4', color: '#b35a00', border: 'none', cursor: 'pointer', fontWeight: '600' }}>Edit</button>
                                 <button onClick={() => handleDeleteSkill(skill._id)} style={{ flex: 1, padding: '8px', borderRadius: '10px', background: '#fef2f2', color: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: '600' }}>Delete</button>
                               </div>
                             </div>
