@@ -98,7 +98,7 @@ const AdminPage = () => {
     geminiApiKey: '',
     defaultTone: 'Professional',
     defaultWordCount: '~1000 words',
-    aiModel: 'gemini-2.0-flash',
+    aiModel: 'gemini-3.5-flash',
     fbPageId: '',
     fbAccessToken: '',
     fbEnabled: false
@@ -3265,13 +3265,14 @@ const AdminPage = () => {
                             <label>Preferred Model</label>
                             <select 
                               className="admin-input"
-                              value={aiSettings.aiModel || 'gemini-1.5-flash'}
+                              value={aiSettings.aiModel || 'gemini-3.5-flash'}
                               onChange={(e) => setAiSettings({...aiSettings, aiModel: e.target.value})}
                             >
-                              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast & Stable - Recommended)</option>
-                              <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Reasoning)</option>
-                              <option value="gemini-2.0-flash">Gemini 2.0 Flash (Next-Gen)</option>
-                              <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash-8B (Lightweight)</option>
+                              <option value="gemini-3.5-flash">Gemini 3.5 Flash (Ultra Fast & Stable - Recommended)</option>
+                              <option value="gemini-3.6-flash">Gemini 3.6 Flash (High Intelligence)</option>
+                              <option value="gemini-3.8-flash">Gemini 3.8 Flash (Latest Flagship Flash)</option>
+                              <option value="gemini-flash-latest">Gemini Flash Latest (Auto-Updating)</option>
+                              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (Lightweight)</option>
                             </select>
                           </div>
                         </div>

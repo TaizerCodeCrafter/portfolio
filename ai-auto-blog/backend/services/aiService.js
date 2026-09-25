@@ -1,9 +1,26 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
+const DEFAULT_MODEL = "gemini-3.5-flash";
+const SUPPORTED_MODELS = [
+  "gemini-3.5-flash",
+  "gemini-3.5-flash-lite",
+  "gemini-3.6-flash",
+  "gemini-3.8-flash",
+  "gemini-flash-latest",
+  "gemini-3.1-flash-lite"
+];
+
 const getValidModel = (modelName) => {
-  let model = modelName || "gemini-1.5-flash";
-  if (model.includes("3.5") || model.includes("3.6") || model.includes("-latest") || model === "gemini-pro") {
-    model = "gemini-1.5-flash";
+  if (!modelName) return DEFAULT_MODEL;
+  const model = modelName.trim();
+  // Automatically migrate deprecated legacy models (1.5, 2.0, 2.5, gemini-pro) to modern supported standard
+  if (
+    model.includes("1.5") ||
+    model.includes("2.0") ||
+    model.includes("2.5") ||
+    model === "gemini-pro"
+  ) {
+    return DEFAULT_MODEL;
   }
   return model;
 };
@@ -16,11 +33,14 @@ const handleAIError = (error, context) => {
   if (error.message.includes('400') && error.message.includes('API key not valid')) {
     throw new Error('Your Gemini API Key is not valid. Please make sure to copy the full API Key starting with "AIzaSy..." from Google AI Studio.');
   }
-  if (error.message.includes('404') && error.message.includes('not found')) {
-    throw new Error('Selected AI model is not supported. Automatically switched to gemini-1.5-flash. Please try generating again.');
+  if (error.message.includes('429') || error.message.includes('Quota exceeded') || error.message.includes('quota')) {
+    throw new Error('Google Gemini rate limit or quota exceeded. Please wait a moment before trying again.');
   }
-  if (error.message.includes('503') || error.message.includes('Service Unavailable') || error.message.includes('overloaded')) {
-    throw new Error('Google Gemini API is currently overloaded or down. Please try again in a few moments.');
+  if (error.message.includes('503') || error.message.includes('Service Unavailable') || error.message.includes('high demand') || error.message.includes('overloaded')) {
+    throw new Error('Google Gemini API is temporarily experiencing high traffic spikes. Please retry in a few moments.');
+  }
+  if (error.message.includes('404') && error.message.includes('not found')) {
+    throw new Error('The selected AI model is not available for this API key. We have fallen back to Gemini 3.5 Flash. Please retry your generation.');
   }
   throw error;
 };
@@ -42,6 +62,42 @@ const extractJSON = (text) => {
   }
 };
 
+/**
+ * Executes a Gemini request with automatic fallback through compatible models
+ * If the preferred model encounters a 404, 503 high-demand spike, or 429 quota issue,
+ * it seamlessly attempts the next candidate model in line.
+ */
+const executeWithFallback = async (genAI, initialModelName, prompt, generationConfig = {}) => {
+  const primaryModel = getValidModel(initialModelName);
+  const candidateModels = [
+    primaryModel,
+    ...SUPPORTED_MODELS.filter(m => m !== primaryModel)
+  ];
+
+  let lastError = null;
+
+  for (const modelName of candidateModels) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig
+      });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return response.text();
+    } catch (err) {
+      console.warn(`[Gemini Fallback] Model "${modelName}" failed: ${err.message}. Trying next candidate...`);
+      lastError = err;
+      // Stop and fail fast if the API key itself is unauthorized or invalid
+      if (err.message.includes('401') || (err.message.includes('400') && err.message.includes('API key'))) {
+        throw err;
+      }
+    }
+  }
+
+  throw lastError;
+};
+
 const generateBlogPost = async (data, config) => {
   try {
     if (!config.geminiApiKey || !config.geminiApiKey.trim()) {
@@ -49,13 +105,6 @@ const generateBlogPost = async (data, config) => {
     }
 
     const genAI = new GoogleGenerativeAI(config.geminiApiKey.trim());
-    // Use the model from config, but ensure it's a valid one from the user's available list
-    const modelName = getValidModel(config.aiModel);
-    // Many new models like flash-latest are best accessed via v1beta currently
-    const model = genAI.getGenerativeModel({ 
-      model: modelName,
-      generationConfig: { responseMimeType: "application/json" }
-    });
 
     const topicInstruction = data.topic ? `Topic: ${data.topic}` : `Topic: Choose a highly trending, unique, and engaging tech/development/AI topic for today.`;
     const keywordsInstruction = data.keywords ? `Keywords: ${data.keywords}` : `Keywords: Auto-generate relevant high-traffic keywords.`;
@@ -64,8 +113,8 @@ const generateBlogPost = async (data, config) => {
       Write a high-quality SEO optimized blog article based on the following:
       ${topicInstruction}
       ${keywordsInstruction}
-      Tone: ${data.tone}
-      Target Word Count: ${data.wordCount}
+      Tone: ${data.tone || 'Professional'}
+      Target Word Count: ${data.wordCount || '~1000 words'}
       Category: ${data.category || 'Technology'}
 
       The blog should include:
@@ -89,9 +138,12 @@ const generateBlogPost = async (data, config) => {
       }
     `;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    let text = response.text();
+    const text = await executeWithFallback(
+      genAI, 
+      config.aiModel, 
+      prompt, 
+      { responseMimeType: "application/json" }
+    );
     
     const blogData = extractJSON(text);
 
@@ -105,17 +157,16 @@ const generateBlogPost = async (data, config) => {
       }
     };
   } catch (error) {
-    handleAIError(error, 'Gemini');
+    handleAIError(error, 'Gemini Blog Generation');
   }
 };
 
 const optimizeSEO = async (data, config) => {
   try {
+    if (!config.geminiApiKey || !config.geminiApiKey.trim()) {
+      throw new Error('Gemini API Key is missing. Please add it in AI Settings.');
+    }
     const genAI = new GoogleGenerativeAI(config.geminiApiKey.trim());
-    const model = genAI.getGenerativeModel({ 
-      model: getValidModel(config.aiModel),
-      generationConfig: { responseMimeType: "application/json" }
-    });
 
     const prompt = `
       Analyze the following blog content for SEO based on the target keyword "${data.keyword}".
@@ -123,14 +174,18 @@ const optimizeSEO = async (data, config) => {
 
       Return ONLY a valid JSON object in this format:
       {
-        "score": (0-100 number),
-        "suggestions": ["suggestion 1", "suggestion 2", ...],
+        "score": 85,
+        "suggestions": ["suggestion 1", "suggestion 2"],
         "metaSuggestion": "A compelling SEO meta description"
       }
     `;
 
-    const result = await model.generateContent(prompt);
-    const text = (await result.response).text();
+    const text = await executeWithFallback(
+      genAI, 
+      config.aiModel, 
+      prompt, 
+      { responseMimeType: "application/json" }
+    );
     return extractJSON(text);
   } catch (error) {
     handleAIError(error, 'SEO Opt');
@@ -139,11 +194,10 @@ const optimizeSEO = async (data, config) => {
 
 const getTrendingTopics = async (config) => {
   try {
+    if (!config.geminiApiKey || !config.geminiApiKey.trim()) {
+      throw new Error('Gemini API Key is missing. Please add it in AI Settings.');
+    }
     const genAI = new GoogleGenerativeAI(config.geminiApiKey.trim());
-    const model = genAI.getGenerativeModel({ 
-      model: getValidModel(config.aiModel),
-      generationConfig: { responseMimeType: "application/json" }
-    });
 
     const prompt = `
       Identify 6 high-growth trending topics in technology, web development, or AI for today.
@@ -151,14 +205,16 @@ const getTrendingTopics = async (config) => {
 
       Return ONLY a valid JSON array of objects:
       [
-        { "title": "...", "description": "...", "category": "...", "growth": "..." },
-        ...
+        { "title": "...", "description": "...", "category": "...", "growth": "..." }
       ]
     `;
 
-    const result = await model.generateContent(prompt);
-    const text = (await result.response).text();
-    console.log('DEBUG: Raw Trending Response:', text);
+    const text = await executeWithFallback(
+      genAI, 
+      config.aiModel, 
+      prompt, 
+      { responseMimeType: "application/json" }
+    );
     return extractJSON(text);
   } catch (error) {
     handleAIError(error, 'Trending Topics');
@@ -167,22 +223,25 @@ const getTrendingTopics = async (config) => {
 
 const generateTags = async (content, config) => {
   try {
+    if (!config.geminiApiKey || !config.geminiApiKey.trim()) {
+      throw new Error('Gemini API Key is missing. Please add it in AI Settings.');
+    }
     const genAI = new GoogleGenerativeAI(config.geminiApiKey.trim());
-    const model = genAI.getGenerativeModel({ 
-      model: getValidModel(config.aiModel),
-      generationConfig: { responseMimeType: "application/json" }
-    });
 
     const prompt = `
       Extract 5-10 highly relevant tags/keywords from the following blog content.
       Content: ${content.substring(0, 5000)} 
 
       Return ONLY a valid JSON array of strings:
-      ["tag1", "tag2", "tag3", ...]
+      ["tag1", "tag2", "tag3"]
     `;
 
-    const result = await model.generateContent(prompt);
-    const text = (await result.response).text();
+    const text = await executeWithFallback(
+      genAI, 
+      config.aiModel, 
+      prompt, 
+      { responseMimeType: "application/json" }
+    );
     return extractJSON(text);
   } catch (error) {
     handleAIError(error, 'Tag Generation');
@@ -190,9 +249,10 @@ const generateTags = async (content, config) => {
 };
 
 const chatWithAI = async (userMessage, context, config) => {
+  if (!config.geminiApiKey || !config.geminiApiKey.trim()) {
+    throw new Error('Gemini API Key is missing. Please add it in AI Settings.');
+  }
   const genAI = new GoogleGenerativeAI(config.geminiApiKey.trim());
-  const modelName = getValidModel(config.aiModel);
-  const model = genAI.getGenerativeModel({ model: modelName });
 
   const prompt = `
     You are an intelligent AI Assistant for a professional portfolio website belonging to ${context.ownerName}. 
@@ -212,31 +272,20 @@ const chatWithAI = async (userMessage, context, config) => {
     Response:
   `;
 
-  let retries = 2;
-  while (retries > 0) {
-    try {
-      const result = await model.generateContent(prompt);
-      return (await result.response).text().trim();
-    } catch (error) {
-      if (error.message.includes('503') || error.message.includes('429')) {
-        console.log(`⚠️ AI busy or limit hit, retrying in 5s... (${retries} left)`);
-        await new Promise(r => setTimeout(r, 5000));
-        retries--;
-        continue;
-      }
-      handleAIError(error, 'AI Chat');
-    }
+  try {
+    const text = await executeWithFallback(genAI, config.aiModel, prompt);
+    return text.trim();
+  } catch (error) {
+    handleAIError(error, 'AI Chat');
   }
-  throw new Error("AI is currently under heavy load. Please try again in a few minutes.");
 };
 
 const getKeywordMagicData = async ({ keyword, country = "Sri Lanka", domain = "" }, config) => {
   try {
+    if (!config.geminiApiKey || !config.geminiApiKey.trim()) {
+      throw new Error('Gemini API Key is missing. Please add it in AI Settings.');
+    }
     const genAI = new GoogleGenerativeAI(config.geminiApiKey.trim());
-    const model = genAI.getGenerativeModel({ 
-      model: getValidModel(config.aiModel),
-      generationConfig: { responseMimeType: "application/json" }
-    });
 
     const prompt = `
       Act as the Semrush Keyword Magic Tool engine. Perform deep SEO keyword research for the seed keyword "${keyword}" specifically for the target country/database "${country}".
@@ -285,12 +334,26 @@ const getKeywordMagicData = async ({ keyword, country = "Sri Lanka", domain = ""
       }
     `;
 
-    const result = await model.generateContent(prompt);
-    const text = (await result.response).text();
+    const text = await executeWithFallback(
+      genAI, 
+      config.aiModel, 
+      prompt, 
+      { responseMimeType: "application/json" }
+    );
     return extractJSON(text);
   } catch (error) {
     handleAIError(error, 'Keyword Magic Tool');
   }
 };
 
-module.exports = { generateBlogPost, optimizeSEO, getTrendingTopics, generateTags, chatWithAI, getKeywordMagicData };
+module.exports = { 
+  generateBlogPost, 
+  optimizeSEO, 
+  getTrendingTopics, 
+  generateTags, 
+  chatWithAI, 
+  getKeywordMagicData,
+  DEFAULT_MODEL,
+  SUPPORTED_MODELS,
+  getValidModel
+};
