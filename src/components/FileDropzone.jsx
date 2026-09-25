@@ -192,7 +192,7 @@ const FileDropzone = ({ files, setFiles, uploadProgress = null, isSubmitting = f
         onClick={() => !isSubmitting && fileInputRef.current?.click()}
       >
         <div className="dropzone-icon-wrap">
-          <UploadCloud size={36} className="dropzone-cloud-icon" />
+          <UploadCloud size={20} className="dropzone-cloud-icon" />
         </div>
         <div className="dropzone-text-content">
           <p className="dropzone-main-text">

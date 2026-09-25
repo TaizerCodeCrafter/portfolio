@@ -180,10 +180,10 @@ const ContactPage = () => {
             <div>
               <div className="channel-header">
                 <div className="channel-icon-wrap whatsapp">
-                  <MessageSquare size={26} />
+                  <MessageSquare size={18} />
                 </div>
                 <span className="channel-status-pill">
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></span>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }}></span>
                   Fastest Reply
                 </span>
               </div>
@@ -202,7 +202,7 @@ const ContactPage = () => {
                 rel="noopener noreferrer" 
                 className="btn-channel whatsapp"
               >
-                Chat on WhatsApp <ExternalLink size={14} />
+                Chat on WhatsApp <ExternalLink size={12} />
               </a>
               {settings.whatsappGroupUrl && (
                 <a 
@@ -222,10 +222,10 @@ const ContactPage = () => {
             <div>
               <div className="channel-header">
                 <div className="channel-icon-wrap email">
-                  <Mail size={26} />
+                  <Mail size={18} />
                 </div>
                 <span className="channel-status-pill" style={{ background: 'rgba(179, 90, 0, 0.1)', color: '#b35a00' }}>
-                  <Clock size={12} /> Within 2-4 hrs
+                  <Clock size={11} /> Within 2-4 hrs
                 </span>
               </div>
               <h3 className="channel-title">Direct Email</h3>
@@ -241,14 +241,14 @@ const ContactPage = () => {
                 href={`mailto:${settings.contactEmail}?subject=${encodeURIComponent(packageParam ? `Inquiry for ${packageParam}` : 'Project Inquiry')}`} 
                 className="btn-channel email"
               >
-                Send Email <Mail size={14} />
+                Send Email <Mail size={12} />
               </a>
               <button 
                 type="button" 
                 onClick={handleCopyEmail} 
                 className="btn-channel outline"
               >
-                {copiedEmail ? <><Check size={14} color="#10b981" /> Copied!</> : <><Copy size={14} /> Copy</>}
+                {copiedEmail ? <><Check size={12} color="#10b981" /> Copied!</> : <><Copy size={12} /> Copy</>}
               </button>
             </div>
           </div>
@@ -258,7 +258,7 @@ const ContactPage = () => {
             <div>
               <div className="channel-header">
                 <div className="channel-icon-wrap phone">
-                  <Phone size={26} />
+                  <Phone size={18} />
                 </div>
                 <span className="channel-status-pill" style={{ background: 'rgba(2, 132, 199, 0.1)', color: '#0284c7' }}>
                   Mon - Sat
@@ -277,7 +277,7 @@ const ContactPage = () => {
                 href={`tel:${(settings.contactPhone || '').replace(/[^0-9+]/g, '')}`} 
                 className="btn-channel phone"
               >
-                Call Now <Phone size={14} />
+                Call Now <Phone size={12} />
               </a>
             </div>
           </div>
@@ -311,7 +311,7 @@ const ContactPage = () => {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div className="contact-form-row">
                   <div className="contact-form-group">
                     <label className="contact-label">Your Name *</label>
@@ -379,7 +379,7 @@ const ContactPage = () => {
                 <div className="contact-form-group">
                   <label className="contact-label">Project Details & Requirements *</label>
                   <textarea 
-                    rows={5}
+                    rows={3}
                     placeholder="Tell me about your project, timeline, features needed, or any questions..."
                     required
                     value={formData.message}
@@ -389,8 +389,8 @@ const ContactPage = () => {
                 </div>
 
                 <div className="contact-form-group">
-                  <label className="contact-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Paperclip size={16} style={{ color: '#b35a00' }} /> Attachments (PDF, Photos, Zip, Folder, Setup .exe)
+                  <label className="contact-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Paperclip size={14} style={{ color: '#b35a00' }} /> Attachments (PDF, Photos, Zip, Folder, Setup .exe)
                   </label>
                   <FileDropzone 
                     files={files} 
@@ -401,7 +401,7 @@ const ContactPage = () => {
                 </div>
 
                 {error && (
-                  <div style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '12px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: '600' }}>
+                  <div style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '10px', borderRadius: '8px', fontSize: '0.80rem', fontWeight: '600' }}>
                     {error}
                   </div>
                 )}
@@ -416,9 +416,9 @@ const ContactPage = () => {
                   }}
                 >
                   {isSubmitting ? (
-                    <>Sending Message... <span className="loader" style={{ width: '16px', height: '16px', borderWidth: '2px', borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff', display: 'inline-block', marginLeft: '6px' }}></span></>
+                    <>Sending Message... <span className="loader" style={{ width: '14px', height: '14px', borderWidth: '2px', borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff', display: 'inline-block', marginLeft: '6px' }}></span></>
                   ) : (
-                    <>Send Message Directly <Send size={18} /></>
+                    <>Send Message Directly <Send size={15} /></>
                   )}
                 </button>
               </form>
@@ -427,13 +427,13 @@ const ContactPage = () => {
 
           {/* Right: Side Highlights */}
           <div className="contact-side-card">
-            <h3 className="contact-card-title" style={{ fontSize: '1.25rem' }}>
+            <h3 className="contact-card-title" style={{ fontSize: '1.05rem', marginBottom: '4px' }}>
               Why Work With Me?
             </h3>
 
             <div className="side-feature">
               <div className="side-feature-icon">
-                <Clock size={22} />
+                <Clock size={16} />
               </div>
               <div>
                 <h4>Fast Turnaround</h4>
@@ -443,7 +443,7 @@ const ContactPage = () => {
 
             <div className="side-feature">
               <div className="side-feature-icon">
-                <ShieldCheck size={22} />
+                <ShieldCheck size={16} />
               </div>
               <div>
                 <h4>100% Quality & Support</h4>
@@ -453,7 +453,7 @@ const ContactPage = () => {
 
             <div className="side-feature">
               <div className="side-feature-icon">
-                <MapPin size={22} />
+                <MapPin size={16} />
               </div>
               <div>
                 <h4>Global Clients & Sri Lanka</h4>
@@ -474,27 +474,27 @@ const ContactPage = () => {
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center', 
-                  gap: '8px', 
+                  gap: '6px', 
                   background: '#25D366', 
                   color: 'white', 
-                  padding: '12px 20px', 
-                  borderRadius: '12px', 
+                  padding: '8px 14px', 
+                  borderRadius: '8px', 
                   fontWeight: '700', 
-                  fontSize: '0.9rem', 
+                  fontSize: '0.80rem', 
                   textDecoration: 'none' 
                 }}
               >
-                <MessageSquare size={18} /> Open WhatsApp Chat
+                <MessageSquare size={15} /> Open WhatsApp Chat
               </a>
 
               {settings.websiteQrActive !== false && (
-                <div style={{ marginTop: '20px', padding: '16px', borderRadius: '16px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{ width: '64px', height: '64px', background: 'white', borderRadius: '12px', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 10px rgba(0,0,0,0.15)' }}>
+                <div style={{ marginTop: '12px', padding: '10px 12px', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: '44px', height: '44px', background: 'white', borderRadius: '8px', padding: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
                     <img src={settings.websiteQr || '/website-qr.png'} alt="Website QR Code" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                   </div>
                   <div>
-                    <h5 style={{ margin: '0 0 3px 0', fontSize: '0.88rem', fontWeight: '800', color: 'var(--text-primary)' }}>{settings.websiteQrLabel || 'Scan on Mobile'}</h5>
-                    <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Open this portfolio on your phone to call or chat instantly.</p>
+                    <h5 style={{ margin: '0 0 2px 0', fontSize: '0.80rem', fontWeight: '800', color: 'var(--text-primary)' }}>{settings.websiteQrLabel || 'Scan on Mobile'}</h5>
+                    <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Open this portfolio on your phone to call or chat instantly.</p>
                   </div>
                 </div>
               )}

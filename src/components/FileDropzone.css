@@ -1,12 +1,12 @@
 .file-dropzone-container {
-  margin: 15px 0 20px 0;
+  margin: 6px 0 10px 0;
   width: 100%;
 }
 
 .dropzone-box {
-  border: 2px dashed rgba(255, 255, 255, 0.18);
-  border-radius: 16px;
-  padding: 24px 20px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  padding: 12px 14px;
   background: rgba(255, 255, 255, 0.02);
   text-align: center;
   cursor: pointer;
@@ -14,7 +14,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   position: relative;
   overflow: hidden;
 }
@@ -39,9 +39,9 @@
 }
 
 .dropzone-icon-wrap {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   background: rgba(179, 90, 0, 0.1);
   display: flex;
   align-items: center;
@@ -51,17 +51,17 @@
 }
 
 .dropzone-box:hover .dropzone-icon-wrap {
-  transform: scale(1.1);
+  transform: scale(1.08);
 }
 
 .dropzone-text-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .dropzone-main-text {
-  font-size: 0.95rem;
+  font-size: 0.82rem;
   color: #ffffff;
   font-weight: 600;
   margin: 0;
@@ -73,26 +73,26 @@
 }
 
 .dropzone-sub-text {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: rgba(255, 255, 255, 0.5);
   margin: 0;
 }
 
 .dropzone-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   justify-content: center;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .dropzone-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 16px;
-  border-radius: 9px;
-  font-size: 0.82rem;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.74rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
